@@ -16,22 +16,23 @@ export type PlayerActivity = {
   players: number;
 };
 
-export type Anomaly = {
-  description: string;
-  severity: string;
-  logEntries: string[];
+export type Player = {
+  name: string;
+  score: number;
+  time: number;
 };
 
-export type AnomalyDetectionState = {
-  message?: string | null;
-  errors?: {
-    logs?: string[];
-  };
-  anomalies?: Anomaly[];
+export type ServerState = {
+  name: string;
+  map: string;
+  players: Player[];
+  maxplayers: number;
+  game: string;
 };
 
 export type ViewType = 
   | 'summary' 
+  | 'players'
   | 'logs_all' 
   | 'logs_connection' 
   | 'logs_chat' 

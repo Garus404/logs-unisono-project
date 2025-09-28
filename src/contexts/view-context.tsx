@@ -13,6 +13,7 @@ const ViewContext = createContext<ViewContextType | undefined>(undefined);
 
 const viewTitles: Record<ViewType, string> = {
     summary: "Сводка сервера",
+    players: "Игроки на сервере",
     logs_all: "Все логи",
     logs_connection: "Логи подключений",
     logs_chat: "Логи чата",

@@ -5,7 +5,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   LogOut,
-  ShieldAlert,
+  Users,
   UserCircle,
 } from "lucide-react";
 import {
@@ -64,6 +64,16 @@ export default function AppSidebar() {
             >
               <LayoutDashboard />
               <span>Сводка</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleSetView('players')}
+              isActive={view === 'players'}
+              tooltip="Игроки на сервере"
+            >
+              <Users />
+              <span>Игроки</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
