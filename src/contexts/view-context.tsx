@@ -12,20 +12,20 @@ type ViewContextType = {
 const ViewContext = createContext<ViewContextType | undefined>(undefined);
 
 const viewTitles: Record<ViewType, string> = {
-    summary: "Server Summary",
-    logs_all: "All Logs",
-    logs_connection: "Connection Logs",
-    logs_chat: "Chat Logs",
-    logs_damage: "Damage Logs",
-    logs_kill: "Kill Logs",
-    logs_spawn: "Spawn Logs",
-    logs_admin: "Admin Logs",
-    anomaly_detection: "AI Anomaly Detection",
+    summary: "Сводка сервера",
+    logs_all: "Все логи",
+    logs_connection: "Логи подключений",
+    logs_chat: "Логи чата",
+    logs_damage: "Логи урона",
+    logs_kill: "Логи убийств",
+    logs_spawn: "Логи появлений",
+    logs_admin: "Логи админа",
+    anomaly_detection: "Обнаружение аномалий ИИ",
 }
 
 export function ViewProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<ViewType>('summary');
-  const viewTitle = viewTitles[view] || "Dashboard";
+  const viewTitle = viewTitles[view] || "Панель управления";
 
   return (
     <ViewContext.Provider value={{ view, setView, viewTitle }}>

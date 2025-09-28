@@ -28,12 +28,12 @@ import { Separator } from "../ui/separator";
 import type { LogType, ViewType } from "@/lib/types";
 
 const logViews: { view: ViewType; label: string; type: LogType }[] = [
-  { view: 'logs_connection', label: 'Connections', type: 'CONNECTION' },
-  { view: 'logs_chat', label: 'Chats', type: 'CHAT' },
-  { view: 'logs_damage', label: 'Damage', type: 'DAMAGE' },
-  { view: 'logs_kill', label: 'Kills', type: 'KILL' },
-  { view: 'logs_spawn', label: 'Spawns', type: 'SPAWN' },
-  { view: 'logs_admin', label: 'Admin', type: 'ADMIN' },
+  { view: 'logs_connection', label: 'Подключения', type: 'CONNECTION' },
+  { view: 'logs_chat', label: 'Чаты', type: 'CHAT' },
+  { view: 'logs_damage', label: 'Урон', type: 'DAMAGE' },
+  { view: 'logs_kill', label: 'Убийства', type: 'KILL' },
+  { view: 'logs_spawn', label: 'Появления', type: 'SPAWN' },
+  { view: 'logs_admin', label: 'Админ', type: 'ADMIN' },
 ];
 
 export default function AppSidebar() {
@@ -61,10 +61,10 @@ export default function AppSidebar() {
             <SidebarMenuButton
               onClick={handleSetView('summary')}
               isActive={view === 'summary'}
-              tooltip="Server Summary"
+              tooltip="Сводка сервера"
             >
               <LayoutDashboard />
-              <span>Summary</span>
+              <span>Сводка</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
@@ -73,7 +73,7 @@ export default function AppSidebar() {
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton isActive={isLogsActive}>
                   <BookCopy />
-                  <span>Logs</span>
+                  <span>Логи</span>
                   <ChevronDown className="ml-auto size-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
@@ -83,7 +83,7 @@ export default function AppSidebar() {
                <SidebarMenu className="py-1">
                  <SidebarMenuItem>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleSetView('logs_all')} data-active={view === 'logs_all'}>
-                      All Logs
+                      Все логи
                   </Button>
                  </SidebarMenuItem>
                 {logViews.map(logView => (
@@ -102,10 +102,10 @@ export default function AppSidebar() {
             <SidebarMenuButton
               onClick={handleSetView('anomaly_detection')}
               isActive={view === 'anomaly_detection'}
-              tooltip="AI Anomaly Detection"
+              tooltip="Обнаружение аномалий ИИ"
             >
               <ShieldAlert />
-              <span>AI Anomaly Detection</span>
+              <span>Обнаружение аномалий</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -116,13 +116,13 @@ export default function AppSidebar() {
             <SidebarMenuItem>
                 <SidebarMenuButton>
                     <UserCircle />
-                    <span>Admin</span>
+                    <span>Админ</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton variant="outline" className="text-destructive-foreground/80 hover:bg-destructive/80 hover:text-destructive-foreground bg-destructive/90">
                     <LogOut />
-                    <span>Logout</span>
+                    <span>Выйти</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

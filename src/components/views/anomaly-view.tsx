@@ -22,7 +22,7 @@ function SubmitButton() {
   return (
     <Button type="submit" disabled={pending}>
       {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Analyze Logs
+      Анализировать логи
     </Button>
   );
 }
@@ -50,10 +50,10 @@ export default function AnomalyView() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state.message && state.message !== 'Analysis complete.') {
+    if (state.message && state.message !== 'Анализ завершен.') {
       toast({
         title: state.message,
-        variant: (state.errors || state.message.includes('error')) ? 'destructive' : 'default',
+        variant: (state.errors || state.message.includes('ошибка')) ? 'destructive' : 'default',
       });
     }
   }, [state, toast]);
@@ -62,17 +62,17 @@ export default function AnomalyView() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <Card>
         <CardHeader>
-          <CardTitle>Detect Anomalies with AI</CardTitle>
+          <CardTitle>Обнаружение аномалий с помощью ИИ</CardTitle>
           <CardDescription>
-            Paste your server logs below. The AI will analyze them for unusual patterns,
-            potential security threats, or performance issues.
+            Вставьте логи вашего сервера ниже. ИИ проанализирует их на наличие необычных паттернов,
+            потенциальных угроз безопасности или проблем с производительностью.
           </CardDescription>
         </CardHeader>
         <form action={formAction}>
           <CardContent>
             <Textarea
               name="logs"
-              placeholder="Paste server logs here..."
+              placeholder="Вставьте логи сервера здесь..."
               className="min-h-[300px] font-mono text-xs"
               required
             />
@@ -88,9 +88,9 @@ export default function AnomalyView() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Analysis Results</CardTitle>
+          <CardTitle>Результаты анализа</CardTitle>
           <CardDescription>
-            Anomalies detected by the AI will be displayed here.
+            Обнаруженные ИИ аномалии будут отображены здесь.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,8 +121,8 @@ export default function AnomalyView() {
             ) : (
               <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full p-8 rounded-lg border-2 border-dashed">
                 <ShieldCheck className="w-16 h-16 mb-4" />
-                <h3 className="text-lg font-semibold">No Results Yet</h3>
-                <p className="text-sm">Submit logs to begin analysis.</p>
+                <h3 className="text-lg font-semibold">Пока нет результатов</h3>
+                <p className="text-sm">Отправьте логи, чтобы начать анализ.</p>
               </div>
             )}
           </div>

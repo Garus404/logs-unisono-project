@@ -34,13 +34,13 @@ const prompt = ai.definePrompt({
   name: 'detectAnomaliesPrompt',
   input: {schema: DetectAnomaliesInputSchema},
   output: {schema: DetectAnomaliesOutputSchema},
-  prompt: `You are an expert system administrator specializing in detecting anomalies in server logs.
+  prompt: `Вы — экспертный системный администратор, специализирующийся на обнаружении аномалий в логах серверов.
 
-You will analyze the provided server logs and identify any unusual patterns or anomalies that could indicate security threats or performance issues.
+Вы проанализируете предоставленные логи сервера и выявите любые необычные закономерности или аномалии, которые могут указывать на угрозы безопасности или проблемы с производительностью.
 
-For each detected anomaly, provide a description, severity (low, medium, high), and the specific log entries related to the anomaly.
+Для каждой обнаруженной аномалии предоставьте описание, степень серьезности (низкая, средняя, высокая) и конкретные записи логов, связанные с аномалией.
 
-Server Logs:
+Логи сервера:
 {{{logs}}}`,
 });
 

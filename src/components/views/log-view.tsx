@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -49,12 +50,12 @@ const logTypeIcons: Record<LogType, React.ElementType> = {
 };
 
 const logTypeLabels: Record<LogType, string> = {
-  CONNECTION: "Connection",
-  CHAT: "Chat",
-  DAMAGE: "Damage",
-  KILL: "Kill",
-  SPAWN: "Spawn",
-  ADMIN: "Admin",
+  CONNECTION: "Подключение",
+  CHAT: "Чат",
+  DAMAGE: "Урон",
+  KILL: "Убийство",
+  SPAWN: "Появление",
+  ADMIN: "Админ",
 };
 
 interface LogViewProps {
@@ -92,7 +93,7 @@ export default function LogView({ filterType }: LogViewProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by user, details, or SteamID..."
+            placeholder="Поиск по пользователю, деталям или SteamID..."
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -104,10 +105,10 @@ export default function LogView({ filterType }: LogViewProps) {
                 onValueChange={(value) => setTypeFilter(value as LogType | "all")}
             >
                 <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Filter by type" />
+                <SelectValue placeholder="Фильтр по типу" />
                 </SelectTrigger>
                 <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="all">Все типы</SelectItem>
                 {Object.keys(logTypeLabels).map((type) => (
                     <SelectItem key={type} value={type}>
                     {logTypeLabels[type as LogType]}
@@ -129,14 +130,14 @@ export default function LogView({ filterType }: LogViewProps) {
                     {date?.from ? (
                         date.to ? (
                         <>
-                            {format(date.from, "LLL dd, y")} -{" "}
-                            {format(date.to, "LLL dd, y")}
+                            {format(date.from, "LLL dd, y", { locale: ru })} -{" "}
+                            {format(date.to, "LLL dd, y", { locale: ru })}
                         </>
                         ) : (
-                        format(date.from, "LLL dd, y")
+                        format(date.from, "LLL dd, y", { locale: ru })
                         )
                     ) : (
-                        <span>Pick a date range</span>
+                        <span>Выберите диапазон дат</span>
                     )}
                     </Button>
                 </PopoverTrigger>
@@ -148,6 +149,7 @@ export default function LogView({ filterType }: LogViewProps) {
                     selected={date}
                     onSelect={setDate}
                     numberOfMonths={2}
+                    locale={ru}
                     />
                 </PopoverContent>
             </Popover>
@@ -161,7 +163,7 @@ export default function LogView({ filterType }: LogViewProps) {
               }}
             >
               <X className="mr-2 h-4 w-4" />
-              Reset
+              Сбросить
             </Button>
           )}
         </div>
@@ -171,10 +173,10 @@ export default function LogView({ filterType }: LogViewProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Timestamp</TableHead>
-              <TableHead className="w-[120px]">Type</TableHead>
-              <TableHead className="w-[200px]">User</TableHead>
-              <TableHead>Details</TableHead>
+              <TableHead className="w-[180px]">Время</TableHead>
+              <TableHead className="w-[120px]">Тип</TableHead>
+              <TableHead className="w-[200px]">Пользователь</TableHead>
+              <TableHead>Детали</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -184,7 +186,7 @@ export default function LogView({ filterType }: LogViewProps) {
                 return (
                     <TableRow key={log.id}>
                     <TableCell className="font-medium tabular-nums">
-                      {format(log.timestamp, "MMM dd, hh:mm:ss a")}
+                      {format(log.timestamp, "MMM dd, hh:mm:ss a", { locale: ru })}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="flex items-center gap-2 w-fit">
@@ -203,7 +205,7 @@ export default function LogView({ filterType }: LogViewProps) {
             ) : (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  No logs found.
+                  Логи не найдены.
                 </TableCell>
               </TableRow>
             )}

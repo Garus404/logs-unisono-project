@@ -14,7 +14,7 @@ import {
 
 const chartConfig = {
   players: {
-    label: "Players",
+    label: "Игроки",
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
@@ -24,7 +24,7 @@ export default function SummaryView() {
 
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString());
+      setCurrentTime(new Date().toLocaleTimeString('ru-RU'));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -34,11 +34,11 @@ export default function SummaryView() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Server Status</CardTitle>
+            <CardTitle className="text-sm font-medium">Статус сервера</CardTitle>
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-400">Online</div>
+            <div className="text-2xl font-bold text-green-400">Онлайн</div>
             <p className="text-xs text-muted-foreground">
               ۞ Unisono | Area-51
             </p>
@@ -46,24 +46,24 @@ export default function SummaryView() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Players</CardTitle>
+            <CardTitle className="text-sm font-medium">Игроки</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">42 / 64</div>
             <p className="text-xs text-muted-foreground">
-              +5 in the last hour
+              +5 за последний час
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Server Time</CardTitle>
+            <CardTitle className="text-sm font-medium">Время сервера</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tabular-nums">
-              {currentTime || "Loading..."}
+              {currentTime || "Загрузка..."}
             </div>
             <p className="text-xs text-muted-foreground">UTC+0</p>
           </CardContent>
@@ -72,7 +72,7 @@ export default function SummaryView() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Player Activity (Last 48 Hours)</CardTitle>
+          <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
         </CardHeader>
         <CardContent className="pl-2">
           <ChartContainer config={chartConfig} className="h-[300px] w-full">

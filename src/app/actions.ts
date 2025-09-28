@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { AnomalyDetectionState } from '@/lib/types';
 
 const schema = z.object({
-  logs: z.string().min(50, { message: 'Please provide at least 50 characters of log data for a meaningful analysis.' }),
+  logs: z.string().min(50, { message: 'Пожалуйста, предоставьте не менее 50 символов данных логов для значимого анализа.' }),
 });
 
 export async function detectAnomaliesAction(
@@ -18,7 +18,7 @@ export async function detectAnomaliesAction(
 
   if (!validatedFields.success) {
     return {
-      message: 'Invalid input.',
+      message: 'Неверный ввод.',
       errors: validatedFields.error.flatten().fieldErrors,
       anomalies: [],
     };
@@ -28,18 +28,18 @@ export async function detectAnomaliesAction(
     const result = await detectAnomalies({ logs: validatedFields.data.logs });
     if (!result || !result.anomalies || result.anomalies.length === 0) {
       return {
-        message: 'Analysis complete. No anomalies found.',
+        message: 'Анализ завершен. Аномалий не найдено.',
         anomalies: [],
       };
     }
     return {
-      message: 'Analysis complete.',
+      message: 'Анализ завершен.',
       anomalies: result.anomalies,
     };
   } catch (error) {
-    console.error("Anomaly detection error:", error);
+    console.error("Ошибка обнаружения аномалий:", error);
     return {
-      message: 'An unexpected error occurred during analysis. Please try again later.',
+      message: 'Во время анализа произошла непредвиденная ошибка. Пожалуйста, повторите попытку позже.',
       anomalies: [],
     };
   }
