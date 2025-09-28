@@ -30,7 +30,6 @@ import {
   HeartCrack,
   Swords,
   LocateFixed,
-  UserCog,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -46,7 +45,6 @@ const logTypeIcons: Record<LogType, React.ElementType> = {
   DAMAGE: HeartCrack,
   KILL: Swords,
   SPAWN: LocateFixed,
-  ADMIN: UserCog,
 };
 
 const logTypeLabels: Record<LogType, string> = {
@@ -55,7 +53,6 @@ const logTypeLabels: Record<LogType, string> = {
   DAMAGE: "Урон",
   KILL: "Убийство",
   SPAWN: "Появление",
-  ADMIN: "Админ",
 };
 
 interface LogViewProps {

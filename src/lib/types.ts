@@ -1,4 +1,4 @@
-export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN' | 'ADMIN';
+export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN';
 
 export type LogEntry = {
   id: string;
@@ -37,6 +37,4 @@ export type ViewType =
   | 'logs_chat' 
   | 'logs_damage' 
   | 'logs_kill'
-  | 'logs_spawn'
-  | 'logs_admin'
-  | 'anomaly_detection';
+  | 'logs_spawn';

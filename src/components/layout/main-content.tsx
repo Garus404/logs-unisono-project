@@ -4,7 +4,6 @@ import { useView } from "@/contexts/view-context";
 import ContentHeader from "./content-header";
 import SummaryView from "../views/summary-view";
 import LogView from "../views/log-view";
-import AnomalyView from "../views/anomaly-view";
 import type { LogType } from "@/lib/types";
 
 export default function MainContent() {
@@ -19,8 +18,6 @@ export default function MainContent() {
     switch (view) {
       case "summary":
         return <SummaryView />;
-      case "anomaly_detection":
-        return <AnomalyView />;
       default:
         return <SummaryView />;
     }

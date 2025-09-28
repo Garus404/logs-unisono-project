@@ -33,7 +33,6 @@ const logViews: { view: ViewType; label: string; type: LogType }[] = [
   { view: 'logs_damage', label: 'Урон', type: 'DAMAGE' },
   { view: 'logs_kill', label: 'Убийства', type: 'KILL' },
   { view: 'logs_spawn', label: 'Появления', type: 'SPAWN' },
-  { view: 'logs_admin', label: 'Админ', type: 'ADMIN' },
 ];
 
 export default function AppSidebar() {
@@ -96,18 +95,6 @@ export default function AppSidebar() {
                </SidebarMenu>
             </CollapsibleContent>
           </Collapsible>
-
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleSetView('anomaly_detection')}
-              isActive={view === 'anomaly_detection'}
-              tooltip="Обнаружение аномалий ИИ"
-            >
-              <ShieldAlert />
-              <span>Обнаружение аномалий</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">

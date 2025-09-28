@@ -19,13 +19,11 @@ const viewTitles: Record<ViewType, string> = {
     logs_damage: "Логи урона",
     logs_kill: "Логи убийств",
     logs_spawn: "Логи появлений",
-    logs_admin: "Логи админа",
-    anomaly_detection: "Обнаружение аномалий ИИ",
 }
 
 export function ViewProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<ViewType>('summary');
-  const viewTitle = viewTitles[view] || "Панель управления";
+  const viewTitle = viewTitles[view as keyof typeof viewTitles] || "Панель управления";
 
   return (
     <ViewContext.Provider value={{ view, setView, viewTitle }}>

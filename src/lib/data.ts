@@ -68,13 +68,6 @@ export const mockLogs: LogEntry[] = [
     details: `${users[2].name} подключился.`,
   },
   {
-    id: '9',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 9),
-    type: 'ADMIN',
-    user: users[2],
-    details: `${users[2].name} включил noclip.`,
-  },
-  {
     id: '10',
     timestamp: new Date(now.getTime() - 1000 * 60 * 10),
     type: 'CONNECTION',
@@ -131,13 +124,6 @@ export const mockLogs: LogEntry[] = [
     details: `Время побеждать.`,
   },
   {
-    id: '18',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 18),
-    type: 'ADMIN',
-    user: users[2],
-    details: `${users[2].name} кикнул xX_Sniper_Xx за RDM.`,
-  },
-  {
     id: '19',
     timestamp: new Date(now.getTime() - 1000 * 60 * 19),
     type: 'CONNECTION',
@@ -151,7 +137,7 @@ export const mockLogs: LogEntry[] = [
     user: users[4],
     details: `${users[4].name} появился как Chaos Insurgency.`,
   },
-];
+].filter(log => log.type !== 'ADMIN') as LogEntry[];
 
 export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 24 }, (_, i) => {
     const d = new Date(now);
