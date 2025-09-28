@@ -90,7 +90,7 @@ export default function PlayersView() {
             </CardHeader>
             <CardContent>
                 {loading && <PlayerListSkeleton />}
-                {error && (
+                {error && !loading && (
                     <div className="flex items-center justify-center h-64 text-muted-foreground">
                         <p>Не удалось загрузить список игроков.</p>
                     </div>
@@ -132,7 +132,7 @@ export default function PlayersView() {
                         </TableBody>
                     </Table>
                 )}
-                 {serverState && serverState.players.length === 0 && (
+                 {serverState && serverState.players.length === 0 && !loading && (
                     <div className="flex items-center justify-center h-64 text-muted-foreground">
                         <p>На сервере сейчас нет игроков.</p>
                     </div>
@@ -147,14 +147,14 @@ export default function PlayersView() {
             </CardHeader>
             <CardContent className="space-y-4">
                 {loading && <InfoCardSkeleton />}
-                {error && (
+                {error && !loading && (
                     <Alert variant="destructive">
                     <ServerCrash className="h-4 w-4" />
                     <AlertTitle>Ошибка</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
-                {serverState && (
+                {serverState && !loading && (
                     <>
                          <div className="flex items-center gap-3">
                             <Info className="w-5 h-5 text-muted-foreground"/>
