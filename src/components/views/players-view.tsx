@@ -1,127 +1,189 @@
 "use client";
 
 import * as React from "react";
-import { getServerInfoAction } from "@/app/actions";
-import type { ServerInfo } from "@/app/actions";
+import { getServerStateAction } from "@/app/actions";
+import type { ServerState, Player } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Gamepad2, Info, Map, ServerCrash, Users } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Gamepad2, Info, Map, ServerCrash, Users, Clock, Trophy } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 function InfoCardSkeleton() {
-    return (
-        <div className="space-y-3">
-            <Skeleton className="h-5 w-4/5" />
-            <Skeleton className="h-4 w-3/5" />
-            <Skeleton className="h-4 w-2/5" />
-            <Skeleton className="h-4 w-4/5" />
-        </div>
-    );
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-3/4" />
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-4/5" />
+        <Skeleton className="h-4 w-3/5" />
+        <Skeleton className="h-4 w-2/5" />
+        <Skeleton className="h-4 w-4/5" />
+      </div>
+    </div>
+  );
 }
 
+function PlayerListSkeleton() {
+    return (
+        <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-2">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+function formatTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+
 export default function PlayersView() {
-  const [serverInfo, setServerInfo] = React.useState<ServerInfo | null>(null);
+  const [serverState, setServerState] = React.useState<ServerState | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchServerInfo = async () => {
+    const fetchServerState = async () => {
       setLoading(true);
-      const result = await getServerInfoAction();
+      const result = await getServerStateAction();
       if ('error' in result) {
         setError(result.error);
-        setServerInfo(null);
+        setServerState(null);
       } else {
-        setServerInfo(result);
+        setServerState(result);
         setError(null);
       }
       setLoading(false);
     };
 
-    fetchServerInfo();
+    fetchServerState();
+    const interval = setInterval(fetchServerState, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
-  const playerPercentage = serverInfo ? (serverInfo.players / serverInfo.maxPlayers) * 100 : 0;
-
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Информация о сервере</CardTitle>
-          <CardDescription>
-            Текущая информация о игровом сервере.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-             {loading && <InfoCardSkeleton />}
-             {error && (
-                <Alert variant="destructive">
-                  <ServerCrash className="h-4 w-4" />
-                  <AlertTitle>Ошибка</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-             )}
-             {serverInfo && (
-                <>
-                    <div className="flex items-center gap-3">
-                        <Info className="w-5 h-5 text-muted-foreground"/>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Название</p>
-                            <p className="font-semibold">{serverInfo.name}</p>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2">
+        <Card>
+            <CardHeader>
+                <CardTitle>Список игроков</CardTitle>
+                <CardDescription>
+                    Игроки, находящиеся на сервере в данный момент.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading && <PlayerListSkeleton />}
+                {error && (
+                    <div className="flex items-center justify-center h-64 text-muted-foreground">
+                        <p>Не удалось загрузить список игроков.</p>
+                    </div>
+                )}
+                {serverState && serverState.players.length > 0 && (
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Игрок</TableHead>
+                                <TableHead className="text-right">Счет</TableHead>
+                                <TableHead className="text-right">Время в игре</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {serverState.players.map((player, index) => (
+                                <TableRow key={`${player.name}-${index}`}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="w-8 h-8">
+                                                <AvatarFallback>{player.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">{player.name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right tabular-nums">
+                                        <div className="flex items-center justify-end gap-2">
+                                           <Trophy className="w-4 h-4 text-amber-400" />
+                                           {player.score}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right tabular-nums">
+                                        <div className="flex items-center justify-end gap-2">
+                                           <Clock className="w-4 h-4 text-muted-foreground" />
+                                           {formatTime(player.time)}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+                 {serverState && serverState.players.length === 0 && (
+                    <div className="flex items-center justify-center h-64 text-muted-foreground">
+                        <p>На сервере сейчас нет игроков.</p>
+                    </div>
+                 )}
+            </CardContent>
+        </Card>
+      </div>
+      <div className="lg:col-span-1 space-y-6">
+        <Card>
+            <CardHeader>
+                <CardTitle>Информация</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {loading && <InfoCardSkeleton />}
+                {error && (
+                    <Alert variant="destructive">
+                    <ServerCrash className="h-4 w-4" />
+                    <AlertTitle>Ошибка</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                {serverState && (
+                    <>
+                         <div className="flex items-center gap-3">
+                            <Info className="w-5 h-5 text-muted-foreground"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Название</p>
+                                <p className="font-semibold">{serverState.name}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Map className="w-5 h-5 text-muted-foreground"/>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Карта</p>
-                            <p className="font-semibold">{serverInfo.map}</p>
+                        <div className="flex items-center gap-3">
+                            <Map className="w-5 h-5 text-muted-foreground"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Карта</p>
+                                <p className="font-semibold">{serverState.map}</p>
+                            </div>
                         </div>
-                    </div>
-                     <div className="flex items-center gap-3">
-                        <Gamepad2 className="w-5 h-5 text-muted-foreground"/>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Игра</p>
-                            <p className="font-semibold">{serverInfo.game}</p>
+                        <div className="flex items-center gap-3">
+                            <Gamepad2 className="w-5 h-5 text-muted-foreground"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Игра</p>
+                                <p className="font-semibold">{serverState.game}</p>
+                            </div>
                         </div>
-                    </div>
-                </>
-             )}
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Игроки</CardTitle>
-           <CardDescription>
-            Количество игроков на сервере в данный момент.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col justify-center items-center h-full space-y-4 pt-8">
-            {loading && (
-                <>
-                    <Skeleton className="h-16 w-32" />
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-4 w-full" />
-                </>
-            )}
-            {serverInfo && (
-                <>
-                    <div className="text-6xl font-bold">
-                        {serverInfo.players} 
-                        <span className="text-3xl text-muted-foreground">/ {serverInfo.maxPlayers}</span>
-                    </div>
-                    <p className="text-muted-foreground flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>{`Занято ${playerPercentage.toFixed(0)}% слотов`}</span>
-                    </p>
-                    <Progress value={playerPercentage} className="w-full" />
-                </>
-            )}
-            {error && <p className="text-sm text-muted-foreground">Не удалось загрузить информацию о игроках.</p>}
-        </CardContent>
-      </Card>
-
+                        <div className="flex items-center gap-3">
+                            <Users className="w-5 h-5 text-muted-foreground"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Игроки</p>
+                                <p className="font-semibold">{serverState.players.length} / {serverState.maxplayers}</p>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

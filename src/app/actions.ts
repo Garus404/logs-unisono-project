@@ -1,97 +1,45 @@
 "use server";
 
-import dgram from 'dgram';
+import type { Player, ServerState } from '@/lib/types';
+import GameDig from 'gamedig';
 
-export interface ServerInfo {
-    name: string;
-    map: string;
-    game: string;
-    players: number;
-    maxPlayers: number;
-}
+// A workaround to fix the dynamic require issue with gamedig in Next.js
+// This forces webpack to include the necessary protocol files.
+// require('gamedig/lib/protocols/valve');
+// require('gamedig/lib/protocols/garrysmod');
 
-
-export async function getServerInfoAction(): Promise<ServerInfo | { error: string }> {
-  return new Promise((resolve) => {
-    const client = dgram.createSocket('udp4');
-    const host = '46.174.53.106';
-    const port = 27015;
-
-    // A2S_INFO Source Engine query packet
-    const message = Buffer.from([0xFF, 0xFF, 0xFF, 0xFF, 0x54, 0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x20, 0x45, 0x6E, 0x67, 0x69, 0x6E, 0x65, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x00]);
-
-    let hasResponded = false;
-
-    const timeout = setTimeout(() => {
-        if (!hasResponded) {
-            client.close();
-            console.error("❌ Нет ответа: Таймаут");
-            resolve({ error: `Не удалось подключиться к серверу: Таймаут запроса` });
-        }
-    }, 3000);
-
-    client.on('message', (msg) => {
-        hasResponded = true;
-        clearTimeout(timeout);
-        try {
-            // Basic parsing of A2S_INFO response
-            // This is a simplified parser and might not be fully robust
-            let offset = 6; // Skip header and protocol
-            
-            const nameEnd = msg.indexOf(0x00, offset);
-            const name = msg.toString('utf-8', offset, nameEnd);
-            offset = nameEnd + 1;
-            
-            const mapEnd = msg.indexOf(0x00, offset);
-            const map = msg.toString('utf-8', offset, mapEnd);
-            offset = mapEnd + 1;
-            
-            const folderEnd = msg.indexOf(0x00, offset);
-            offset = folderEnd + 1;
-            
-            const gameEnd = msg.indexOf(0x00, offset);
-            const game = msg.toString('utf-8', offset, gameEnd);
-            offset = gameEnd + 1;
-            
-            offset += 2; // Skip AppID
-
-            const players = msg.readUInt8(offset);
-            offset += 1;
-            
-            const maxPlayers = msg.readUInt8(offset);
-
-            const serverInfo: ServerInfo = {
-                name,
-                map,
-                game,
-                players,
-                maxPlayers
-            };
-            
-            client.close();
-            resolve(serverInfo);
-
-        } catch (e: any) {
-            client.close();
-            console.error("❌ Ошибка парсинга:", e);
-            resolve({ error: `Ошибка обработки ответа от сервера: ${e.message}` });
-        }
+export async function getServerStateAction(): Promise<ServerState | { error: string }> {
+  try {
+    const state = await GameDig.query({
+      type: 'garrysmod',
+      host: '46.174.53.106',
+      port: 27015,
+      maxAttempts: 2,
+      socketTimeout: 3000,
     });
+    
+    // The library returns a mix of types, so we cast it to any and then shape it.
+    const anyState: any = state;
 
-    client.on('error', (err) => {
-        clearTimeout(timeout);
-        client.close();
-        console.error("❌ Ошибка сокета:", err);
-        resolve({ error: `Ошибка подключения к серверу: ${err.message}` });
-    });
+    const serverState: ServerState = {
+        name: anyState.name,
+        map: anyState.map,
+        players: anyState.players.map((p: any): Player => ({
+            name: p.name || 'Неизвестный игрок',
+            score: p.score ?? 0,
+            time: p.time ?? 0,
+        })),
+        maxplayers: anyState.maxplayers,
+        game: anyState.game,
+    };
 
-    client.send(message, port, host, (err) => {
-        if (err) {
-            clearTimeout(timeout);
-            client.close();
-            console.error("❌ Ошибка отправки:", err);
-            resolve({ error: `Не удалось отправить запрос к серверу: ${err.message}` });
-        }
-    });
-  });
+    return serverState;
+  } catch (error: any) {
+    console.error("❌ Gamedig query failed:", error);
+    let errorMessage = "Не удалось получить информацию о сервере.";
+    if (error.message.includes('UDP timeout')) {
+        errorMessage = "Сервер не отвечает (таймаут).";
+    }
+    return { error: errorMessage };
+  }
 }
