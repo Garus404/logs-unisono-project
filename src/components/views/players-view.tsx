@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { getServerStateAction } from "@/app/actions";
-import type { ServerState, Player } from "@/lib/types";
+import type { ServerState } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,16 +54,22 @@ export default function PlayersView() {
 
   React.useEffect(() => {
     const fetchServerState = async () => {
-      setLoading(true);
-      const result = await getServerStateAction();
-      if ('error' in result) {
-        setError(result.error);
-        setServerState(null);
-      } else {
-        setServerState(result);
+      try {
+        setLoading(true);
+        const response = await fetch('/api/server-stats');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Ошибка при получении данных');
+        }
+        const data: ServerState = await response.json();
+        setServerState(data);
         setError(null);
+      } catch (e: any) {
+        setError(e.message);
+        setServerState(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchServerState();
@@ -100,14 +105,14 @@ export default function PlayersView() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {serverState.players.map((player, index) => (
+                            {serverState.players.sort((a, b) => b.score - a.score).map((player, index) => (
                                 <TableRow key={`${player.name}-${index}`}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="w-8 h-8">
-                                                <AvatarFallback>{player.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                                <AvatarFallback>{player.name ? player.name.charAt(0).toUpperCase() : '?'}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium">{player.name}</span>
+                                            <span className="font-medium">{player.name || 'Неизвестный игрок'}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right tabular-nums">
@@ -187,3 +192,4 @@ export default function PlayersView() {
     </div>
   );
 }
+    
