@@ -67,16 +67,20 @@ export default function SummaryView() {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 30000); // Refresh data every 30 seconds
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      clearInterval(interval);
+    }
   }, []);
 
   return (
     <div className="space-y-6">
-       {error && (
+       {error && !loading && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Ошибка</AlertTitle>
+            <AlertTitle>Ошибка получения данных</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -88,12 +92,12 @@ export default function SummaryView() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-24" /> :
-              <div className={`text-2xl font-bold ${error ? 'text-destructive' : 'text-green-400'}`}>
-                {error ? 'Оффлайн' : 'Онлайн'}
+              <div className={`text-2xl font-bold ${!serverState ? 'text-destructive' : 'text-green-400'}`}>
+                {!serverState ? 'Оффлайн' : 'Онлайн'}
               </div>
             }
             <p className="text-xs text-muted-foreground">
-              ۞ Unisono | Area-51
+              {loading ? <Skeleton className="h-4 w-32 mt-1" /> : (serverState?.name || "۞ Unisono | Area-51")}
             </p>
           </CardContent>
         </Card>

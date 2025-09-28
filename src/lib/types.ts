@@ -22,13 +22,19 @@ export type Player = {
   time: number;
 };
 
+// This mirrors the structure returned by GameDig
 export type ServerState = {
   name: string;
   map: string;
-  players: Player[];
+  password?: boolean;
   maxplayers: number;
+  players: Player[];
+  bots: Player[];
+  connect: string;
+  ping: number;
   game: string;
 };
+
 
 export type ViewType = 
   | 'summary' 

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { ServerState } from "@/lib/types";
+import type { ServerState, Player } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,28 +11,55 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 function InfoCardSkeleton() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-3/4" />
-      <div className="space-y-3">
-        <Skeleton className="h-5 w-4/5" />
-        <Skeleton className="h-4 w-3/5" />
-        <Skeleton className="h-4 w-2/5" />
-        <Skeleton className="h-4 w-4/5" />
-      </div>
-    </div>
+    <Card>
+        <CardHeader>
+            <CardTitle><Skeleton className="h-6 w-1/2" /></CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-3/4" />
+                </div>
+            </div>
+            <div className="flex items-center gap-3">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </div>
+            </div>
+             <div className="flex items-center gap-3">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </div>
+            </div>
+             <div className="flex items-center gap-3">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1/3" />
+                </div>
+            </div>
+        </CardContent>
+    </Card>
   );
 }
 
 function PlayerListSkeleton() {
     return (
         <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 10 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-4 p-2">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
+                        <Skeleton className="h-4 w-1/2" />
                     </div>
+                    <Skeleton className="h-4 w-1/4" />
+                     <Skeleton className="h-4 w-1/4" />
                 </div>
             ))}
         </div>
@@ -40,12 +67,12 @@ function PlayerListSkeleton() {
 }
 
 function formatTime(seconds: number): string {
+    if (isNaN(seconds) || seconds < 0) return "00:00:00";
     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
     const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
     const s = Math.floor(seconds % 60).toString().padStart(2, '0');
     return `${h}:${m}:${s}`;
 }
-
 
 export default function PlayersView() {
   const [serverState, setServerState] = React.useState<ServerState | null>(null);
@@ -59,16 +86,9 @@ export default function PlayersView() {
         const response = await fetch('/api/server-stats');
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Ошибка при получении данных');
+          throw new Error(errorData.error || 'Ошибка при получении данных с сервера');
         }
         const data: ServerState = await response.json();
-        // Временное решение: так как базовый UDP запрос не возвращает имена,
-        // мы покажем количество, но не список.
-        if (data.players.length > 0 && data.players[0].name === 'Загрузка...') {
-            const playerCount = data.players.length;
-            data.players = []; 
-        }
-
         setServerState(data);
         setError(null);
       } catch (e: any) {
@@ -92,14 +112,18 @@ export default function PlayersView() {
             <CardHeader>
                 <CardTitle>Список игроков</CardTitle>
                 <CardDescription>
-                    Игроки, находящиеся на сервере в данный момент. (Для полного списка требуется более сложный запрос)
+                    Игроки, находящиеся на сервере в данный момент.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 {loading && <PlayerListSkeleton />}
                 {error && !loading && (
-                    <div className="flex items-center justify-center h-64 text-muted-foreground">
-                        <p>Не удалось загрузить список игроков.</p>
+                    <div className="flex items-center justify-center h-64 text-muted-foreground text-center">
+                        <div>
+                            <ServerCrash className="mx-auto h-12 w-12" />
+                            <p className="mt-4">Не удалось загрузить список игроков.</p>
+                            <p className="text-xs text-muted-foreground mt-1">{error}</p>
+                        </div>
                     </div>
                 )}
                 {serverState && serverState.players.length > 0 && (
@@ -112,7 +136,7 @@ export default function PlayersView() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {serverState.players.sort((a, b) => b.score - a.score).map((player, index) => (
+                            {serverState.players.sort((a: Player, b: Player) => (b.score ?? 0) - (a.score ?? 0)).map((player: Player, index: number) => (
                                 <TableRow key={`${player.name}-${index}`}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
@@ -125,13 +149,13 @@ export default function PlayersView() {
                                     <TableCell className="text-right tabular-nums">
                                         <div className="flex items-center justify-end gap-2">
                                            <Trophy className="w-4 h-4 text-amber-400" />
-                                           {player.score}
+                                           {player.score ?? 0}
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right tabular-nums">
                                         <div className="flex items-center justify-end gap-2">
                                            <Clock className="w-4 h-4 text-muted-foreground" />
-                                           {formatTime(player.time)}
+                                           {formatTime(player.time ?? 0)}
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -141,60 +165,65 @@ export default function PlayersView() {
                 )}
                  {serverState && serverState.players.length === 0 && !loading && (
                     <div className="flex items-center justify-center h-64 text-muted-foreground">
-                        <p>На сервере сейчас нет игроков или не удалось получить детальный список.</p>
+                        <p>На сервере сейчас нет игроков.</p>
                     </div>
                  )}
             </CardContent>
         </Card>
       </div>
       <div className="lg:col-span-1 space-y-6">
-        <Card>
-            <CardHeader>
-                <CardTitle>Информация</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {loading && <InfoCardSkeleton />}
-                {error && !loading && (
+          {loading && <InfoCardSkeleton />}
+          {error && !loading && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Информация</CardTitle>
+                </CardHeader>
+                <CardContent>
                     <Alert variant="destructive">
-                    <ServerCrash className="h-4 w-4" />
-                    <AlertTitle>Ошибка</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
+                        <ServerCrash className="h-4 w-4" />
+                        <AlertTitle>Сервер не отвечает</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
                     </Alert>
-                )}
-                {serverState && !loading && (
-                    <>
-                         <div className="flex items-center gap-3">
-                            <Info className="w-5 h-5 text-muted-foreground"/>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Название</p>
-                                <p className="font-semibold">{serverState.name}</p>
-                            </div>
+                </CardContent>
+             </Card>
+          )}
+          {serverState && !loading && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Информация о сервере</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="flex items-start gap-3">
+                        <Info className="w-5 h-5 text-muted-foreground mt-1"/>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Название</p>
+                            <p className="font-semibold">{serverState.name}</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Map className="w-5 h-5 text-muted-foreground"/>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Карта</p>
-                                <p className="font-semibold">{serverState.map}</p>
-                            </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Map className="w-5 h-5 text-muted-foreground mt-1"/>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Карта</p>
+                            <p className="font-semibold">{serverState.map}</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Gamepad2 className="w-5 h-5 text-muted-foreground"/>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Игра</p>
-                                <p className="font-semibold">{serverState.game}</p>
-                            </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Gamepad2 className="w-5 h-5 text-muted-foreground mt-1"/>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Игра</p>
+                            <p className="font-semibold">{serverState.game}</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Users className="w-5 h-5 text-muted-foreground"/>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Игроки</p>
-                                <p className="font-semibold">{serverState.players.length > 0 ? serverState.players.length : (serverState as any).onlinePlayers || 0} / {serverState.maxplayers}</p>
-                            </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <Users className="w-5 h-5 text-muted-foreground mt-1"/>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Игроки</p>
+                            <p className="font-semibold">{serverState.players.length} / {serverState.maxplayers}</p>
                         </div>
-                    </>
-                )}
-            </CardContent>
-        </Card>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
       </div>
     </div>
   );
