@@ -1,171 +1,127 @@
 "use client";
 
 import * as React from "react";
-import { getPlayersAction } from "@/app/actions";
-import type { Player, ServerState } from "@/lib/types";
+import { getServerInfoAction } from "@/app/actions";
+import type { ServerInfo } from "@/app/actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, Gamepad2, Info, Loader2, Map, ServerCrash } from "lucide-react";
+import { Gamepad2, Info, Map, ServerCrash, Users } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-function formatTime(seconds: number): string {
-  if (seconds < 60) return `${Math.floor(seconds)}с`;
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  let timeString = "";
-  if (hours > 0) timeString += `${hours}ч `;
-  if (minutes > 0) timeString += `${minutes}м`;
-  return timeString.trim() || '0м';
-}
-
-function PlayerRow({ player, index }: { player: Player; index: number }) {
-  const avatarUrl = `https://i.pravatar.cc/40?u=${player.name}`;
-  return (
-    <TableRow>
-      <TableCell className="font-medium">{index + 1}</TableCell>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={avatarUrl} alt={player.name} />
-            <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className="font-medium">{player.name}</span>
-        </div>
-      </TableCell>
-      <TableCell className="text-right font-mono">{player.score}</TableCell>
-      <TableCell className="text-right font-mono">{formatTime(player.time)}</TableCell>
-    </TableRow>
-  );
-}
-
-function PlayersSkeleton() {
+function InfoCardSkeleton() {
     return (
-        <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-2">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
-                    </div>
-                </div>
-            ))}
+        <div className="space-y-3">
+            <Skeleton className="h-5 w-4/5" />
+            <Skeleton className="h-4 w-3/5" />
+            <Skeleton className="h-4 w-2/5" />
+            <Skeleton className="h-4 w-4/5" />
         </div>
-    )
+    );
 }
 
 export default function PlayersView() {
-  const [serverState, setServerState] = React.useState<ServerState | null>(null);
+  const [serverInfo, setServerInfo] = React.useState<ServerInfo | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchServerInfo = async () => {
       setLoading(true);
-      const result = await getPlayersAction();
+      const result = await getServerInfoAction();
       if ('error' in result) {
         setError(result.error);
-        setServerState(null);
+        setServerInfo(null);
       } else {
-        setServerState(result);
+        setServerInfo(result);
         setError(null);
       }
       setLoading(false);
     };
 
-    fetchPlayers();
+    fetchServerInfo();
   }, []);
 
+  const playerPercentage = serverInfo ? (serverInfo.players / serverInfo.maxPlayers) * 100 : 0;
+
   return (
-    <div className="grid gap-6 md:grid-cols-[1fr_300px]">
+    <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Игроки на сервере</CardTitle>
+          <CardTitle>Информация о сервере</CardTitle>
           <CardDescription>
-            Список игроков, которые в данный момент находятся на сервере.
+            Текущая информация о игровом сервере.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {loading && <PlayersSkeleton />}
-          {error && (
-            <Alert variant="destructive">
-              <ServerCrash className="h-4 w-4" />
-              <AlertTitle>Ошибка</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {serverState && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">#</TableHead>
-                  <TableHead>Игрок</TableHead>
-                  <TableHead className="text-right">Очки</TableHead>
-                  <TableHead className="text-right w-[120px]">Время в игре</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {serverState.players.length > 0 ? (
-                  serverState.players
-                    .sort((a, b) => b.score - a.score)
-                    .map((player, index) => <PlayerRow key={player.name} player={player} index={index} />)
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                      На сервере нет игроков.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Информация о сервере</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             {loading && (
-                 <div className="space-y-3">
-                     <Skeleton className="h-5 w-4/5" />
-                     <Skeleton className="h-4 w-3/5" />
-                     <Skeleton className="h-4 w-2/5" />
-                 </div>
+        <CardContent className="space-y-6">
+             {loading && <InfoCardSkeleton />}
+             {error && (
+                <Alert variant="destructive">
+                  <ServerCrash className="h-4 w-4" />
+                  <AlertTitle>Ошибка</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
              )}
-             {serverState && (
+             {serverInfo && (
                 <>
                     <div className="flex items-center gap-3">
                         <Info className="w-5 h-5 text-muted-foreground"/>
                         <div>
                             <p className="text-sm text-muted-foreground">Название</p>
-                            <p className="font-semibold">{serverState.name}</p>
+                            <p className="font-semibold">{serverInfo.name}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <Map className="w-5 h-5 text-muted-foreground"/>
                         <div>
                             <p className="text-sm text-muted-foreground">Карта</p>
-                            <p className="font-semibold">{serverState.map}</p>
+                            <p className="font-semibold">{serverInfo.map}</p>
                         </div>
                     </div>
                      <div className="flex items-center gap-3">
                         <Gamepad2 className="w-5 h-5 text-muted-foreground"/>
                         <div>
                             <p className="text-sm text-muted-foreground">Игра</p>
-                            <p className="font-semibold">{serverState.game}</p>
+                            <p className="font-semibold">{serverInfo.game}</p>
                         </div>
                     </div>
                 </>
              )}
-              {error && <p className="text-sm text-muted-foreground">Не удалось загрузить информацию.</p>}
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Игроки</CardTitle>
+           <CardDescription>
+            Количество игроков на сервере в данный момент.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col justify-center items-center h-full space-y-4 pt-8">
+            {loading && (
+                <>
+                    <Skeleton className="h-16 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-4 w-full" />
+                </>
+            )}
+            {serverInfo && (
+                <>
+                    <div className="text-6xl font-bold">
+                        {serverInfo.players} 
+                        <span className="text-3xl text-muted-foreground">/ {serverInfo.maxPlayers}</span>
+                    </div>
+                    <p className="text-muted-foreground flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        <span>{`Занято ${playerPercentage.toFixed(0)}% слотов`}</span>
+                    </p>
+                    <Progress value={playerPercentage} className="w-full" />
+                </>
+            )}
+            {error && <p className="text-sm text-muted-foreground">Не удалось загрузить информацию о игроках.</p>}
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
