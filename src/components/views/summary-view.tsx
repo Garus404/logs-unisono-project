@@ -88,7 +88,7 @@ export default function SummaryView() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-24" /> :
-              <div className={`text-2xl font-bold ${error ? 'text-red-500' : 'text-green-400'}`}>
+              <div className={`text-2xl font-bold ${error ? 'text-destructive' : 'text-green-400'}`}>
                 {error ? 'Оффлайн' : 'Онлайн'}
               </div>
             }
@@ -166,7 +166,7 @@ export default function SummaryView() {
                     </BarChart>
                 </ChartContainer>
             )}
-             {!loading && activity.length === 0 && (
+             {!loading && activity.length === 0 && !error && (
                 <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
                     <p>Не удалось загрузить данные об активности.</p>
                 </div>

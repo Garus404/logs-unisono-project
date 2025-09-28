@@ -62,6 +62,13 @@ export default function PlayersView() {
           throw new Error(errorData.error || 'Ошибка при получении данных');
         }
         const data: ServerState = await response.json();
+        // Временное решение: так как базовый UDP запрос не возвращает имена,
+        // мы покажем количество, но не список.
+        if (data.players.length > 0 && data.players[0].name === 'Загрузка...') {
+            const playerCount = data.players.length;
+            data.players = []; 
+        }
+
         setServerState(data);
         setError(null);
       } catch (e: any) {
@@ -85,7 +92,7 @@ export default function PlayersView() {
             <CardHeader>
                 <CardTitle>Список игроков</CardTitle>
                 <CardDescription>
-                    Игроки, находящиеся на сервере в данный момент.
+                    Игроки, находящиеся на сервере в данный момент. (Для полного списка требуется более сложный запрос)
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -134,7 +141,7 @@ export default function PlayersView() {
                 )}
                  {serverState && serverState.players.length === 0 && !loading && (
                     <div className="flex items-center justify-center h-64 text-muted-foreground">
-                        <p>На сервере сейчас нет игроков.</p>
+                        <p>На сервере сейчас нет игроков или не удалось получить детальный список.</p>
                     </div>
                  )}
             </CardContent>
@@ -181,7 +188,7 @@ export default function PlayersView() {
                             <Users className="w-5 h-5 text-muted-foreground"/>
                             <div>
                                 <p className="text-sm text-muted-foreground">Игроки</p>
-                                <p className="font-semibold">{serverState.players.length} / {serverState.maxplayers}</p>
+                                <p className="font-semibold">{serverState.players.length > 0 ? serverState.players.length : (serverState as any).onlinePlayers || 0} / {serverState.maxplayers}</p>
                             </div>
                         </div>
                     </>
