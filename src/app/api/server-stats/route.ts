@@ -26,7 +26,7 @@ export async function GET() {
             time: p.time ?? 0,
         })),
         maxplayers: anyState.maxplayers,
-        game: anyState.game,
+        game: anyState.raw?.game || 'Garrys Mod',
     };
 
     return NextResponse.json(serverState);
@@ -39,5 +39,3 @@ export async function GET() {
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-
-    
