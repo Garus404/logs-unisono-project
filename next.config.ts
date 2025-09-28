@@ -30,6 +30,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // gamedig uses dynamic requires, which webpack doesn't like.
+    // Since we only use it on the server, we can ignore it for the client bundle.
+    if (!isServer) {
+        config.externals.push('gamedig');
+    }
+    return config;
+  }
 };
 
 export default nextConfig;
