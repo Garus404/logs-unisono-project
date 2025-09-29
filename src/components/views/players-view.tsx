@@ -92,7 +92,12 @@ export default function PlayersView() {
     return () => clearInterval(interval);
   }, []);
   
-  const handlePlayerClick = (steamId: string) => {
+  const handlePlayerClick = (steamId: string | undefined) => {
+    if (!steamId) {
+        // Here you could show a toast or some other feedback
+        console.warn("Player has no SteamID, cannot navigate to details.");
+        return;
+    }
     router.push(`/player/${steamId}`);
   };
 
@@ -139,7 +144,7 @@ export default function PlayersView() {
                 </TableHeader>
                 <TableBody>
                   {serverState.players.map((player, index) => (
-                      <TableRow key={`${player.name}-${index}`} onClick={() => handlePlayerClick(serverState.details.steamId)} className="cursor-pointer">
+                      <TableRow key={`${player.name}-${index}`} onClick={() => handlePlayerClick(player.raw?.steamid || player.steamId)} className="cursor-pointer">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
