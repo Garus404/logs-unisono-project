@@ -27,9 +27,8 @@ import {
   Bell,
   Fingerprint
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isSameDay, startOfDay } from "date-fns";
 import { ru } from "date-fns/locale";
-import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -57,7 +56,7 @@ interface LogViewProps {
 export default function LogView({ filterType }: LogViewProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<LogType | "all">(filterType || "all");
-  const [date, setDate] = React.useState<DateRange | undefined>(undefined);
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [players, setPlayers] = React.useState<Player[]>([]);
@@ -89,6 +88,11 @@ export default function LogView({ filterType }: LogViewProps) {
   React.useEffect(() => {
     if (isLoading || players.length === 0) return;
 
+    // Only add new logs in real-time if the user is viewing today's logs
+    if (date && !isSameDay(date, new Date())) {
+        return;
+    }
+
     const interval = setInterval(() => {
         const newLog = generateSingleRandomLog(players, new Date());
         
@@ -105,7 +109,7 @@ export default function LogView({ filterType }: LogViewProps) {
     }, 3000 + Math.random() * 4000); // Add a new log every 3-7 seconds
 
     return () => clearInterval(interval);
-  }, [isLoading, players]);
+  }, [isLoading, players, date]);
 
 
   React.useEffect(() => {
@@ -113,9 +117,12 @@ export default function LogView({ filterType }: LogViewProps) {
   }, [filterType]);
   
   const filteredLogs = React.useMemo(() => {
+    const selectedDate = date ? startOfDay(date) : startOfDay(new Date());
+
     return logs.filter((log) => {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
+        !searchTerm ||
         (log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
         log.details.toLowerCase().includes(lowerCaseSearch) ||
         log.user?.steamId?.toLowerCase().includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
@@ -123,8 +130,7 @@ export default function LogView({ filterType }: LogViewProps) {
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
       
       const logDate = new Date(log.timestamp);
-      const dateMatch = (!date || !date.from) || 
-        (logDate >= date.from && (!date.to || logDate <= date.to));
+      const dateMatch = isSameDay(logDate, selectedDate);
 
       return searchMatch && typeMatch && dateMatch;
     });
@@ -153,7 +159,6 @@ export default function LogView({ filterType }: LogViewProps) {
         sourceName = log.user?.name || '[Система]';
     } else if(log.type === 'DAMAGE') {
         // For damage, the user is the one receiving damage.
-        // We can display the recipient as the source of the log row for consistency.
         sourceName = log.recipient?.name || '[Система]'
     }
 
@@ -213,39 +218,30 @@ export default function LogView({ filterType }: LogViewProps) {
                     )}
                     >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date?.from ? (
-                        date.to ? (
-                        <>
-                            {format(date.from, "LLL dd, y", { locale: ru })} -{" "}
-                            {format(date.to, "LLL dd, y", { locale: ru })}
-                        </>
-                        ) : (
-                        format(date.from, "LLL dd, y", { locale: ru })
-                        )
+                    {date ? (
+                        format(date, "PPP", { locale: ru })
                     ) : (
-                        <span>Выберите диапазон дат</span>
+                        <span>Выберите дату</span>
                     )}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
+                    mode="single"
                     selected={date}
                     onSelect={setDate}
-                    numberOfMonths={2}
+                    initialFocus
                     locale={ru}
                     />
                 </PopoverContent>
             </Popover>
-            {(searchTerm || typeFilter !== (filterType || 'all') || date) && (
+            {(searchTerm || typeFilter !== (filterType || 'all') || date && !isSameDay(date, new Date())) && (
             <Button
               variant="ghost"
               onClick={() => {
                 setSearchTerm("");
                 setTypeFilter(filterType || 'all');
-                setDate(undefined);
+                setDate(new Date());
               }}
             >
               <X className="mr-2 h-4 w-4" />
@@ -275,3 +271,5 @@ export default function LogView({ filterType }: LogViewProps) {
     </div>
   );
 }
+
+    
