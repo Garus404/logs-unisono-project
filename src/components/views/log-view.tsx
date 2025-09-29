@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { historicalLogs } from "@/lib/data";
-import type { LogEntry, LogType, ServerStateResponse, Player } from "@/lib/types";
+import type { LogEntry, LogType } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,6 +16,15 @@ import {
   Calendar as CalendarIcon,
   Search,
   X,
+  MessageSquare,
+  LogIn,
+  LogOut,
+  HeartCrack,
+  Skull,
+  Sparkles,
+  Megaphone,
+  Bell,
+  Fingerprint
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -25,17 +34,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "../ui/skeleton";
+import { ScrollArea } from "../ui/scroll-area";
+import { Badge } from "../ui/badge";
 
-const logTypeLabels: Record<LogType, string> = {
-  CONNECTION: "Подключение",
-  CHAT: "Чат",
-  DAMAGE: "Урон",
-  KILL: "Убийство",
-  SPAWN: "Событие",
-  ANNOUNCEMENT: "Объявление",
-  NOTIFICATION: "Оповещение",
-  RP: "Действие",
+const logTypeConfig: Record<LogType, { label: string; icon: React.ElementType, color: string }> = {
+  CONNECTION: { label: "Подключение", icon: LogIn, color: "text-sky-400" },
+  CHAT: { label: "Чат", icon: MessageSquare, color: "text-gray-400" },
+  DAMAGE: { label: "Урон", icon: HeartCrack, color: "text-orange-400" },
+  KILL: { label: "Убийство", icon: Skull, color: "text-red-500" },
+  SPAWN: { label: "Событие", icon: Sparkles, color: "text-yellow-400" },
+  ANNOUNCEMENT: { label: "Объявление", icon: Megaphone, color: "text-purple-400" },
+  NOTIFICATION: { label: "Оповещение", icon: Bell, color: "text-indigo-400" },
+  RP: { label: "Действие", icon: Fingerprint, color: "text-lime-400" },
 };
+
 
 interface LogViewProps {
   filterType?: LogType;
@@ -51,7 +63,9 @@ export default function LogView({ filterType }: LogViewProps) {
   React.useEffect(() => {
     // Simulate fetching historical data
     setIsLoading(true);
-    setLogs(historicalLogs);
+    // Sort logs once on load
+    const sortedLogs = [...historicalLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    setLogs(sortedLogs);
     setIsLoading(false);
   }, []);
 
@@ -61,6 +75,7 @@ export default function LogView({ filterType }: LogViewProps) {
   }, [filterType]);
   
   const filteredLogs = React.useMemo(() => {
+    if (isLoading) return [];
     return logs.filter((log) => {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
@@ -69,23 +84,47 @@ export default function LogView({ filterType }: LogViewProps) {
         log.user?.steamId?.toLowerCase().includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
 
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
-
-      const dateMatch = !date || (log.timestamp >= (date.from || 0) && log.timestamp <= (date.to || Infinity));
+      
+      const logDate = new Date(log.timestamp);
+      const dateMatch = (!date || !date.from) || 
+        (logDate >= date.from && logDate <= (date.to || new Date(date.from.getTime() + 24 * 60 * 60 * 1000 - 1)));
 
       return searchMatch && typeMatch && dateMatch;
     });
-  }, [searchTerm, typeFilter, date, logs]);
+  }, [searchTerm, typeFilter, date, logs, isLoading]);
   
   const LogSkeleton = () => (
-    <div className="flex items-center gap-4 p-2">
+    <div className="flex items-center gap-4 p-3">
+        <Skeleton className="h-5 w-5 rounded-full" />
         <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-24" />
         <Skeleton className="h-4 w-full" />
     </div>
   )
 
+  const LogItem = ({log}: {log: LogEntry}) => {
+    const config = logTypeConfig[log.type] || { icon: Bell, color: "text-gray-500" };
+    const Icon = log.details.toLowerCase().includes('отключился') ? LogOut : config.icon;
+    const sourceName = log.user ? `${log.user.name}` : '[Система]';
+
+    return (
+        <div className="flex items-start gap-3 p-3 border-b border-border/50 transition-colors hover:bg-muted/30">
+            <Icon className={cn("w-4 h-4 mt-1 flex-shrink-0", config.color)} />
+            <div className="flex-1 grid grid-cols-[140px_160px_1fr] items-start gap-4">
+                 <span className="text-muted-foreground tabular-nums text-xs mt-0.5">
+                    {format(log.timestamp, "dd MMM, HH:mm:ss", { locale: ru })}
+                </span>
+                 <div className="flex items-center gap-2">
+                    <Badge variant={sourceName === '[Система]' ? 'secondary' : 'outline'} className="truncate font-medium">{sourceName}</Badge>
+                 </div>
+                 <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words">{log.details}</p>
+            </div>
+        </div>
+    )
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -106,9 +145,9 @@ export default function LogView({ filterType }: LogViewProps) {
                 </SelectTrigger>
                 <SelectContent>
                 <SelectItem value="all">Все типы</SelectItem>
-                {Object.keys(logTypeLabels).map((type) => (
+                {Object.entries(logTypeConfig).map(([type, {label}]) => (
                     <SelectItem key={type} value={type}>
-                    {logTypeLabels[type as LogType]}
+                    {label}
                     </SelectItem>
                 ))}
                 </SelectContent>
@@ -166,30 +205,21 @@ export default function LogView({ filterType }: LogViewProps) {
         </div>
       </div>
 
-      <Card className="border shadow-sm rounded-lg">
-        <CardContent className="p-0">
-            <div className="bg-black/80 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-[calc(100vh-20rem)] overflow-y-auto">
+      <Card className="border shadow-sm rounded-lg flex-1 flex flex-col">
+        <CardContent className="p-0 flex-1 flex">
+            <ScrollArea className="h-[calc(100vh-19rem)] w-full">
                 {isLoading ? (
                     Array.from({length: 25}).map((_, i) => <LogSkeleton key={i} />)
                 ) : filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => {
-                    const sourceName = log.user ? `${log.user.name}` : '[Система]';
-                    return (
-                        <div key={log.id} className="flex items-start gap-3">
-                            <span className="text-muted-foreground tabular-nums shrink-0">
-                                [{format(log.timestamp, "yyyy-MM-dd HH:mm:ss", { locale: ru })}]
-                            </span>
-                            <span className="font-bold text-sky-300 shrink-0">{sourceName}:</span>
-                            <p className="text-green-300/90 whitespace-pre-wrap">{log.details}</p>
-                        </div>
-                    );
-                })
+                    <div>
+                        {filteredLogs.map((log) => <LogItem key={log.id} log={log} />)}
+                    </div>
                 ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground text-center">
                     Нет логов, соответствующих вашему запросу.
                 </div>
                 )}
-            </div>
+            </ScrollArea>
         </CardContent>
       </Card>
     </div>
