@@ -1,15 +1,14 @@
 "use client";
 
 import * as React from "react";
-import type { ServerStateResponse } from "@/lib/types"; // Changed import
+import type { ServerStateResponse } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Gamepad2, Info, Map, ServerCrash, Users, Clock, Trophy, Signal, Server as ServerIcon, Network, GitBranch, Key, Shield, Tag, Star } from "lucide-react";
+import { Gamepad2, Map, ServerCrash, Users, Clock, Trophy, Signal, Server as ServerIcon, Network, GitBranch, Shield, Tag, Star } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "../ui/badge";
-
 
 function InfoCardSkeleton() {
   return (
@@ -72,7 +71,7 @@ export default function PlayersView() {
         const data = await response.json();
 
         if (!response.ok || data.error) {
-          throw new Error(data.error || 'Не удалось получить данные с сервера');
+          throw new Error(data.suggestion || data.error || 'Не удалось получить данные с сервера');
         }
         
         setServerState(data);
@@ -234,7 +233,7 @@ export default function PlayersView() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Детали</CardTitle>
+                    <CardTitle>Детали подключения</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <InfoItem icon={Network} label="IP:Port" value={serverState.connection.ip} />
@@ -249,3 +248,5 @@ export default function PlayersView() {
     </div>
   );
 }
+
+    

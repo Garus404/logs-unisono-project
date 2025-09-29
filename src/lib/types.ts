@@ -22,6 +22,7 @@ export type Player = {
   time: number;
   timeFormatted: string;
   ping: number;
+  timeHours: number;
 };
 
 // This mirrors the structure returned by our custom API endpoint
@@ -66,3 +67,5 @@ export type ViewType =
   | 'logs_damage' 
   | 'logs_kill'
   | 'logs_spawn';
+
+    
