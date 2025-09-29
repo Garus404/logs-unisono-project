@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ServerStateResponse } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,12 +66,10 @@ export default function PlayersView() {
   const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const router = useRouter();
 
   React.useEffect(() => {
     const fetchServerState = async () => {
       try {
-        // No need to set loading to true here to avoid flashing on interval refresh
         const response = await fetch('/api/server-stats');
         const data = await response.json();
 
@@ -93,16 +92,6 @@ export default function PlayersView() {
 
     return () => clearInterval(interval);
   }, []);
-  
-  const handlePlayerClick = (steamId: string | undefined) => {
-    if (!steamId) {
-        // Here you could show a toast or some other feedback
-        console.warn("Player has no SteamID, cannot navigate to details.");
-        return;
-    }
-    router.push(`/player/${steamId}`);
-  };
-
 
   const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => (
     <div className="flex items-start gap-3">
@@ -146,8 +135,10 @@ export default function PlayersView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {serverState.players.map((player, index) => (
-                      <TableRow key={player.raw?.steamid || `${player.name}-${index}`}>
+                  {serverState.players.map((player, index) => {
+                    const steamId = player.steamId || player.raw?.steamid;
+                    return (
+                      <TableRow key={steamId || `${player.name}-${index}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
@@ -183,20 +174,23 @@ export default function PlayersView() {
                          <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" disabled={!player.raw?.steamid}>
+                              <Button variant="ghost" size="icon" disabled={!steamId}>
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Действия</span>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem onSelect={() => handlePlayerClick(player.raw?.steamid)}>
-                                Посмотреть профиль
+                               <DropdownMenuItem asChild>
+                                <Link href={`/player/${steamId}`}>
+                                  Посмотреть профиль
+                                </Link>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -288,5 +282,3 @@ export default function PlayersView() {
     </div>
   );
 }
-
-    

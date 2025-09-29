@@ -32,7 +32,7 @@ const PrimeLevelDisplay = ({ level }: { level: number }) => {
                     </div>
                 </div>
                  <div className="text-sm text-center text-muted-foreground mt-4">
-                    Текущий уровень: <span className="font-bold text-foreground">{level}</span> / 5
+                    {level > 0 ? `Текущий уровень: ${level} / 5` : "Не активирован"}
                 </div>
             </CardContent>
         </Card>
@@ -45,8 +45,8 @@ const PlayerDetailsSkeleton = () => (
             <ArrowLeft className="mr-2 h-4 w-4" />
             <Skeleton className="h-4 w-40" />
         </Button>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-             <Card className="lg:col-span-1">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
+             <Card className="lg:col-span-1 sticky top-6">
                 <CardHeader className="items-center text-center">
                     <Skeleton className="h-24 w-24 rounded-full" />
                     <Skeleton className="h-7 w-48 mt-4" />
@@ -54,16 +54,17 @@ const PlayerDetailsSkeleton = () => (
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Skeleton className="h-4 w-1/4 mb-2" />
-                        <Skeleton className="h-8 w-full" />
+                        <div className="flex justify-between items-baseline text-sm">
+                            <Skeleton className="h-4 w-1/4" />
+                            <Skeleton className="h-4 w-1/4" />
+                        </div>
+                        <Skeleton className="h-4 w-full" />
                     </div>
-                     <div className="flex justify-between gap-4">
-                        <div className="space-y-2 w-full"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-4 w-full" /></div>
-                        <div className="space-y-2 w-full"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-4 w-full" /></div>
-                     </div>
-                     <div className="flex justify-between gap-4">
-                        <div className="space-y-2 w-full"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-4 w-full" /></div>
-                        <div className="space-y-2 w-full"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-4 w-full" /></div>
+                     <div className="grid grid-cols-2 gap-4 pt-4">
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
                      </div>
                 </CardContent>
             </Card>
@@ -86,29 +87,31 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
     const [error, setError] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        if (steamId) {
-            const fetchPlayerDetails = async () => {
-                try {
-                    setLoading(true);
-                    setError(null);
-                    const res = await fetch(`/api/player-details/${steamId}`);
-                    if (!res.ok) {
-                        const errData = await res.json();
-                        throw new Error(errData.error || 'Не удалось загрузить данные игрока');
-                    }
-                    const data: PlayerDetails = await res.json();
-                    setPlayer(data);
-                } catch (e: any) {
-                    setError(e.message);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchPlayerDetails();
-        } else {
+        if (!steamId) {
+            setError("SteamID не найден в URL.");
             setLoading(false);
-            setError("SteamID не найден.");
+            return;
         }
+            
+        const fetchPlayerDetails = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const res = await fetch(`/api/player-details/${steamId}`);
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error || 'Не удалось загрузить данные игрока');
+                }
+                const data: PlayerDetails = await res.json();
+                setPlayer(data);
+            } catch (e: any) {
+                setError(e.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPlayerDetails();
     }, [steamId]);
     
     if (loading) {
@@ -124,9 +127,9 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground mt-2">{error || "Игрок не найден."}</p>
-                        <Button onClick={() => router.push('/')} className="mt-6 w-full">
+                        <Button onClick={() => router.back()} className="mt-6 w-full">
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            На главную
+                            Назад
                         </Button>
                     </CardContent>
                 </Card>
@@ -211,12 +214,14 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
                         </CardHeader>
                         <CardContent>
                            <div className="bg-black/90 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-64 overflow-y-auto">
-                               {player.activities.map((activity, index) => (
+                               {player.activities.length > 0 ? player.activities.map((activity, index) => (
                                    <div key={index} className="flex gap-2 items-start">
                                        <ChevronRight className="w-4 h-4 text-green-700 flex-shrink-0 mt-0.5"/>
                                        <p className="break-all">{activity}</p>
                                    </div>
-                               ))}
+                               )) : (
+                                <p className="text-gray-500">Нет записей об активности игрока.</p>
+                               )}
                            </div>
                         </CardContent>
                     </Card>
@@ -225,4 +230,3 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
         </div>
     );
 }
-    
