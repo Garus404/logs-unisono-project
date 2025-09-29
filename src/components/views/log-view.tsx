@@ -102,8 +102,8 @@ export default function LogView({ filterType }: LogViewProps) {
   React.useEffect(() => {
     if (players.length === 0) return;
 
-    // Generate a new log at a random interval between 5 and 15 seconds
-    const generateRandomInterval = () => Math.random() * (15000 - 5000) + 5000;
+    // Generate a new log at a random interval between 5 and 20 seconds
+    const generateRandomInterval = () => Math.random() * (20000 - 5000) + 5000;
 
     let timeoutId: NodeJS.Timeout;
 
