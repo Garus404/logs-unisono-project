@@ -1,139 +1,125 @@
-import type { LogEntry, PlayerActivity } from '@/lib/types';
+import type { LogEntry, Player, LogType } from '@/lib/types';
 
-// More realistic player names based on observations
-const users = [
-  { name: 'Bober Namazov', steamId: '76561198000000001' },
-  { name: 'Kenny Haiden', steamId: '76561198000000002' },
-  { name: 'Тони Майлер', steamId: '76561198000000003' },
-  { name: 'Chang Milos', steamId: '76561198000000004' },
-  { name: 'Olimp Reewis', steamId: '76561198000000005' },
-  { name: 'Яра Шист', steamId: '76561198000000006' },
-  { name: 'Dashka', steamId: '76561198000000007' },
-  { name: 'ProGamer123', steamId: '76561198000000008' },
+// --- Helper Functions ---
+function getRandomElement<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// --- Log Generation Templates ---
+// Based on user-provided screenshots
+const oocChatTemplates = [
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: бедный я, меня все пиздят и я бегаю на лоу хп` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: щас рейд?` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Кто ролл 100к` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Как вас КОБРА УБИЛА` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Дура на кобре блять` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: лол` }),
 ];
 
-const now = new Date();
+const oocDialogues = [
+    (p1: Player, p2: Player) => [
+        { type: 'CHAT' as LogType, user: p1, details: `[OOC] ${p1.name}: давно обновление было?` },
+        { type: 'CHAT' as LogType, user: p2, details: `[OOC] ${p2.name}: 2 недели назад вроде` },
+    ],
+    (p1: Player, p2: Player) => [
+        { type: 'CHAT' as LogType, user: p1, details: `[OOC] ${p1.name}: бедный я, меня все пиздят и я бегаю на лоу хп` },
+        { type: 'CHAT' as LogType, user: p2, details: `[OOC] ${p2.name}: бедолага` },
+    ],
+    (p1: Player, p2: Player) => [
+        { type: 'CHAT' as LogType, user: p1, details: `[OOC] ${p1.name}: щас рейд?` },
+        { type: 'CHAT' as LogType, user: p2, details: `[OOC] ${p2.name}: да, закупайся` },
+    ]
+];
 
-// Generate more varied and realistic logs based on the screenshot
-export const mockLogs: LogEntry[] = [
-  {
-    id: '1',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 1),
-    type: 'CHAT',
-    user: users[0], // Bober Namazov
-    details: `[OOC] ${users[0].name}: Кто ролл 100к`,
-  },
-  {
-    id: '2',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 2),
-    type: 'SPAWN', // Using SPAWN for general RP actions
-    user: users[1], // Kenny Haiden
-    details: `(Kenny Haiden) Образец Ящерица ломает ворота к.с Ящерицы`,
-  },
-  {
-    id: '3',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 3),
-    type: 'CHAT', // Using CHAT for announcements
-    user: users[2], // Тони Майлер
-    details: `[Объявление] ${users[2].name}: [СО] О.О.Ч. желает заключить контракт с КМ`,
-  },
-  {
-    id: '4',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 4),
-    type: 'SPAWN', // Using SPAWN for system notifications
-    user: users[3], // Chang Milos
-    details: `[Оповещение] Образец Маска покинул камеру содержания. (${users[3].name})`,
-  },
-    {
-    id: '5',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 5),
-    type: 'SPAWN', // Using SPAWN for system notifications
-    user: users[4], // Olimp Reewis
-    details: `[Оповещение] Образец До-До покинул камеру содержания. (${users[4].name})`,
-  },
-  {
-    id: '6',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 6),
-    type: 'CONNECTION',
-    user: users[5], // Яра Шист
-    details: `${users[5].name} подключился.`,
-  },
-  {
-    id: '7',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 7),
-    type: 'KILL',
-    user: users[5], // Яра Шист
-    details: `игрок ${users[5].name} убил игрока ${users[6].name}.`,
-  },
-  {
-    id: '8',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 8),
-    type: 'CHAT',
-    user: users[5], // Яра Шист
-    details: `[OOC] ${users[5].name}: Как вас КОБРА УБИЛА`,
-  },
-  {
-    id: '9',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 9),
-    type: 'DAMAGE',
-    user: users[1], // Kenny Haiden
-    details: `${users[1].name} получил 35 урона от ${users[5].name}.`,
-  },
-  {
-    id: '10',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 10),
-    type: 'CONNECTION',
-    user: users[7], // ProGamer123
-    details: `${users[7].name} подключился.`,
-  },
-  {
-    id: '11',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 11),
-    type: 'SPAWN',
-    user: users[7],
-    details: `${users[7].name} сменил профессию на [VIP] Сотрудник Службы Безопасности.`,
-  },
-  {
-    id: '12',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 12),
-    type: 'CHAT',
-    user: users[6], // Dashka
-    details: `[OOC] ${users[6].name}: лол`,
-  },
-  {
-    id: '13',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 13),
-    type: 'CONNECTION',
-    user: users[0], // Bober Namazov
-    details: `${users[0].name} отключился.`,
-  },
-   {
-    id: '14',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 14),
-    type: 'CHAT',
-    user: users[5], // Яра Шист
-    details: `[OOC] ${users[5].name}: Дура на кобре блять`,
-  },
-  {
-    id: '15',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 15),
-    type: 'KILL',
-    user: users[1], // Kenny Haiden
-    details: `игрок ${users[1].name} был убит падением.`,
-  },
-  {
-    id: '16',
-    timestamp: new Date(now.getTime() - 1000 * 60 * 16),
-    type: 'CONNECTION',
-    user: users[1], // Kenny Haiden
-    details: `${users[1].name} был отключен (Кикнут).`,
-  }
-].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+const rpActionTemplates = [
+    (p: Player) => ({ type: 'RP' as LogType, user: p, details: `(${p.name}) Образец Ящерица ломает ворота к.с Ящерицы` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Объявление] ${p.name}: [RP] О.Госпадин рыба переживший многие покушения продажи и помогая в бунте был подавлен теслой` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Объявление] ${p.name}: [СО] О.О.Ч. желает заключить контракт с КМ` }),
+];
+
+const notificationTemplates = [
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец Бессонник покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец Маска покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец До-До покинул камеру содержания. (${p.name})` }),
+];
+
+const killTemplates = [
+    (p1: Player, p2: Player) => ({ type: 'KILL' as LogType, user: p1, details: `игрок ${p1.name} убил игрока ${p2.name}.`, recipient: p2 }),
+    (p1: Player) => ({ type: 'KILL' as LogType, user: p1, details: `игрок ${p1.name} был убит падением.` }),
+];
+
+const connectionTemplates = [
+    (p: Player) => ({ type: 'CONNECTION' as LogType, user: p, details: `${p.name} подключился.` }),
+    (p: Player) => ({ type: 'CONNECTION' as LogType, user: p, details: `${p.name} отключился.` }),
+];
+
+const damageTemplates = [
+     (p1: Player, p2: Player) => ({ type: 'DAMAGE' as LogType, user: p2, details: `${p2.name} получил 35 урона от ${p1.name}.`, recipient: p1 }),
+]
 
 
+// --- Main Generator Function ---
+
+export function generateLiveLog(players: Player[]): LogEntry[] | null {
+    if (players.length === 0) return null;
+
+    // Use a weighted random selection to make some events rarer
+    const eventType = Math.random();
+    let generatedLogs: (Omit<LogEntry, 'id' | 'timestamp'> | null)[] = [];
+
+    if (eventType < 0.45) { // OOC Chat (45% chance)
+        const p1 = getRandomElement(players);
+        if (players.length > 1 && Math.random() < 0.3) { // 30% of chats are dialogues
+             const p2 = getRandomElement(players.filter(p => p.name !== p1.name));
+             const dialogue = getRandomElement(oocDialogues);
+             generatedLogs = dialogue(p1, p2);
+        } else {
+            const template = getRandomElement(oocChatTemplates);
+            generatedLogs.push(template(p1));
+        }
+
+    } else if (eventType < 0.65) { // Kills/Damage (20% chance)
+       const p1 = getRandomElement(players);
+       if (players.length > 1 && Math.random() < 0.8) { // 80% of kills involve another player
+            const p2 = getRandomElement(players.filter(p => p.name !== p1.name));
+            if(Math.random() < 0.7) {
+                const template = getRandomElement(killTemplates.filter(t => t.length === 2));
+                generatedLogs.push(template(p1, p2));
+            } else {
+                const template = getRandomElement(damageTemplates);
+                generatedLogs.push(template(p1, p2));
+            }
+       } else {
+            const template = getRandomElement(killTemplates.filter(t => t.length === 1));
+            generatedLogs.push(template(p1, null as any)); // Fall damage etc.
+       }
+    } else if (eventType < 0.85) { // RP Actions / Announcements (20% chance)
+        const p1 = getRandomElement(players);
+        const template = getRandomElement(rpActionTemplates);
+        generatedLogs.push(template(p1));
+    } else if (eventType < 0.95) { // System Notifications (10% chance)
+        const p1 = getRandomElement(players);
+        const template = getRandomElement(notificationTemplates);
+        generatedLogs.push(template(p1));
+    } else { // Connections (5% chance)
+         const p1 = getRandomElement(players);
+         const template = getRandomElement(connectionTemplates);
+         generatedLogs.push(template(p1));
+    }
+
+    // Filter out any nulls and map to full LogEntry
+    return generatedLogs.filter(Boolean).map(log => ({
+        ...log,
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+    } as LogEntry));
+}
+
+
+// Mock data for player activity chart
 export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 24 }, (_, i) => {
-    const d = new Date(now);
-    d.setHours(now.getHours() - (i * 2));
+    const d = new Date();
+    d.setHours(new Date().getHours() - (i * 2));
     return {
         time: `${String(d.getHours()).padStart(2, '0')}:00`,
         players: Math.floor(Math.random() * (55 - 10 + 1)) + 10,

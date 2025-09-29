@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { mockLogs } from "@/lib/data";
-import type { LogEntry, LogType } from "@/lib/types";
+import { generateLiveLog } from "@/lib/data";
+import type { LogEntry, LogType, ServerStateResponse, Player } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -30,6 +30,9 @@ import {
   HeartCrack,
   Swords,
   LocateFixed,
+  Megaphone,
+  Bell,
+  Scroll,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -39,6 +42,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "../ui/skeleton";
 
 const logTypeIcons: Record<LogType, React.ElementType> = {
   CONNECTION: LogIn,
@@ -46,6 +50,9 @@ const logTypeIcons: Record<LogType, React.ElementType> = {
   DAMAGE: HeartCrack,
   KILL: Swords,
   SPAWN: LocateFixed,
+  ANNOUNCEMENT: Megaphone,
+  NOTIFICATION: Bell,
+  RP: Scroll,
 };
 
 const logTypeLabels: Record<LogType, string> = {
@@ -54,7 +61,12 @@ const logTypeLabels: Record<LogType, string> = {
   DAMAGE: "Урон",
   KILL: "Убийство",
   SPAWN: "Событие",
+  ANNOUNCEMENT: "Объявление",
+  NOTIFICATION: "Оповещение",
+  RP: "Действие",
 };
+
+const MAX_LOGS = 100; // Keep the list from growing indefinitely
 
 interface LogViewProps {
   filterType?: LogType;
@@ -65,12 +77,49 @@ export default function LogView({ filterType }: LogViewProps) {
   const [typeFilter, setTypeFilter] = React.useState<LogType | "all">(filterType || "all");
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
+  const [players, setPlayers] = React.useState<Player[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
+  // Fetch initial players to start the simulation
   React.useEffect(() => {
-    // In a real app, you would fetch logs from an API
-    // For now, we use the mock data
-    setLogs(mockLogs);
+    const fetchInitialData = async () => {
+      try {
+        const response = await fetch('/api/server-stats');
+        const data: ServerStateResponse = await response.json();
+        if (data && data.players) {
+          setPlayers(data.players);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial player data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchInitialData();
   }, []);
+
+  // Live log simulation effect
+  React.useEffect(() => {
+    if (players.length === 0) return;
+
+    const generateRandomInterval = () => Math.random() * (5000 - 1500) + 1500; // 1.5s to 5s
+
+    let timeoutId: NodeJS.Timeout;
+
+    const scheduleNextLog = () => {
+        timeoutId = setTimeout(() => {
+            const newLogs = generateLiveLog(players);
+            if (newLogs) {
+                 setLogs(prevLogs => [...newLogs, ...prevLogs].slice(0, MAX_LOGS));
+            }
+            scheduleNextLog();
+        }, generateRandomInterval());
+    }
+
+    scheduleNextLog();
+
+    return () => clearTimeout(timeoutId);
+  }, [players]);
 
   React.useEffect(() => {
     setTypeFilter(filterType || "all");
@@ -80,9 +129,9 @@ export default function LogView({ filterType }: LogViewProps) {
     return logs.filter((log) => {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
-        log.user.name.toLowerCase().includes(lowerCaseSearch) ||
+        (log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
         log.details.toLowerCase().includes(lowerCaseSearch) ||
-        log.user.steamId.includes(lowerCaseSearch);
+        log.user?.steamId.includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
 
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
 
@@ -91,6 +140,27 @@ export default function LogView({ filterType }: LogViewProps) {
       return searchMatch && typeMatch && dateMatch;
     });
   }, [searchTerm, typeFilter, date, logs]);
+
+  const renderUserDetails = (log: LogEntry) => {
+    if (!log.user) {
+        return <TableCell><span className="font-semibold text-sky-400">[Система]</span></TableCell>;
+    }
+    return (
+        <TableCell>
+            <div className="font-medium">{log.user.name}</div>
+            <div className="text-xs text-muted-foreground font-mono">{log.user.steamId}</div>
+        </TableCell>
+    )
+  }
+  
+  const LogSkeleton = () => (
+    <TableRow>
+        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+        <TableCell><Skeleton className="h-6 w-28 rounded-full" /></TableCell>
+        <TableCell><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-40" /></div></TableCell>
+        <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+    </TableRow>
+  )
 
   return (
     <div className="space-y-4">
@@ -180,19 +250,20 @@ export default function LogView({ filterType }: LogViewProps) {
             <TableRow>
               <TableHead className="w-[200px]">Время</TableHead>
               <TableHead className="w-[140px]">Тип</TableHead>
-              <TableHead className="w-[220px]">Пользователь</TableHead>
+              <TableHead className="w-[220px]">Источник</TableHead>
               <TableHead>Детали</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredLogs.length > 0 ? (
+            {isLoading ? (
+                Array.from({length: 5}).map((_, i) => <LogSkeleton key={i} />)
+            ) : filteredLogs.length > 0 ? (
               filteredLogs.map((log) => {
                 const isDisconnect = log.type === 'CONNECTION' && log.details.toLowerCase().includes('отключился');
-                const isKick = log.type === 'CONNECTION' && log.details.toLowerCase().includes('кикнут');
-                const Icon = isDisconnect || isKick ? LogOut : logTypeIcons[log.type];
+                const Icon = isDisconnect ? LogOut : logTypeIcons[log.type] || MessageSquare;
                 
                 return (
-                    <TableRow key={log.id}>
+                    <TableRow key={log.id} className="transition-all hover:bg-muted/50">
                     <TableCell className="font-medium tabular-nums text-muted-foreground">
                       {format(log.timestamp, "dd MMMM yyyy, HH:mm:ss", { locale: ru })}
                     </TableCell>
@@ -202,10 +273,7 @@ export default function LogView({ filterType }: LogViewProps) {
                         <span>{logTypeLabels[log.type]}</span>
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                        <div className="font-medium">{log.user.name}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{log.user.steamId}</div>
-                    </TableCell>
+                    {renderUserDetails(log)}
                     <TableCell className="font-mono text-sm">{log.details}</TableCell>
                   </TableRow>
                 );
@@ -213,7 +281,7 @@ export default function LogView({ filterType }: LogViewProps) {
             ) : (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  Логи не найдены.
+                  Ожидание логов с сервера...
                 </TableCell>
               </TableRow>
             )}

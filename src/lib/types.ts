@@ -1,14 +1,17 @@
-export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN';
+export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN' | 'ANNOUNCEMENT' | 'NOTIFICATION' | 'RP';
 
 export type LogEntry = {
   id: string;
   timestamp: Date;
   type: LogType;
-  user: {
+  user?: { // User can be optional for system messages
     name: string;
     steamId: string;
   };
   details: string;
+  recipient?: { // For actions involving another player
+    name: string;
+  }
 };
 
 export type PlayerActivity = {
