@@ -142,11 +142,12 @@ export default function PlayersView() {
                     <TableHead className="text-right">Счет</TableHead>
                     <TableHead className="text-right">Пинг</TableHead>
                     <TableHead className="text-right">Время в игре</TableHead>
+                    <TableHead className="text-right">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {serverState.players.map((player, index) => (
-                      <TableRow key={player.raw?.steamid || `${player.name}-${index}`} onClick={() => handlePlayerClick(player.raw?.steamid)} className="cursor-pointer">
+                      <TableRow key={player.raw?.steamid || `${player.name}-${index}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
@@ -178,6 +179,21 @@ export default function PlayersView() {
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             {player.timeFormatted}
                           </div>
+                        </TableCell>
+                         <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" disabled={!player.raw?.steamid}>
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Действия</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => handlePlayerClick(player.raw?.steamid)}>
+                                Посмотреть профиль
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                   ))}
@@ -272,5 +288,3 @@ export default function PlayersView() {
     </div>
   );
 }
-
-    
