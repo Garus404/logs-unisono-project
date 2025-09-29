@@ -80,7 +80,7 @@ const PlayerDetailsSkeleton = () => (
 
 export default function PlayerPage({ params }: { params: { steamId: string }}) {
     const router = useRouter();
-    const { steamId } = params;
+    const steamId = params.steamId;
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
