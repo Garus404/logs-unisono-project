@@ -1,5 +1,8 @@
+
 "use client";
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   BookCopy,
   LayoutDashboard,
@@ -16,14 +19,10 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons/logo";
-import { useView } from "@/contexts/view-context";
 import { Separator } from "../ui/separator";
-import type { ViewType } from "@/lib/types";
 
 export default function AppSidebar() {
-  const { view, setView } = useView();
-
-  const handleSetView = (newView: ViewType) => () => setView(newView);
+  const pathname = usePathname();
 
   return (
     <>
@@ -41,34 +40,37 @@ export default function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleSetView('summary')}
-              isActive={view === 'summary'}
-              tooltip="Сводка сервера"
-            >
-              <LayoutDashboard />
-              <span>Сводка</span>
-            </SidebarMenuButton>
+             <Link href="/" className="w-full">
+                <SidebarMenuButton
+                isActive={pathname === '/'}
+                tooltip="Сводка сервера"
+                >
+                <LayoutDashboard />
+                <span>Сводка</span>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleSetView('players')}
-              isActive={view === 'players'}
-              tooltip="Игроки на сервере"
-            >
-              <Users />
-              <span>Игроки</span>
-            </SidebarMenuButton>
+            <Link href="/players" className="w-full">
+                <SidebarMenuButton
+                isActive={pathname === '/players'}
+                tooltip="Игроки на сервере"
+                >
+                <Users />
+                <span>Игроки</span>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleSetView('logs_all')}
-              isActive={view.startsWith('logs_')}
-              tooltip="Все логи сервера"
-            >
-              <BookCopy />
-              <span>Все логи</span>
-            </SidebarMenuButton>
+             <Link href="/logs" className="w-full">
+                <SidebarMenuButton
+                isActive={pathname === '/logs'}
+                tooltip="Все логи сервера"
+                >
+                <BookCopy />
+                <span>Все логи</span>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>

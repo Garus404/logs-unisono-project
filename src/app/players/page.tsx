@@ -2,9 +2,9 @@
 import AppSidebar from '@/components/layout/app-sidebar';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import ContentHeader from '@/components/layout/content-header';
-import SummaryView from '@/components/views/summary-view';
+import PlayersView from '@/components/views/players-view';
 
-export default function Home() {
+export default function PlayersPage() {
   return (
     <SidebarProvider defaultOpen={true}>
       <Sidebar>
@@ -14,7 +14,7 @@ export default function Home() {
          <div className="flex flex-1 flex-col">
             <ContentHeader />
             <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-                <SummaryView />
+                <PlayersView />
             </main>
         </div>
       </SidebarInset>
