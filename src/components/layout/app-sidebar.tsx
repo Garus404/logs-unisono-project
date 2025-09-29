@@ -2,7 +2,6 @@
 
 import {
   BookCopy,
-  ChevronDown,
   LayoutDashboard,
   LogOut,
   Users,
@@ -16,30 +15,15 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Logo } from "@/components/icons/logo";
 import { useView } from "@/contexts/view-context";
-import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import type { LogType, ViewType } from "@/lib/types";
-
-const logViews: { view: ViewType; label: string; type: LogType }[] = [
-  { view: 'logs_connection', label: 'Подключения', type: 'CONNECTION' },
-  { view: 'logs_chat', label: 'Чаты', type: 'CHAT' },
-  { view: 'logs_damage', label: 'Урон', type: 'DAMAGE' },
-  { view: 'logs_kill', label: 'Убийства', type: 'KILL' },
-  { view: 'logs_spawn', label: 'Появления', type: 'SPAWN' },
-];
+import type { ViewType } from "@/lib/types";
 
 export default function AppSidebar() {
   const { view, setView } = useView();
 
   const handleSetView = (newView: ViewType) => () => setView(newView);
-  const isLogsActive = view.startsWith('logs_');
 
   return (
     <>
@@ -76,35 +60,16 @@ export default function AppSidebar() {
               <span>Игроки</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-
-          <Collapsible>
-            <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton isActive={isLogsActive}>
-                  <BookCopy />
-                  <span>Логи</span>
-                  <ChevronDown className="ml-auto size-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-            </SidebarMenuItem>
-
-            <CollapsibleContent className="pl-4">
-               <SidebarMenu className="py-1">
-                 <SidebarMenuItem>
-                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleSetView('logs_all')} data-active={view === 'logs_all'}>
-                      Все логи
-                  </Button>
-                 </SidebarMenuItem>
-                {logViews.map(logView => (
-                   <SidebarMenuItem key={logView.view}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleSetView(logView.view)} data-active={view === logView.view}>
-                      {logView.label}
-                    </Button>
-                  </SidebarMenuItem>
-                ))}
-               </SidebarMenu>
-            </CollapsibleContent>
-          </Collapsible>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleSetView('logs_all')}
+              isActive={view.startsWith('logs_')}
+              tooltip="Все логи сервера"
+            >
+              <BookCopy />
+              <span>Все логи</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">

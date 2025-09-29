@@ -11,7 +11,7 @@ type ViewContextType = {
 
 const ViewContext = createContext<ViewContextType | undefined>(undefined);
 
-const viewTitles: Record<ViewType, string> = {
+const viewTitles: Record<string, string> = {
     summary: "Сводка сервера",
     players: "Игроки на сервере",
     logs_all: "Все логи",
@@ -24,7 +24,7 @@ const viewTitles: Record<ViewType, string> = {
 
 export function ViewProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<ViewType>('summary');
-  const viewTitle = viewTitles[view as keyof typeof viewTitles] || "Панель управления";
+  const viewTitle = viewTitles[view] || "Панель управления";
 
   return (
     <ViewContext.Provider value={{ view, setView, viewTitle }}>
