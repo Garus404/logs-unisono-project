@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import type { ServerStateResponse } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -136,7 +135,7 @@ export default function PlayersView() {
                 </TableHeader>
                 <TableBody>
                   {serverState.players.map((player, index) => {
-                    const steamId = player.steamId || player.raw?.steamid;
+                    const steamId = player.raw?.steamid || player.steamId;
                     return (
                       <TableRow key={steamId || `${player.name}-${index}`}>
                         <TableCell>
@@ -182,7 +181,7 @@ export default function PlayersView() {
                             <DropdownMenuContent>
                                <DropdownMenuItem asChild>
                                 <Link href={`/player/${steamId}`}>
-                                  Посмотреть профиль
+                                  Посмотреть информацию
                                 </Link>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
