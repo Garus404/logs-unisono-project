@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -206,7 +207,7 @@ export default function PlayersView() {
             <>
                 <InfoCardSkeleton />
                 <InfoCardSkeleton />
-                <Info_card_skeleton />
+                <InfoCardSkeleton />
             </>
         )}
         {error && !loading && (
@@ -280,5 +281,3 @@ export default function PlayersView() {
     </div>
   );
 }
-
-    
