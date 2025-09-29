@@ -24,6 +24,10 @@ export type Player = {
   ping: number;
   kills: number;
   timeHours: number;
+  // This is from gamedig, might not always exist
+  steamId?: string;
+  // This is from gamedig, might not always exist
+  raw?: any;
 };
 
 // This mirrors the structure returned by our custom API endpoint
@@ -81,5 +85,6 @@ export type PlayerDetails = {
     group: string;
     profession: string;
     donatedProfessions: string[];
+    activities: string[];
 };
     
