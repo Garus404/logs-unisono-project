@@ -134,10 +134,8 @@ export default function PlayersView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {serverState.players.map((player, index) => {
-                    const steamId = player.raw?.steamid || player.steamId;
-                    return (
-                      <TableRow key={steamId || `${player.name}-${index}`}>
+                  {serverState.players.map((player, index) => (
+                      <TableRow key={player.steamId || `${player.name}-${index}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
@@ -173,23 +171,24 @@ export default function PlayersView() {
                          <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" disabled={!steamId}>
+                              <Button variant="ghost" size="icon" disabled={!player.steamId}>
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Действия</span>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                                <DropdownMenuItem asChild>
-                                <Link href={`/player/${steamId}`}>
-                                  Посмотреть профиль
-                                </Link>
+                                {player.steamId && (
+                                  <Link href={`/player/${player.steamId}`}>
+                                    Посмотреть профиль
+                                  </Link>
+                                )}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
+                  ))}
                 </TableBody>
               </Table>
             )}
@@ -207,7 +206,7 @@ export default function PlayersView() {
             <>
                 <InfoCardSkeleton />
                 <InfoCardSkeleton />
-                <InfoCardSkeleton />
+                <Info_card_skeleton />
             </>
         )}
         {error && !loading && (
@@ -281,3 +280,5 @@ export default function PlayersView() {
     </div>
   );
 }
+
+    
