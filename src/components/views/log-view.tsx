@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -207,7 +208,7 @@ export default function LogView({ filterType }: LogViewProps) {
 
       <Card className="border shadow-sm rounded-lg flex-1 flex flex-col">
         <CardContent className="p-0 flex-1 flex">
-            <ScrollArea className="h-[calc(100vh-19rem)] w-full">
+            <ScrollArea className="w-full">
                 {isLoading ? (
                     Array.from({length: 25}).map((_, i) => <LogSkeleton key={i} />)
                 ) : filteredLogs.length > 0 ? (
@@ -215,7 +216,7 @@ export default function LogView({ filterType }: LogViewProps) {
                         {filteredLogs.map((log) => <LogItem key={log.id} log={log} />)}
                     </div>
                 ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground text-center">
+                <div className="flex items-center justify-center h-full text-muted-foreground text-center p-8">
                     Нет логов, соответствующих вашему запросу.
                 </div>
                 )}
