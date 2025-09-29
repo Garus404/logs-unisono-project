@@ -10,7 +10,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart";
-import type { PlayerActivity, ServerState } from "@/lib/types";
+import type { PlayerActivity, ServerStateResponse } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
@@ -23,7 +23,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function SummaryView() {
-  const [serverState, setServerState] = React.useState<ServerState | null>(null);
+  const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
   const [activity, setActivity] = React.useState<PlayerActivity[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -47,7 +47,7 @@ export default function SummaryView() {
           const errorData = await serverRes.json();
           throw new Error(errorData.error || 'Ошибка при получении статуса сервера');
         }
-        const serverData: ServerState = await serverRes.json();
+        const serverData: ServerStateResponse = await serverRes.json();
         setServerState(serverData);
         
         if (!activityRes.ok) {
@@ -96,9 +96,9 @@ export default function SummaryView() {
                 {!serverState ? 'Оффлайн' : 'Онлайн'}
               </div>
             }
-            <p className="text-xs text-muted-foreground">
-              {loading ? <Skeleton className="h-4 w-32 mt-1" /> : (serverState?.name || "۞ Unisono | Area-51")}
-            </p>
+            <div className="text-xs text-muted-foreground">
+              {loading ? <Skeleton className="h-4 w-32 mt-1" /> : (serverState?.server.name || "۞ Unisono | Area-51")}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -109,12 +109,12 @@ export default function SummaryView() {
           <CardContent>
              {loading ? <Skeleton className="h-8 w-20" /> :
                 <div className="text-2xl font-bold">
-                    {serverState ? `${serverState.players.length} / ${serverState.maxplayers}` : '0 / 0'}
+                    {serverState ? `${serverState.server.online} / ${serverState.server.maxplayers}` : '0 / 0'}
                 </div>
              }
-            <p className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               Обновляется каждые 30 сек.
-            </p>
+            </div>
           </CardContent>
         </Card>
         <Card>
