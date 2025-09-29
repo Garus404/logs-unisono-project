@@ -1,8 +1,7 @@
-// src/app/player/[steamId]/page.tsx
 "use client";
 
 import * as React from "react";
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import type { PlayerDetails } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -226,3 +225,4 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
         </div>
     );
 }
+    
