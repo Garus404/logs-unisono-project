@@ -38,6 +38,7 @@ import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 
 const logTypeIcons: Record<LogType, React.ElementType> = {
   CONNECTION: LogIn,
@@ -52,7 +53,7 @@ const logTypeLabels: Record<LogType, string> = {
   CHAT: "Чат",
   DAMAGE: "Урон",
   KILL: "Убийство",
-  SPAWN: "Появление",
+  SPAWN: "Событие",
 };
 
 interface LogViewProps {
@@ -63,13 +64,20 @@ export default function LogView({ filterType }: LogViewProps) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<LogType | "all">(filterType || "all");
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
+  const [logs, setLogs] = React.useState<LogEntry[]>([]);
+
+  React.useEffect(() => {
+    // In a real app, you would fetch logs from an API
+    // For now, we use the mock data
+    setLogs(mockLogs);
+  }, []);
 
   React.useEffect(() => {
     setTypeFilter(filterType || "all");
   }, [filterType]);
   
   const filteredLogs = React.useMemo(() => {
-    return mockLogs.filter((log) => {
+    return logs.filter((log) => {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
         log.user.name.toLowerCase().includes(lowerCaseSearch) ||
@@ -82,7 +90,7 @@ export default function LogView({ filterType }: LogViewProps) {
 
       return searchMatch && typeMatch && dateMatch;
     });
-  }, [searchTerm, typeFilter, date]);
+  }, [searchTerm, typeFilter, date, logs]);
 
   return (
     <div className="space-y-4">
@@ -170,20 +178,23 @@ export default function LogView({ filterType }: LogViewProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Время</TableHead>
-              <TableHead className="w-[120px]">Тип</TableHead>
-              <TableHead className="w-[200px]">Пользователь</TableHead>
+              <TableHead className="w-[200px]">Время</TableHead>
+              <TableHead className="w-[140px]">Тип</TableHead>
+              <TableHead className="w-[220px]">Пользователь</TableHead>
               <TableHead>Детали</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLogs.length > 0 ? (
               filteredLogs.map((log) => {
-                const Icon = log.details.includes('disconnected') ? LogOut : logTypeIcons[log.type];
+                const isDisconnect = log.type === 'CONNECTION' && log.details.toLowerCase().includes('отключился');
+                const isKick = log.type === 'CONNECTION' && log.details.toLowerCase().includes('кикнут');
+                const Icon = isDisconnect || isKick ? LogOut : logTypeIcons[log.type];
+                
                 return (
                     <TableRow key={log.id}>
-                    <TableCell className="font-medium tabular-nums">
-                      {format(log.timestamp, "MMM dd, hh:mm:ss a", { locale: ru })}
+                    <TableCell className="font-medium tabular-nums text-muted-foreground">
+                      {format(log.timestamp, "dd MMMM yyyy, HH:mm:ss", { locale: ru })}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="flex items-center gap-2 w-fit">
@@ -192,8 +203,8 @@ export default function LogView({ filterType }: LogViewProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                        <div>{log.user.name}</div>
-                        <div className="text-xs text-muted-foreground">{log.user.steamId}</div>
+                        <div className="font-medium">{log.user.name}</div>
+                        <div className="text-xs text-muted-foreground font-mono">{log.user.steamId}</div>
                     </TableCell>
                     <TableCell className="font-mono text-sm">{log.details}</TableCell>
                   </TableRow>
@@ -212,11 +223,3 @@ export default function LogView({ filterType }: LogViewProps) {
     </div>
   );
 }
-
-// Dummy Card component to resolve compilation error
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn(className)} {...props} />
-  )
-);
-Card.displayName = "Card";
