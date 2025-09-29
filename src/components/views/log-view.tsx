@@ -3,14 +3,6 @@
 import * as React from "react";
 import { generateLiveLog } from "@/lib/data";
 import type { LogEntry, LogType, ServerStateResponse, Player } from "@/lib/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -33,27 +25,16 @@ import {
   Megaphone,
   Bell,
   Scroll,
+  ChevronRight,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "../ui/skeleton";
-
-const logTypeIcons: Record<LogType, React.ElementType> = {
-  CONNECTION: LogIn,
-  CHAT: MessageSquare,
-  DAMAGE: HeartCrack,
-  KILL: Swords,
-  SPAWN: LocateFixed,
-  ANNOUNCEMENT: Megaphone,
-  NOTIFICATION: Bell,
-  RP: Scroll,
-};
 
 const logTypeLabels: Record<LogType, string> = {
   CONNECTION: "Подключение",
@@ -141,26 +122,13 @@ export default function LogView({ filterType }: LogViewProps) {
       return searchMatch && typeMatch && dateMatch;
     });
   }, [searchTerm, typeFilter, date, logs]);
-
-  const renderUserDetails = (log: LogEntry) => {
-    if (!log.user) {
-        return <TableCell><span className="font-semibold text-sky-400">[Система]</span></TableCell>;
-    }
-    return (
-        <TableCell>
-            <div className="font-medium">{log.user.name}</div>
-            <div className="text-xs text-muted-foreground font-mono">{log.user.steamId}</div>
-        </TableCell>
-    )
-  }
   
   const LogSkeleton = () => (
-    <TableRow>
-        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-        <TableCell><Skeleton className="h-6 w-28 rounded-full" /></TableCell>
-        <TableCell><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-40" /></div></TableCell>
-        <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-    </TableRow>
+    <div className="flex items-center gap-4 p-2">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-full" />
+    </div>
   )
 
   return (
@@ -246,48 +214,30 @@ export default function LogView({ filterType }: LogViewProps) {
       </div>
 
       <Card className="border shadow-sm rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px]">Время</TableHead>
-              <TableHead className="w-[140px]">Тип</TableHead>
-              <TableHead className="w-[220px]">Источник</TableHead>
-              <TableHead>Детали</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-                Array.from({length: 5}).map((_, i) => <LogSkeleton key={i} />)
-            ) : filteredLogs.length > 0 ? (
-              filteredLogs.map((log) => {
-                const isDisconnect = log.type === 'CONNECTION' && log.details.toLowerCase().includes('отключился');
-                const Icon = isDisconnect ? LogOut : logTypeIcons[log.type] || MessageSquare;
-                
-                return (
-                    <TableRow key={log.id} className="transition-all hover:bg-muted/50">
-                    <TableCell className="font-medium tabular-nums text-muted-foreground">
-                      {format(log.timestamp, "dd MMMM yyyy, HH:mm:ss", { locale: ru })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="flex items-center gap-2 w-fit">
-                        <Icon className="h-3 w-3" />
-                        <span>{logTypeLabels[log.type]}</span>
-                      </Badge>
-                    </TableCell>
-                    {renderUserDetails(log)}
-                    <TableCell className="font-mono text-sm">{log.details}</TableCell>
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  Ожидание логов с сервера...
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+        <CardContent className="p-0">
+            <div className="bg-black/80 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-[calc(100vh-20rem)] overflow-y-auto">
+                {isLoading ? (
+                    Array.from({length: 15}).map((_, i) => <LogSkeleton key={i} />)
+                ) : filteredLogs.length > 0 ? (
+                filteredLogs.map((log) => {
+                    const sourceName = log.user ? `Игрок ${log.user.name}` : '[Система]';
+                    return (
+                        <div key={log.id} className="flex items-start gap-3 transition-opacity animate-in fade-in-0">
+                            <span className="text-muted-foreground tabular-nums shrink-0">
+                                {format(log.timestamp, "yyyy-MM-dd HH:mm:ss", { locale: ru })}
+                            </span>
+                            <span className="font-bold text-sky-300 shrink-0">{sourceName}</span>
+                            <p className="text-green-300/90">{log.details}</p>
+                        </div>
+                    );
+                })
+                ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-center">
+                    Ожидание логов с сервера...
+                </div>
+                )}
+            </div>
+        </CardContent>
       </Card>
     </div>
   );
