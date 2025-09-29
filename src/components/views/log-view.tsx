@@ -2,8 +2,8 @@
 "use client";
 
 import * as React from "react";
-import { historicalLogs } from "@/lib/data";
-import type { LogEntry, LogType } from "@/lib/types";
+import { generateSingleRandomLog, historicalLogs } from "@/lib/data";
+import type { LogEntry, LogType, Player } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -60,15 +60,52 @@ export default function LogView({ filterType }: LogViewProps) {
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [players, setPlayers] = React.useState<Player[]>([]);
 
   React.useEffect(() => {
-    // Simulate fetching historical data
+    // Simulate fetching historical data and players
     setIsLoading(true);
+    
+    // In a real app, you'd fetch players. Here we'll use a subset from the logs.
+    const uniquePlayers = Array.from(new Set(historicalLogs.map(l => l.user?.name).filter(Boolean)))
+      .map(name => ({
+        name: name as string,
+        score: Math.floor(Math.random() * 200),
+        time: Math.floor(Math.random() * 3000),
+        timeFormatted: 'mock',
+        ping: Math.floor(Math.random() * 100),
+        kills: Math.floor(Math.random() * 50),
+        timeHours: 0,
+        steamId: `STEAM_0:${Math.random() > 0.5 ? 1 : 0}:${Math.floor(Math.random() * 100000000)}`,
+      }));
+    setPlayers(uniquePlayers);
+    
     // Sort logs once on load
     const sortedLogs = [...historicalLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     setLogs(sortedLogs);
     setIsLoading(false);
   }, []);
+  
+  React.useEffect(() => {
+    if (isLoading || players.length === 0) return;
+
+    const interval = setInterval(() => {
+        const newLog = generateSingleRandomLog(players, new Date());
+        
+        const addLogs = (logOrLogs: LogEntry | LogEntry[] | null) => {
+            if (!logOrLogs) return;
+            if (Array.isArray(logOrLogs)) {
+                setLogs(prevLogs => [...logOrLogs.reverse(), ...prevLogs]);
+            } else {
+                setLogs(prevLogs => [logOrLogs, ...prevLogs]);
+            }
+        }
+        addLogs(newLog);
+
+    }, 3000 + Math.random() * 4000); // Add a new log every 3-7 seconds
+
+    return () => clearInterval(interval);
+  }, [isLoading, players]);
 
 
   React.useEffect(() => {
@@ -76,7 +113,6 @@ export default function LogView({ filterType }: LogViewProps) {
   }, [filterType]);
   
   const filteredLogs = React.useMemo(() => {
-    if (isLoading) return [];
     return logs.filter((log) => {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
@@ -88,11 +124,11 @@ export default function LogView({ filterType }: LogViewProps) {
       
       const logDate = new Date(log.timestamp);
       const dateMatch = (!date || !date.from) || 
-        (logDate >= date.from && logDate <= (date.to || new Date(date.from.getTime() + 24 * 60 * 60 * 1000 - 1)));
+        (logDate >= date.from && (!date.to || logDate <= date.to));
 
       return searchMatch && typeMatch && dateMatch;
     });
-  }, [searchTerm, typeFilter, date, logs, isLoading]);
+  }, [searchTerm, typeFilter, date, logs]);
   
   const LogSkeleton = () => (
     <div className="flex items-center gap-4 p-3">
@@ -105,8 +141,21 @@ export default function LogView({ filterType }: LogViewProps) {
 
   const LogItem = ({log}: {log: LogEntry}) => {
     const config = logTypeConfig[log.type] || { icon: Bell, color: "text-gray-500" };
-    const Icon = log.details.toLowerCase().includes('отключился') ? LogOut : config.icon;
-    const sourceName = log.user ? `${log.user.name}` : '[Система]';
+    let Icon = config.icon;
+    let sourceName = log.user ? `${log.user.name}` : '[Система]';
+
+    if (log.type === 'CONNECTION' && log.details.toLowerCase().includes('отключился')) {
+        Icon = LogOut;
+    }
+     if (log.type === 'KILL' && log.details.toLowerCase().includes('убит падением')) {
+        sourceName = log.user?.name || '[Система]';
+    } else if (log.type === 'KILL') {
+        sourceName = log.user?.name || '[Система]';
+    } else if(log.type === 'DAMAGE') {
+        // For damage, the user is the one receiving damage.
+        // We can display the recipient as the source of the log row for consistency.
+        sourceName = log.recipient?.name || '[Система]'
+    }
 
     return (
         <div className="flex items-start gap-3 p-3 border-b border-border/50 transition-colors hover:bg-muted/30">
@@ -208,7 +257,7 @@ export default function LogView({ filterType }: LogViewProps) {
 
       <Card className="border shadow-sm rounded-lg flex-1 flex flex-col min-h-0">
         <CardContent className="p-0 flex-1 flex">
-            <ScrollArea className="w-full h-full">
+            <ScrollArea className="w-full h-[calc(100vh-220px)]">
                 {isLoading ? (
                     Array.from({length: 25}).map((_, i) => <LogSkeleton key={i} />)
                 ) : filteredLogs.length > 0 ? (

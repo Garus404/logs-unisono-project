@@ -1,4 +1,5 @@
 
+
 import type { LogEntry, Player, LogType, PlayerActivity } from '@/lib/types';
 
 // --- Helper Functions ---
@@ -224,6 +225,82 @@ const damageTemplates = [
      (p1: Player, p2: Player) => ({ type: 'DAMAGE' as LogType, user: p2, details: `получил ${Math.floor(Math.random() * 99) + 1} урона от ${p1.name}.`, recipient: p1 }),
 ];
 
+// --- Single Log Generator Function ---
+export function generateSingleRandomLog(players: Player[], timestamp: Date = new Date()): LogEntry | LogEntry[] | null {
+    if (players.length === 0) players = mockPlayers;
+    
+    let generatedLog: Omit<LogEntry, 'id' | 'timestamp'> | null | (Omit<LogEntry, 'id' | 'timestamp'>)[] = null;
+    const eventType = Math.random();
+    let template: Function;
+
+    try {
+        if (eventType < 0.35) { // OOC Chat (35%)
+            template = getRandomElement(oocChatTemplates);
+            generatedLog = template();
+            (generatedLog as LogEntry).user = getRandomElement(players);
+        } else if (eventType < 0.40) { // OOC Dialogues (5%)
+            if (players.length > 1) {
+                template = getRandomElement(oocDialogues);
+                generatedLog = template();
+                 // Assign users to the dialogue parts
+                if (Array.isArray(generatedLog)) {
+                    generatedLog[0].user = getRandomElement(players);
+                    generatedLog[1].user = getRandomElement(players.filter(p => p.name !== generatedLog![0].user!.name));
+                }
+            }
+        } else if (eventType < 0.65) { // RP Actions / СКО (25%)
+            const player = getRandomElement(players);
+            const scp = getRandomElement(scpObjects);
+            // Special rule for 'Старик'
+            if (scp === "Старик" && Math.random() < 0.5) {
+                 const step = Math.floor(Math.random() * 5) + 1;
+                 if (step < 5) {
+                    generatedLog = { type: 'RP', user: player, details: `[СКО] Образец Старик плавит куб Старика ${step}/5` };
+                 } else {
+                    generatedLog = [
+                        { type: 'RP', user: player, details: `[СКО] Образец Старик плавит куб Старика 5/5` },
+                        { type: 'RP', user: player, details: `[СКО] Внимание Образец Старик расплавил куб Старика` }
+                    ];
+                 }
+            } else {
+                template = getRandomElement(rpActionTemplates.filter(t => !t.toString().includes("Старик")));
+                generatedLog = template(player, scp);
+            }
+        } else if (eventType < 0.85) { // Notifications & Diplomacy (20%)
+            template = getRandomElement(notificationTemplates);
+             if (template.length === 0) { // no-arg templates like war declaration
+                generatedLog = template();
+            } else if (template.toString().includes("погиб")) {
+                generatedLog = template(getRandomElement(scpObjects), getRandomElement(organizations));
+            }
+            else {
+                generatedLog = template(getRandomElement(players), getRandomElement(scpObjects));
+            }
+        } else if (eventType < 0.95) { // Announcements (10%)
+            template = getRandomElement(announcementTemplates);
+             generatedLog = template(getRandomElement(players), getRandomElement(scpObjects), getRandomElement(organizations));
+        } else { // Connections, Kills, Damage (5%)
+            if (players.length > 1) {
+                const [p1, p2] = getTwoRandomPlayers(players);
+                const subType = Math.random();
+                if (subType < 0.3) generatedLog = getRandomElement(connectionTemplates)(p1);
+                else if (subType < 0.6) generatedLog = getRandomElement(killTemplates)(p1, p2);
+                else generatedLog = getRandomElement(damageTemplates)(p1, p2);
+            }
+        }
+    } catch (e) {
+        return null;
+    }
+
+    if (!generatedLog) return null;
+
+    if (Array.isArray(generatedLog)) {
+        return generatedLog.map(log => ({ ...log, id: crypto.randomUUID(), timestamp }));
+    } else {
+        return { ...(generatedLog as Omit<LogEntry, 'id'|'timestamp'>), id: crypto.randomUUID(), timestamp };
+    }
+}
+
 
 // --- Main Generator Function for Historical Data ---
 function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
@@ -254,79 +331,13 @@ function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
             timestamp.setTime(dayStart.getTime() + Math.random() * validTimeRange);
 
 
-            let generatedLog: Omit<LogEntry, 'id' | 'timestamp'> | null | (Omit<LogEntry, 'id' | 'timestamp'>)[] = null;
+            const generatedLog = generateSingleRandomLog(mockPlayers, timestamp);
             
-            const eventType = Math.random();
-            let template: Function;
-
-            try {
-                if (eventType < 0.35) { // OOC Chat (35%)
-                    template = getRandomElement(oocChatTemplates);
-                    const logKey = template.toString();
-                    if ((usageCounts[`day-${day}`][logKey] || 0) < MAX_USAGE_PER_DAY) {
-                        generatedLog = template();
-                        (generatedLog as LogEntry).user = getRandomElement(mockPlayers);
-                        usageCounts[`day-${day}`][logKey] = (usageCounts[`day-${day}`][logKey] || 0) + 1;
-                    }
-                } else if (eventType < 0.40) { // OOC Dialogues (5%)
-                    if (mockPlayers.length > 1) {
-                        template = getRandomElement(oocDialogues);
-                        generatedLog = template();
-                    }
-                } else if (eventType < 0.65) { // RP Actions / СКО (25%)
-                    const player = getRandomElement(mockPlayers);
-                    const scp = getRandomElement(scpObjects);
-                    // Special rule for 'Старик'
-                    if (scp === "Старик" && Math.random() < 0.5) {
-                         const step = Math.floor(Math.random() * 5) + 1;
-                         if (step < 5) {
-                            generatedLog = { type: 'RP', user: player, details: `[СКО] Образец Старик плавит куб Старика ${step}/5` };
-                         } else {
-                            generatedLog = [
-                                { type: 'RP', user: player, details: `[СКО] Образец Старик плавит куб Старика 5/5` },
-                                { type: 'RP', user: player, details: `[СКО] Внимание Образец Старик расплавил куб Старика` }
-                            ];
-                         }
-                    } else {
-                        template = getRandomElement(rpActionTemplates.filter(t => !t.toString().includes("Старик")));
-                        generatedLog = template(player, scp);
-                    }
-                } else if (eventType < 0.85) { // Notifications & Diplomacy (20%)
-                    template = getRandomElement(notificationTemplates);
-                     if (template.length === 0) { // no-arg templates like war declaration
-                        generatedLog = template();
-                    } else if (template.toString().includes("погиб")) {
-                        generatedLog = template(getRandomElement(scpObjects), getRandomElement(organizations));
-                    }
-                    else {
-                        generatedLog = template(getRandomElement(mockPlayers), getRandomElement(scpObjects));
-                    }
-                } else if (eventType < 0.95) { // Announcements (10%)
-                    template = getRandomElement(announcementTemplates);
-                     generatedLog = template(getRandomElement(mockPlayers), getRandomElement(scpObjects), getRandomElement(organizations));
-                } else { // Connections, Kills, Damage (5%)
-                    if (mockPlayers.length > 1) {
-                        const [p1, p2] = getTwoRandomPlayers(mockPlayers);
-                        const subType = Math.random();
-                        if (subType < 0.4) generatedLog = getRandomElement(connectionTemplates)(p1);
-                        else if (subType < 0.8) generatedLog = getRandomElement(killTemplates)(p1, p2);
-                        else generatedLog = getRandomElement(damageTemplates)(p1, p2);
-                    }
-                }
-            } catch (e) {
-                // Failsafe if template generation fails
-                continue;
-            }
-
             if (generatedLog) {
-                const addLog = (log: Omit<LogEntry, 'id' | 'timestamp'>) => {
-                     allLogs.push({ ...log, id: crypto.randomUUID(), timestamp });
-                };
-
                 if (Array.isArray(generatedLog)) {
-                    generatedLog.forEach(addLog);
+                    allLogs.push(...generatedLog);
                 } else {
-                    addLog(generatedLog as Omit<LogEntry, 'id' | 'timestamp'>);
+                    allLogs.push(generatedLog);
                 }
             }
         }
