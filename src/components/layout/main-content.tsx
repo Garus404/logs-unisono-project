@@ -37,7 +37,8 @@ export default function MainContent() {
       case "players":
         return <PlayersView />;
       default:
-        return <LogView filterType={'all'} />;
+        // Fallback to all logs if view is something unexpected
+        return <LogView />;
     }
   };
 
