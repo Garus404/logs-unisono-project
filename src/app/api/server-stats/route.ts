@@ -37,6 +37,11 @@ export async function GET() {
       ? Math.round(sortedPlayers.reduce((sum, player) => sum + player.ping, 0) / sortedPlayers.length)
       : 0;
 
+    // Преобразуем строку тегов в массив
+    const tags = state.raw?.tags && typeof state.raw.tags === 'string'
+      ? state.raw.tags.trim().split(' ').filter(Boolean)
+      : [];
+
     return NextResponse.json({
       // Основная информация о сервере
       server: {
@@ -71,7 +76,7 @@ export async function GET() {
       details: {
         version: state.raw?.version,
         environment: state.raw?.environment === 'l' ? 'Linux' : 'Windows',
-        tags: state.raw?.tags || [],
+        tags: tags,
         steamId: state.raw?.steamid
       },
       
