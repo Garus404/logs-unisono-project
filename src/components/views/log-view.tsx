@@ -206,9 +206,9 @@ export default function LogView({ filterType }: LogViewProps) {
         </div>
       </div>
 
-      <Card className="border shadow-sm rounded-lg flex-1 flex flex-col">
+      <Card className="border shadow-sm rounded-lg flex-1 flex flex-col min-h-0">
         <CardContent className="p-0 flex-1 flex">
-            <ScrollArea className="w-full">
+            <ScrollArea className="w-full h-full">
                 {isLoading ? (
                     Array.from({length: 25}).map((_, i) => <LogSkeleton key={i} />)
                 ) : filteredLogs.length > 0 ? (

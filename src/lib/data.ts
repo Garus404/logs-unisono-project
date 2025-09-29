@@ -32,7 +32,9 @@ const playerNames = [
     'Тони Майлер', 'Иван Шаров', 'Лоренсо Нэп', 'Алексей Эхов', 'Никита Семенек', 'Gabriel Show',
     'Леха Фастфудов', 'Галим Вискарь', 'Alexander Petrovich', 'Maksim Mercer', 'Rydy Blackberry',
     'Майкл Цуриков', 'Прометей Фелт', 'Алекс Тролген', 'Илья Голубцов', 'Рома Крауц', 'Андрей Цыплин',
-    'Pasha Novikov', 'Степан Хорошов', 'Джордж Конор'
+    'Pasha Novikov', 'Степан Хорошов', 'Джордж Конор', 'Amino Morsogo', 'Грум Нард', 'Юлий Пирогов',
+    'Толя Дальнобой', 'Мухмад Артуров', 'Андрей Файров', 'Филип Бевер', 'Иван Дмитревич', 'Adrian Goida',
+    'Василий Ковров', 'Никита Рамашкинов', 'Майкл Суриков'
 ];
 
 
@@ -51,10 +53,10 @@ const scpObjects = [
     "Каплеглазик А", "Мясник", "Скромник", "Старик", "Авель", "Маска", "Кондор", "Амфибия", "Гибрид",
     "Хищник", "Ящерица", "Бессонник", "Домовой", "Чужой - Лицехват", "Огненный Человек", "Медвежонок",
     "Мимик", "Ионик", "Суккуб", "До-До", "Господин Рыба", "Желейка", "Чумной Доктор", "Хранитель",
-    "Чужой", "Кошмар", "ИИ", "Соврана"
+    "Чужой", "Кошмар", "ИИ", "Соврана", "Голоса", "Пилигрим"
 ];
 
-const organizations = ["Комплекс", "Сопротивление", "Длань-Змея", "ЭВС"];
+const organizations = ["Комплекс", "Сопротивление", "Длань-Змея", "ЭВС", "СОП"];
 
 // --- TEMPLATES ---
 const oocChatTemplates = [
@@ -62,6 +64,7 @@ const oocChatTemplates = [
     () => ({ type: 'CHAT' as LogType, details: `[OOC] щас рейд?` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] Кто ролл 100к` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] Кто ролл 300k` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] кто ролл 500к??` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] Как вас КОБРА УБИЛА` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] Дура на кобре блять` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] лол` }),
@@ -116,6 +119,22 @@ const oocChatTemplates = [
     () => ({ type: 'CHAT' as LogType, details: `[OOC] так это бинды` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] эрик дубрович убери пропы в интеркоме` }),
     () => ({ type: 'CHAT' as LogType, details: `[OOC] да бля хран` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] кто в ролл пойдёт` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] Маска Тагиллы +30 Сыра` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] Ххаахахахахх` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] продам позвонки ящера за 15к` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] он макс 25к стоит` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] Кто продаст маску тагилы` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] ВПН))` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] еды надо` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] я ебал` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] эвс мне верните` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] как снести яйцо` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] тужиться` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] мои сообщения видно?` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] рембрандт фри` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] Чё так лагает` }),
+    () => ({ type: 'CHAT' as LogType, details: `[OOC] Ало` }),
 ];
 
 const oocDialogues = [
@@ -126,6 +145,8 @@ const oocDialogues = [
     () => [{ type: 'CHAT' as LogType, user: mockPlayers[12], details: `[OOC] не офаем:)` }, { type: 'CHAT' as LogType, user: mockPlayers[13], details: `[OOC] все офаем` }],
     () => [{ type: 'CHAT' as LogType, user: mockPlayers[14], details: `[OOC] верт прилетел?` }, { type: 'CHAT' as LogType, user: mockPlayers[15], details: `[OOC] +` }],
     () => [{ type: 'CHAT' as LogType, user: mockPlayers[16], details: `[OOC] так давай` }, { type: 'CHAT' as LogType, user: mockPlayers[17], details: `[OOC] так у нас там бессмертие` }],
+    () => [{ type: 'CHAT' as LogType, user: mockPlayers[18], details: `[OOC] кто в ролл пойдёт?` }, { type: 'CHAT' as LogType, user: mockPlayers[19], details: `[OOC] 100к?` }],
+    () => [{ type: 'CHAT' as LogType, user: mockPlayers[20], details: `[OOC] грум лох` }, { type: 'CHAT' as LogType, user: mockPlayers[21], details: `[OOC] сам лох` }],
 ];
 
 const rpActionTemplates = [
@@ -137,9 +158,9 @@ const rpActionTemplates = [
     (p: Player, scp: string) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Образец ${scp} ломает дверь к.с ${getRandomElement(scpObjects)} ${Math.floor(Math.random() * 4) + 1}/5` }),
     (p: Player, scp: string) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Внимание Образец ${scp} сломал двери адм. зоны - тяж. зоны содержания` }),
     (p: Player) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Испытуемый ломает ворота блока Д ${Math.floor(Math.random() * 4) + 1}/5` }),
-    () => ({ type: 'RP' as LogType, user: getRandomElement(mockPlayers), details: `[СКО] Образец Старик плавит куб Старика ${Math.floor(Math.random() * 4) + 1}/5` }),
-    () => ({ type: 'RP' as LogType, user: getRandomElement(mockPlayers), details: `[СКО] Внимание Образец Старик расплавил куб Старика` }),
-    (p: Player, scp: string) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Образец ${scp} ломает большие ворота к.с ${scp} ${Math.floor(Math.random() * 4) + 1}/5` }),
+    (p: Player) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Образец Старик плавит куб Старика ${Math.floor(Math.random() * 5) + 1}/5` }),
+    (p: Player) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Внимание Образец Старик расплавил куб Старика` }),
+    (p: Player, scp: string) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Образец ${scp} ломает большие ворота к.с ${scp} ${Math.floor(Math.random() * 5) + 1}/5` }),
     (p: Player, scp: string) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Внимание Образец ${scp} сломал большие ворота к.с ${scp}` }),
     (p: Player) => ({ type: 'RP' as LogType, user: p, details: `[СКО] Грузчик ломает ворота к.с ${getRandomElement(scpObjects)} 1/5` }),
 ];
@@ -161,12 +182,15 @@ const announcementTemplates = [
     (p: Player, scp: string) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[RP] Образец ${scp} пошел на тушку.` }),
     (p: Player, scp: string) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[RP] О.${scp} эвакуриволся` }),
     (p: Player, scp: string) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[CO] О.${scp} желает получить тело для дальнейшей помощи комплексу` }),
-    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, details: `[Пред ДЗ]->[КМ] Здрасствуйте, давайте союз?` }),
-    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, details: `[КМ-ДЗ] Не могу сейчас выйти, попозже` }),
-    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, details: `[Пред ДЗ]->[КМ] Ок, подожду вас` }),
-    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, details: `[км]-[дз] конечно` }),
-    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, details: `[Пред ДЗ]->[КМ] Жду вас у базы ЭВС.` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Здрасствуйте, давайте союз?` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[КМ-ДЗ] Не могу сейчас выйти, попозже` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Ок, подожду вас` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[км]-[дз] конечно` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Жду вас у базы ЭВС.` }),
     () => ({ type: 'ANNOUNCEMENT' as LogType, user: undefined, details: `[Объявление] Неизвестная организация вторгается в КМ.` }),
+    () => ({ type: 'ANNOUNCEMENT' as LogType, user: undefined, details: `[Объявление] Неизвестная организация прекращает рейд в КМ. (Смерть предводителя)` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[RP] Пилигрим был подавлен своей же миной.` }),
+    (p: Player, scp: string) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[NRP] О.${scp} застрял в карманном измерении` }),
 ];
 
 const notificationTemplates = [
@@ -174,12 +198,12 @@ const notificationTemplates = [
     (p: Player, scp: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Оповещения [VIP] Образец ${scp} покинул камеру содержания. (${p.name})` }),
     (p: Player, scp: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Оповещения Образец ${scp} вернулся в камеру содержания. (${p.name})` }),
     (p: Player, scp: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Оповещения [VIP] Образец ${scp} вернулся в камеру содержания. (${p.name})` }),
-    (p: Player, scp: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Образец ${scp} погиб. Контракт с Организацией ${getRandomElement(organizations)} аннулирован.` }),
+    (scp: string, org: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Образец ${scp} погиб. Контракт с Организацией ${org} аннулирован.` }),
     () => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Организация ${getRandomElement(organizations)} объявила войну Организации ${getRandomElement(organizations)}` }),
     () => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Главы Организации ${getRandomElement(organizations)} погибли. Все контракты, войны, союзы аннулированы.` }),
-    () => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Организация Комплекс разорвала союз с Организацией ${getRandomElement(organizations)}` }),
+    (org: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Организация Комплекс разорвала союз с Организацией ${org}` }),
     (p: Player, scp: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Дипломатия Организация Комплекс заключила контракт c Образец ${scp}` }),
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: p, details: `Интерком обьявил ${getRandomElement(["Синий код", "Жёлтый код", "Ядерная Боеголовка", "Красный код", "Сбор боевых единиц", "сбор бе на гейту б"])}` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: p, details: `Интерком обьявил ${getRandomElement(["Синий код", "Жёлтый код", "Ядерная Боеголовка", "Красный код", "Сбор боевых единиц", "сбор бе на гейту б", "Отмена"])}` }),
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: p, details: `Интерком: Сандальев Анатолий объявлен дефектным, обнулить` }),
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Tasks | ${p.name} получил $${(Math.floor(Math.random() * 10) + 1) * 2500} за выполнение Никнейм задания` }),
     (p: Player, scp: string) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Учёные Ученый класса C (${p.name}) должен привести испытуемых для Образец ${scp} (игрок ${getRandomElement(playerNames)}) ${Math.floor(Math.random() * 2) + 1} шт.` }),
@@ -253,23 +277,33 @@ function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
                     const player = getRandomElement(mockPlayers);
                     const scp = getRandomElement(scpObjects);
                     // Special rule for 'Старик'
-                    if (Math.random() < 0.1) {
-                         template = getRandomElement([rpActionTemplates[8], rpActionTemplates[9]]);
-                         generatedLog = template();
+                    if (scp === "Старик" && Math.random() < 0.5) {
+                         const step = Math.floor(Math.random() * 5) + 1;
+                         if (step < 5) {
+                            generatedLog = { type: 'RP', user: player, details: `[СКО] Образец Старик плавит куб Старика ${step}/5` };
+                         } else {
+                            generatedLog = [
+                                { type: 'RP', user: player, details: `[СКО] Образец Старик плавит куб Старика 5/5` },
+                                { type: 'RP', user: player, details: `[СКО] Внимание Образец Старик расплавил куб Старика` }
+                            ];
+                         }
                     } else {
-                        template = getRandomElement(rpActionTemplates.slice(0,8));
+                        template = getRandomElement(rpActionTemplates.filter(t => !t.toString().includes("Старик")));
                         generatedLog = template(player, scp);
                     }
                 } else if (eventType < 0.85) { // Notifications & Diplomacy (20%)
                     template = getRandomElement(notificationTemplates);
-                    if (template.length === 0) { // no-arg templates
+                     if (template.length === 0) { // no-arg templates like war declaration
                         generatedLog = template();
-                    } else {
+                    } else if (template.toString().includes("погиб")) {
+                        generatedLog = template(getRandomElement(scpObjects), getRandomElement(organizations));
+                    }
+                    else {
                         generatedLog = template(getRandomElement(mockPlayers), getRandomElement(scpObjects));
                     }
                 } else if (eventType < 0.95) { // Announcements (10%)
                     template = getRandomElement(announcementTemplates);
-                     generatedLog = template(getRandomElement(mockPlayers), getRandomElement(scpObjects), getRandomElement(scpObjects));
+                     generatedLog = template(getRandomElement(mockPlayers), getRandomElement(scpObjects), getRandomElement(organizations));
                 } else { // Connections, Kills, Damage (5%)
                     if (mockPlayers.length > 1) {
                         const [p1, p2] = getTwoRandomPlayers(mockPlayers);
@@ -302,8 +336,8 @@ function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
 }
 
 
-// Generate a week of logs, with around 500 entries per day
-export const historicalLogs: LogEntry[] = generateHistoricalLogs(7, 500);
+// Generate a week of logs, with around 1000 entries per day
+export const historicalLogs: LogEntry[] = generateHistoricalLogs(7, 1000);
 
 
 // Mock data for player activity chart
@@ -332,5 +366,3 @@ export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 24 }, (
         players: players,
     };
 }).reverse();
-
-    
