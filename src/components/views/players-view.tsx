@@ -142,13 +142,12 @@ export default function PlayersView() {
                     <TableHead className="text-right">Счет</TableHead>
                     <TableHead className="text-right">Пинг</TableHead>
                     <TableHead className="text-right">Время в игре</TableHead>
-                    <TableHead className="text-right">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {serverState.players.map((player, index) => (
-                      <TableRow key={player.raw?.steamid || `${player.name}-${index}`} className="group">
-                        <TableCell onClick={() => handlePlayerClick(player.raw?.steamid)} className="cursor-pointer">
+                      <TableRow key={player.raw?.steamid || `${player.name}-${index}`} onClick={() => handlePlayerClick(player.raw?.steamid)} className="cursor-pointer">
+                        <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
                               <AvatarFallback>{player.name.charAt(0).toUpperCase()}</AvatarFallback>
@@ -156,43 +155,29 @@ export default function PlayersView() {
                             <span className="font-medium">{player.name}</span>
                           </div>
                         </TableCell>
-                        <TableCell onClick={() => handlePlayerClick(player.raw?.steamid)} className="text-right tabular-nums cursor-pointer">
+                        <TableCell className="text-right tabular-nums">
                           <div className="flex items-center justify-end gap-2">
                             <Skull className="w-4 h-4 text-red-400" />
                             {player.kills || 0}
                           </div>
                         </TableCell>
-                        <TableCell onClick={() => handlePlayerClick(player.raw?.steamid)} className="text-right tabular-nums cursor-pointer">
+                        <TableCell className="text-right tabular-nums">
                           <div className="flex items-center justify-end gap-2">
                             <Trophy className="w-4 h-4 text-amber-400" />
                             {player.score}
                           </div>
                         </TableCell>
-                        <TableCell onClick={() => handlePlayerClick(player.raw?.steamid)} className="text-right tabular-nums cursor-pointer">
+                        <TableCell className="text-right tabular-nums">
                             <div className="flex items-center justify-end gap-2">
                                 <Signal className="w-4 h-4 text-sky-400"/>
                                 {player.ping}
                             </div>
                         </TableCell>
-                        <TableCell onClick={() => handlePlayerClick(player.raw?.steamid)} className="text-right tabular-nums cursor-pointer">
+                        <TableCell className="text-right tabular-nums">
                           <div className="flex items-center justify-end gap-2">
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             {player.timeFormatted}
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => handlePlayerClick(player.raw?.steamid)}>
-                                        Посмотреть профиль
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </TableCell>
                       </TableRow>
                   ))}
@@ -287,3 +272,5 @@ export default function PlayersView() {
     </div>
   );
 }
+
+    
