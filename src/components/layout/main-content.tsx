@@ -37,7 +37,7 @@ export default function MainContent() {
       case "players":
         return <PlayersView />;
       default:
-        return <SummaryView />;
+        return <LogView filterType={'all'} />;
     }
   };
 
