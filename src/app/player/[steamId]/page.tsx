@@ -230,5 +230,3 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
         </div>
     );
 }
-
-    

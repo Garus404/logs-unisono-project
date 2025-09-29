@@ -1,7 +1,7 @@
-// src/app/api/player-details/[steamId]/route.ts
+
 import { NextResponse, NextRequest } from "next/server";
 import { PlayerDetails } from "@/lib/types";
-import { historicalLogs, mockPlayerActivity } from '@/lib/data';
+import { historicalLogs } from '@/lib/data';
 
 // --- Helper Functions ---
 function simpleHash(str: string): number {
