@@ -27,6 +27,7 @@ const oocChatTemplates = [
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] я боюсь совры и мясо они меня выебут пока я на нулевом тире` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] а чем причина?` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] помоги` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Да вы заебали км я щяс выйду и буду кримировать все что вижу` }),
 ];
 
 const oocDialogues = [
@@ -50,16 +51,19 @@ const rpActionTemplates = [
     (p1: Player, p2: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p1, details: `[Объявление] [СО] О.О.Ч. желает заключить контракт с ${p2.name}` }),
     (p: Player) => ({ type: 'RP' as LogType, user: p, details: `[дипломатия] Организация Сопротивление заключила контракт с Образец Ионик` }),
     (p1: Player, p2: Player) => ({ type: 'RP' as LogType, user: p1, details: `Ученый класса С должен привести испытуемых для Образец Гибрид (${p2.name}) 2 шт.` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред СОП] - [ДЗ] Отвечаете?` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Подумаю` }),
 
 ];
 
 const notificationTemplates = [
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец Бессонник покинул камеру содержания. (${p.name})` }),
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец Маска покинул камеру содержания. (${p.name})` }),
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец До-До покинул камеру содержания. (${p.name})` }),
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] (${p.name}) Образец Желейка покинул комплекс` }),
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] (${p.name}) Образец ИИ покинул комплекс` }),
-    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] (${p.name}) Образец ИИ прибыл в комплекс` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Образец Бессонник покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Образец Маска покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `Образец До-До покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[VIP] Образец Хищник покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] Образец Желейка покинул комплекс (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] Образец ИИ покинул комплекс (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] Образец ИИ прибыл в комплекс (${p.name})` }),
 ];
 
 const killTemplates = [
