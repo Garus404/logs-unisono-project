@@ -189,7 +189,7 @@ export default function PlayersView() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem onClick={() => handlePlayerClick(player.raw?.steamid)}>
+                              <DropdownMenuItem onSelect={() => handlePlayerClick(player.raw?.steamid)}>
                                 Посмотреть профиль
                               </DropdownMenuItem>
                             </DropdownMenuContent>
