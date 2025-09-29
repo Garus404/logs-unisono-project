@@ -22,6 +22,7 @@ export type Player = {
   time: number;
   timeFormatted: string;
   ping: number;
+  kills: number;
   timeHours: number;
 };
 
@@ -45,6 +46,7 @@ export type ServerStateResponse = {
   statistics: {
     totalPlayers: number;
     totalPlayTime: string;
+    totalKills: number;
     averagePing: number;
     topPlayer: Player | null;
   };
@@ -68,4 +70,16 @@ export type ViewType =
   | 'logs_kill'
   | 'logs_spawn';
 
+export type PlayerDetails = {
+    name: string;
+    steamId: string;
+    timeFormatted: string;
+    timeHours: number;
+    level: number;
+    primeLevel: number;
+    money: number;
+    group: string;
+    profession: string;
+    donatedProfessions: string[];
+};
     

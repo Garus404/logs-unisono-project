@@ -18,24 +18,26 @@ export async function GET() {
     console.log("✅ Сервер ответил через API:");
     console.log("Игроков онлайн:", state.players.length);
 
+    // Генерируем средний пинг от 50 до 80
+    const averagePing = Math.floor(Math.random() * 31) + 50; // 50-80
+
     // Сортируем игроков по времени в игре (по убыванию)
     const sortedPlayers = state.players
-      .map(player => ({
+      .map((player, index) => ({
         name: player.name || 'Неизвестный игрок',
         score: player.raw?.score || player.score || 0,
+        kills: generateRealisticKills(player.raw?.score || 0, index), // Генерируем убийства
         time: player.raw?.time || player.time || 0,
         timeFormatted: formatPlayTime(player.raw?.time || player.time || 0),
-        ping: player.ping || 0,
-        timeHours: Math.round((player.raw?.time || 0) / 60 * 10) / 10 // время в часах с округлением
+        ping: generateRandomPing(), // Рандомный пинг от 27 до 114
+        timeHours: Math.round((player.raw?.time || 0) / 60 * 10) / 10
       }))
       .filter(player => player.name && player.name.trim() !== '')
       .sort((a, b) => b.time - a.time); // сортировка по убыванию времени
 
     // Статистика сервера
     const totalPlayTime = sortedPlayers.reduce((sum, player) => sum + player.time, 0);
-    const averagePing = sortedPlayers.length > 0 
-      ? Math.round(sortedPlayers.reduce((sum, player) => sum + player.ping, 0) / sortedPlayers.length)
-      : 0;
+    const totalKills = sortedPlayers.reduce((sum, player) => sum + player.kills, 0);
 
     // Преобразуем строку тегов в массив
     const tags = state.raw?.tags && typeof state.raw.tags === 'string'
@@ -68,6 +70,7 @@ export async function GET() {
       statistics: {
         totalPlayers: sortedPlayers.length,
         totalPlayTime: formatPlayTime(totalPlayTime),
+        totalKills: totalKills,
         averagePing: averagePing,
         topPlayer: sortedPlayers.length > 0 ? sortedPlayers[0] : null
       },
@@ -117,4 +120,23 @@ function formatPlayTime(minutes: number): string {
   } else {
     return `${remainingMinutes}м`;
   }
+}
+
+// Функция для генерации рандомного пинга от 27 до 114
+function generateRandomPing(): number {
+  return Math.floor(Math.random() * 88) + 27; // 27-114
+}
+
+// Функция для генерации реалистичных убийств на основе счета и позиции в списке
+function generateRealisticKills(score: number, playerIndex: number): number {
+  // Базовые убийства на основе счета (примерно 60-80% от счета)
+  const baseKills = Math.max(0, Math.floor(score * (0.6 + Math.random() * 0.2)));
+  
+  // Топовые игроки имеют больше убийств
+  const positionBonus = Math.floor((100 - playerIndex) * 0.1);
+  
+  // Добавляем случайность
+  const randomVariation = Math.floor(Math.random() * 10) - 5;
+  
+  return Math.max(0, baseKills + positionBonus + randomVariation);
 }

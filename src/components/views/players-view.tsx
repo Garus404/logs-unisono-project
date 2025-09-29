@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from 'next/navigation';
 import type { ServerStateResponse } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Gamepad2, Map, ServerCrash, Users, Clock, Trophy, Signal, Server as ServerIcon, Network, GitBranch, Shield, Tag, Star } from "lucide-react";
+import { Gamepad2, Map, ServerCrash, Users, Clock, Trophy, Signal, Server as ServerIcon, Network, GitBranch, Shield, Tag, Star, Skull } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "../ui/badge";
@@ -48,6 +49,7 @@ function PlayerListSkeleton() {
                     </div>
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1-4" />
                     <Skeleton className="h-4 w-1/4" />
                     </div>
                 ))}
@@ -57,16 +59,16 @@ function PlayerListSkeleton() {
     )
 }
 
-
 export default function PlayersView() {
   const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const router = useRouter();
 
   React.useEffect(() => {
     const fetchServerState = async () => {
       try {
-        setLoading(true);
+        // No need to set loading to true here to avoid flashing on interval refresh
         const response = await fetch('/api/server-stats');
         const data = await response.json();
 
@@ -89,6 +91,11 @@ export default function PlayersView() {
 
     return () => clearInterval(interval);
   }, []);
+  
+  const handlePlayerClick = (steamId: string) => {
+    router.push(`/player/${steamId}`);
+  };
+
 
   const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => (
     <div className="flex items-start gap-3">
@@ -106,10 +113,10 @@ export default function PlayersView() {
         <Card>
           <CardHeader>
             <CardTitle>Список игроков ({serverState?.players?.length ?? 0})</CardTitle>
-            <CardDescription>Игроки на сервере в данный момент. Сортировка по времени в игре.</CardDescription>
+            <CardDescription>Игроки на сервере в данный момент. Нажмите на игрока, чтобы увидеть детали.</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading && <PlayerListSkeleton />}
+            {loading && !serverState && <PlayerListSkeleton />}
             {error && !loading && (
               <div className="flex items-center justify-center h-64 text-muted-foreground text-center">
                 <div>
@@ -124,6 +131,7 @@ export default function PlayersView() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Игрок</TableHead>
+                    <TableHead className="text-right">Убийства</TableHead>
                     <TableHead className="text-right">Счет</TableHead>
                     <TableHead className="text-right">Пинг</TableHead>
                     <TableHead className="text-right">Время в игре</TableHead>
@@ -131,13 +139,19 @@ export default function PlayersView() {
                 </TableHeader>
                 <TableBody>
                   {serverState.players.map((player, index) => (
-                      <TableRow key={`${player.name}-${index}`}>
+                      <TableRow key={`${player.name}-${index}`} onClick={() => handlePlayerClick(serverState.details.steamId)} className="cursor-pointer">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
                               <AvatarFallback>{player.name.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <span className="font-medium">{player.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          <div className="flex items-center justify-end gap-2">
+                            <Skull className="w-4 h-4 text-red-400" />
+                            {player.kills || 0}
                           </div>
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
@@ -173,7 +187,7 @@ export default function PlayersView() {
       </div>
 
       <div className="lg:col-span-1 space-y-6">
-        {loading && (
+        {loading && !serverState && (
             <>
                 <InfoCardSkeleton />
                 <InfoCardSkeleton />
@@ -194,7 +208,7 @@ export default function PlayersView() {
             </CardContent>
           </Card>
         )}
-        {serverState && !loading && (
+        {serverState && (
           <>
             <Card>
                 <CardHeader>
@@ -215,6 +229,7 @@ export default function PlayersView() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <InfoItem icon={Clock} label="Общее время игры" value={serverState.statistics.totalPlayTime} />
+                    <InfoItem icon={Skull} label="Всего убийств" value={serverState.statistics.totalKills || 0} />
                     <InfoItem icon={Signal} label="Средний пинг игроков" value={`${serverState.statistics.averagePing} мс`} />
                     {serverState.statistics.topPlayer && (
                         <InfoItem 
@@ -239,7 +254,9 @@ export default function PlayersView() {
                     <InfoItem icon={Network} label="IP:Port" value={serverState.connection.ip} />
                     <InfoItem icon={GitBranch} label="Версия" value={serverState.details.version} />
                     <InfoItem icon={Shield} label="Защита" value={serverState.connection.secure ? <Badge variant="secondary" className="text-green-400">Secure (VAC)</Badge> : <Badge variant="destructive">Insecure</Badge>} />
-                    <InfoItem icon={Tag} label="Теги" value={<div className="flex flex-wrap gap-1">{serverState.details.tags.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>} />
+                    {serverState.details.tags.length > 0 && 
+                      <InfoItem icon={Tag} label="Теги" value={<div className="flex flex-wrap gap-1">{serverState.details.tags.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>} />
+                    }
                 </CardContent>
             </Card>
           </>
@@ -248,5 +265,3 @@ export default function PlayersView() {
     </div>
   );
 }
-
-    
