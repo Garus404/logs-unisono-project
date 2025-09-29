@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Star, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, ChevronRight } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
@@ -230,3 +230,5 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
         </div>
     );
 }
+
+    
