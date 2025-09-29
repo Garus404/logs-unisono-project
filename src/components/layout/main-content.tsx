@@ -6,9 +6,24 @@ import SummaryView from "../views/summary-view";
 import LogView from "../views/log-view";
 import PlayersView from "../views/players-view";
 import type { LogType } from "@/lib/types";
+import { usePathname } from "next/navigation";
+import PlayerPage from "@/app/player/[steamId]/page";
+
 
 export default function MainContent() {
   const { view } = useView();
+  const pathname = usePathname();
+
+  if (pathname && pathname.startsWith('/player/')) {
+    const steamId = pathname.split('/player/')[1];
+    return (
+       <div className="flex flex-1 flex-col">
+        <main className="flex-1 overflow-auto">
+          <PlayerPage params={{ steamId }} />
+        </main>
+      </div>
+    )
+  }
 
   const renderView = () => {
     if (view.startsWith('logs_')) {

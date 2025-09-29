@@ -3,14 +3,16 @@
 
 import * as React from "react";
 import { useParams, useRouter } from 'next/navigation';
-import { PlayerDetails } from "@/lib/types";
+import type { PlayerDetails } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Star, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+
 
 const PrimeLevelDisplay = ({ level }: { level: number }) => {
     const levels = [1, 2, 3, 4, 5];
@@ -39,7 +41,7 @@ const PrimeLevelDisplay = ({ level }: { level: number }) => {
                              <div className={`w-1 h-full rounded-full ${l <= level ? 'bg-primary' : 'bg-transparent'}`} />
                             <Crown className="w-5 h-5 text-primary" />
                             <span className="font-semibold">{l} ур.</span>
-                            {l === level && <Badge className="ml-auto">Текущий</hBadge>}
+                            {l === level && <Badge className="ml-auto">Текущий</Badge>}
                         </div>
                     ))}
                 </div>
@@ -49,10 +51,11 @@ const PrimeLevelDisplay = ({ level }: { level: number }) => {
 };
 
 const PlayerDetailsSkeleton = () => (
-    <div className="space-y-6">
-        <div className="flex items-center gap-4">
-            <Skeleton className="h-6 w-40" />
-        </div>
+    <div className="space-y-6 p-4 md:p-6 lg:p-8">
+         <Button variant="ghost" disabled>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            <Skeleton className="h-4 w-40" />
+        </Button>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
              <Card className="lg:col-span-1">
                 <CardHeader className="items-center">
@@ -78,21 +81,21 @@ const PlayerDetailsSkeleton = () => (
             <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
-                    <CardContent><Skeleton className="h-20 w-full" /></CardContent>
+                    <CardContent><Skeleton className="h-32 w-full" /></CardContent>
                 </Card>
                 <Card>
                     <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
-                    <CardContent><Skeleton className="h-32 w-full" /></CardContent>
+                    <CardContent><Skeleton className="h-20 w-full" /></CardContent>
                 </Card>
             </div>
         </div>
     </div>
 );
 
-export default function PlayerPage() {
-    const params = useParams();
+
+export default function PlayerPage({ params }: { params: { steamId: string }}) {
     const router = useRouter();
-    const steamId = params.steamId as string;
+    const { steamId } = params;
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
@@ -103,6 +106,7 @@ export default function PlayerPage() {
             const fetchPlayerDetails = async () => {
                 try {
                     setLoading(true);
+                    setError(null);
                     const res = await fetch(`/api/player-details/${steamId}`);
                     if (!res.ok) {
                         const errData = await res.json();
@@ -117,6 +121,9 @@ export default function PlayerPage() {
                 }
             };
             fetchPlayerDetails();
+        } else {
+            setLoading(false);
+            setError("SteamID не найден.");
         }
     }, [steamId]);
     
@@ -126,12 +133,12 @@ export default function PlayerPage() {
 
     if (error || !player) {
         return (
-            <div className="text-center">
+            <div className="text-center p-8">
                 <h2 className="text-2xl font-bold text-destructive">Ошибка</h2>
-                <p className="text-muted-foreground">{error || "Игрок не найден."}</p>
-                <Button onClick={() => router.back()} className="mt-4">
+                <p className="text-muted-foreground mt-2">{error || "Игрок не найден."}</p>
+                <Button onClick={() => router.push('/')} className="mt-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Назад
+                    На главную
                 </Button>
             </div>
         );
@@ -148,7 +155,7 @@ export default function PlayerPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4 md:p-6 lg:p-8">
              <Button onClick={() => router.back()} variant="ghost">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Назад к списку игроков
@@ -157,7 +164,6 @@ export default function PlayerPage() {
                 <Card className="lg:col-span-1">
                     <CardHeader className="items-center">
                         <Avatar className="h-24 w-24">
-                            {/* In a real app, you might fetch a real avatar */}
                             <AvatarFallback>{player.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <CardTitle className="mt-4 text-2xl">{player.name}</CardTitle>
@@ -209,11 +215,3 @@ export default function PlayerPage() {
         </div>
     );
 }
-
-// Dummy Label component
-const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
-  ({ className, ...props }, ref) => (
-    <label ref={ref} className={className} {...props} />
-  )
-);
-Label.displayName = "Label";
