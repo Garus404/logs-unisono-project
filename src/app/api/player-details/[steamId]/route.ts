@@ -100,13 +100,29 @@ export async function GET(
         }
 
         // --- Generate Player Data Deterministically ---
-        const timeInMinutes = getDeterministicRandom(steamId + 'time', 30, 15000);
+        const timeInMinutes = getDeterministicRandom(steamId + 'time', 30, 15000); // from 30 mins to ~10 days
+        
+        // Level is based on playtime. Approx. 1 level per 2 hours (120 minutes) + some random variation
         const level = Math.min(100, Math.floor(timeInMinutes / 120) + getDeterministicRandom(steamId + 'level', 1, 10));
+        
         const primeLevel = level === 100 ? getDeterministicRandom(steamId + 'prime', 1, 5) : 0;
-        const money = getDeterministicRandom(steamId + 'money', 100, 500000);
-        const group = selectWeighted(groups, steamId + 'group');
-        const profession = professions[getDeterministicRandom(steamId + 'prof', 0, professions.length - 1)];
+        
+        // Money is based on playtime. More time = more money, with variation.
+        const money = Math.floor(timeInMinutes * getDeterministicRandom(steamId + 'moneyRate', 10, 50)) + getDeterministicRandom(steamId + 'moneyBase', 100, 5000);
 
+        // Group selection is weighted, but let's give higher time players a better chance at good groups
+        const groupSeed = steamId + 'group' + Math.floor(timeInMinutes / 1000);
+        const group = selectWeighted(groups, groupSeed);
+        
+        // Profession depends on time played. New players are more likely to be "Испытуемый".
+        let profession;
+        if (timeInMinutes < 240) { // less than 4 hours
+             profession = professions[getDeterministicRandom(steamId + 'prof', 0, 2)]; // Испытуемый, Рабочий, Грузчик
+        } else {
+             profession = professions[getDeterministicRandom(steamId + 'prof', 0, professions.length - 1)];
+        }
+
+        // Donated professions are random, but let's make it a bit less common
         const donatedProfessions: string[] = [];
         if (getDeterministicRandom(steamId + 'donated', 1, 10) <= 3) { // 30% chance
             const count = getDeterministicRandom(steamId + 'donatedCount', 1, 2);
