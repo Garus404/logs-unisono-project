@@ -14,6 +14,10 @@ const oocChatTemplates = [
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Как вас КОБРА УБИЛА` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Дура на кобре блять` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: лол` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: чек условия ионик` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Люди` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: Меня БРС связал` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] ${p.name}: я боюсь совры и мясо они меня выебут пока я на нулевом тире` }),
 ];
 
 const oocDialogues = [
@@ -35,12 +39,14 @@ const rpActionTemplates = [
     (p: Player) => ({ type: 'RP' as LogType, user: p, details: `(${p.name}) Образец Ящерица ломает ворота к.с Ящерицы` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Объявление] ${p.name}: [RP] О.Госпадин рыба переживший многие покушения продажи и помогая в бунте был подавлен теслой` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Объявление] ${p.name}: [СО] О.О.Ч. желает заключить контракт с КМ` }),
+    (p: Player) => ({ type: 'RP' as LogType, user: p, details: `[дипломатия] Организация Сопротивление заключила контракт с Образец Ионик` }),
 ];
 
 const notificationTemplates = [
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец Бессонник покинул камеру содержания. (${p.name})` }),
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец Маска покинул камеру содержания. (${p.name})` }),
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[Оповещение] Образец До-До покинул камеру содержания. (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] (${p.name}) Образец Желейка покинул комплекс` }),
 ];
 
 const killTemplates = [

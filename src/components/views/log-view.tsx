@@ -102,7 +102,8 @@ export default function LogView({ filterType }: LogViewProps) {
   React.useEffect(() => {
     if (players.length === 0) return;
 
-    const generateRandomInterval = () => Math.random() * (5000 - 1500) + 1500; // 1.5s to 5s
+    // Generate a new log at a random interval between 5 and 15 seconds
+    const generateRandomInterval = () => Math.random() * (15000 - 5000) + 5000;
 
     let timeoutId: NodeJS.Timeout;
 
@@ -131,7 +132,7 @@ export default function LogView({ filterType }: LogViewProps) {
       const searchMatch =
         (log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
         log.details.toLowerCase().includes(lowerCaseSearch) ||
-        log.user?.steamId.includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
+        log.user?.steamId.toLowerCase().includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
 
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
 
