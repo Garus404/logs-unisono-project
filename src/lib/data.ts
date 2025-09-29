@@ -32,6 +32,10 @@ const oocChatTemplates = [
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] пиздец` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] герой на совре` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] продам все непонятные чертежи,стероиды,пропитал,одноразовую броню,шасалеоший,ампулаХС-598,частица енергии,сыр,волчий клык,пластик,пустые банки,батарейки,обломок маски,лицо скромника,кцунцит,ампулы регенетатина и броневерина,серу,сердца` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] продам 3 шторма за штуку 300к` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] мясо го ты скушаешь кондора` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Ионик имба убил деректора и психолога` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] хахах я случайно убил сори` }),
 ];
 
 const oocDialogues = [
@@ -58,6 +62,7 @@ const rpActionTemplates = [
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред СОП] - [ДЗ] Отвечаете?` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Подумаю` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[RP} О.Авель ВУС` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[соо] господин рыба желает контракт с КМ` }),
 
 ];
 
@@ -74,11 +79,6 @@ const notificationTemplates = [
 const killTemplates = [
     (p1: Player, p2: Player) => ({ type: 'KILL' as LogType, user: p1, details: `убил игрока ${p2.name}.`, recipient: p2 }),
     (p1: Player) => ({ type: 'KILL' as LogType, user: p1, details: `был убит падением.` }),
-];
-
-const connectionTemplates = [
-    (p: Player) => ({ type: 'CONNECTION' as LogType, user: p, details: `подключился.` }),
-    (p: Player) => ({ type: 'CONNECTION' as LogType, user: p, details: `отключился.` }),
 ];
 
 const damageTemplates = [
