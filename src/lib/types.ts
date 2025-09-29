@@ -20,19 +20,40 @@ export type Player = {
   name: string;
   score: number;
   time: number;
+  timeFormatted: string;
+  ping: number;
 };
 
-// This mirrors the structure returned by GameDig
-export type ServerState = {
-  name: string;
-  map: string;
-  password?: boolean;
-  maxplayers: number;
+// This mirrors the structure returned by our custom API endpoint
+export type ServerStateResponse = {
+  server: {
+    name: string;
+    map: string;
+    game: string;
+    maxplayers: number;
+    online: number;
+    serverPing: number;
+  };
+  connection: {
+    ip: string;
+    port: number;
+    protocol: number;
+    secure: boolean;
+  };
   players: Player[];
-  bots: Player[];
-  connect: string;
-  ping: number;
-  game: string;
+  statistics: {
+    totalPlayers: number;
+    totalPlayTime: string;
+    averagePing: number;
+    topPlayer: Player | null;
+  };
+  details: {
+    version: string;
+    environment: string;
+    tags: string[];
+    steamId: string;
+  };
+  timestamp: string;
 };
 
 
