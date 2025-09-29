@@ -104,7 +104,7 @@ export async function GET(
         });
 
         // Find the specific player or a random one for demonstration
-        const playerInfo = state.players.find(p => p.steamId === steamId) || state.players[getDeterministicRandom(steamId, 0, state.players.length - 1)];
+        const playerInfo = state.players.find(p => p.raw?.steamid === steamId) || state.players[getDeterministicRandom(steamId, 0, state.players.length - 1)];
 
         if (!playerInfo) {
              return NextResponse.json({ error: "Player not found on server or server is empty." }, { status: 404 });
@@ -198,7 +198,7 @@ export async function GET(
 
         const playerDetails = {
             name: playerInfo.name || 'Неизвестный игрок',
-            steamId: playerInfo.steamId || steamId,
+            steamId: playerInfo.raw?.steamid || steamId,
             timeFormatted: formatPlayTime(timeInMinutes),
             timeHours: Math.round(timeInMinutes / 60 * 10) / 10,
             level: level,

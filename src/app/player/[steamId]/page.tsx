@@ -211,11 +211,11 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                           <div className="bg-black/80 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-64 overflow-y-auto">
+                           <div className="bg-black/90 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-64 overflow-y-auto">
                                {player.activities.map((activity, index) => (
                                    <div key={index} className="flex gap-2 items-start">
-                                       <ChevronRight className="w-4 h-4 flex-shrink-0 mt-0.5"/>
-                                       <p>{activity}</p>
+                                       <ChevronRight className="w-4 h-4 text-green-700 flex-shrink-0 mt-0.5"/>
+                                       <p className="break-all">{activity}</p>
                                    </div>
                                ))}
                            </div>
