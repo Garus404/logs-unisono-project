@@ -16,8 +16,11 @@ export default function MainContent() {
 
   if (pathname && pathname.startsWith('/player/')) {
     const steamId = pathname.split('/player/')[1];
+    // This is a hack to make the player page re-render when the steamId changes.
+    // A better solution would be to use a key on the PlayerPage component.
+    // For now, this will work.
     return (
-       <div className="flex flex-1 flex-col">
+       <div className="flex flex-1 flex-col" key={steamId}>
         <main className="flex-1 overflow-auto">
           <PlayerPage params={{ steamId }} />
         </main>
@@ -37,8 +40,8 @@ export default function MainContent() {
       case "players":
         return <PlayersView />;
       default:
-        // Fallback to all logs if view is something unexpected
-        return <LogView />;
+        // Fallback to summary view if view is something unexpected
+        return <SummaryView />;
     }
   };
 

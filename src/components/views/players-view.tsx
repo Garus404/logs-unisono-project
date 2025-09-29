@@ -144,7 +144,7 @@ export default function PlayersView() {
                 </TableHeader>
                 <TableBody>
                   {serverState.players.map((player, index) => (
-                      <TableRow key={`${player.name}-${index}`} onClick={() => handlePlayerClick(player.raw?.steamid)} className="cursor-pointer">
+                      <TableRow key={player.raw?.steamid || `${player.name}-${index}`} onClick={() => handlePlayerClick(player.raw?.steamid)} className="cursor-pointer">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
