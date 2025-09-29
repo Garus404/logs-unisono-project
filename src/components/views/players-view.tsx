@@ -181,7 +181,7 @@ export default function PlayersView() {
                             <DropdownMenuContent>
                                <DropdownMenuItem asChild>
                                 <Link href={`/player/${steamId}`}>
-                                  Посмотреть информацию
+                                  Посмотреть профиль
                                 </Link>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
