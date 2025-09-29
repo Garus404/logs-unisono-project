@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { generateLiveLog } from "@/lib/data";
+import { historicalLogs } from "@/lib/data";
 import type { LogEntry, LogType, ServerStateResponse, Player } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,16 +16,6 @@ import {
   Calendar as CalendarIcon,
   Search,
   X,
-  MessageSquare,
-  LogIn,
-  LogOut,
-  HeartCrack,
-  Swords,
-  LocateFixed,
-  Megaphone,
-  Bell,
-  Scroll,
-  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -47,8 +37,6 @@ const logTypeLabels: Record<LogType, string> = {
   RP: "Действие",
 };
 
-const MAX_LOGS = 100; // Keep the list from growing indefinitely
-
 interface LogViewProps {
   filterType?: LogType;
 }
@@ -58,50 +46,15 @@ export default function LogView({ filterType }: LogViewProps) {
   const [typeFilter, setTypeFilter] = React.useState<LogType | "all">(filterType || "all");
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
-  const [players, setPlayers] = React.useState<Player[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  // Fetch initial players to start the simulation
   React.useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const response = await fetch('/api/server-stats');
-        const data: ServerStateResponse = await response.json();
-        if (data && data.players) {
-          setPlayers(data.players);
-        }
-      } catch (error) {
-        console.error("Failed to fetch initial player data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchInitialData();
+    // Simulate fetching historical data
+    setIsLoading(true);
+    setLogs(historicalLogs);
+    setIsLoading(false);
   }, []);
 
-  // Live log simulation effect
-  React.useEffect(() => {
-    if (players.length === 0) return;
-
-    // Generate a new log at a random interval between 5 and 20 seconds
-    const generateRandomInterval = () => Math.random() * (20000 - 5000) + 5000;
-
-    let timeoutId: NodeJS.Timeout;
-
-    const scheduleNextLog = () => {
-        timeoutId = setTimeout(() => {
-            const newLogs = generateLiveLog(players);
-            if (newLogs) {
-                 setLogs(prevLogs => [...newLogs, ...prevLogs].slice(0, MAX_LOGS));
-            }
-            scheduleNextLog();
-        }, generateRandomInterval());
-    }
-
-    scheduleNextLog();
-
-    return () => clearTimeout(timeoutId);
-  }, [players]);
 
   React.useEffect(() => {
     setTypeFilter(filterType || "all");
@@ -113,7 +66,7 @@ export default function LogView({ filterType }: LogViewProps) {
       const searchMatch =
         (log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
         log.details.toLowerCase().includes(lowerCaseSearch) ||
-        log.user?.steamId.toLowerCase().includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
+        log.user?.steamId?.toLowerCase().includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
 
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
 
@@ -217,23 +170,23 @@ export default function LogView({ filterType }: LogViewProps) {
         <CardContent className="p-0">
             <div className="bg-black/80 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-[calc(100vh-20rem)] overflow-y-auto">
                 {isLoading ? (
-                    Array.from({length: 15}).map((_, i) => <LogSkeleton key={i} />)
+                    Array.from({length: 25}).map((_, i) => <LogSkeleton key={i} />)
                 ) : filteredLogs.length > 0 ? (
                 filteredLogs.map((log) => {
-                    const sourceName = log.user ? `Игрок ${log.user.name}` : '[Система]';
+                    const sourceName = log.user ? `${log.user.name}` : '[Система]';
                     return (
-                        <div key={log.id} className="flex items-start gap-3 transition-opacity animate-in fade-in-0">
+                        <div key={log.id} className="flex items-start gap-3">
                             <span className="text-muted-foreground tabular-nums shrink-0">
-                                {format(log.timestamp, "yyyy-MM-dd HH:mm:ss", { locale: ru })}
+                                [{format(log.timestamp, "yyyy-MM-dd HH:mm:ss", { locale: ru })}]
                             </span>
-                            <span className="font-bold text-sky-300 shrink-0">{sourceName}</span>
-                            <p className="text-green-300/90">{log.details}</p>
+                            <span className="font-bold text-sky-300 shrink-0">{sourceName}:</span>
+                            <p className="text-green-300/90 whitespace-pre-wrap">{log.details}</p>
                         </div>
                     );
                 })
                 ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground text-center">
-                    Ожидание логов с сервера...
+                    Нет логов, соответствующих вашему запросу.
                 </div>
                 )}
             </div>

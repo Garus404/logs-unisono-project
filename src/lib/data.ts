@@ -1,19 +1,38 @@
-import type { LogEntry, Player, LogType } from '@/lib/types';
+import type { LogEntry, Player, LogType, PlayerActivity } from '@/lib/types';
 
 // --- Helper Functions ---
 function getRandomElement<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function getTwoRandomPlayers(players: Player[]): [Player, Player] | null {
-    if (players.length < 2) return null;
-    const p1 = getRandomElement(players);
-    const p2 = getRandomElement(players.filter(p => p.name !== p1.name));
-    return [p1, p2];
+function getTwoRandomPlayers(players: Player[]): [Player, Player] {
+    const p1Index = Math.floor(Math.random() * players.length);
+    let p2Index = Math.floor(Math.random() * players.length);
+    while (p1Index === p2Index) {
+        p2Index = Math.floor(Math.random() * players.length);
+    }
+    return [players[p1Index], players[p2Index]];
 }
 
+// --- Log Generation Data ---
+const playerNames = [
+    'Яра Шист', 'Эрик Дубрович', 'Кирилл Водкокрим', 'Akakii Akakievich', 
+    'Fanera Alatash', 'Чад Пепел', 'Marquel Santana', 'Nikitos Roller', 
+    'Egor Familov', 'John Doe', 'Jane Smith', 'Alex Ray', 'Tony Stark',
+    'Steve Rogers', 'Natasha Romanoff', 'Bruce Banner', 'Peter Parker'
+];
 
-// --- Log Generation Templates ---
+const mockPlayers: Player[] = playerNames.map(name => ({
+    name,
+    score: Math.floor(Math.random() * 200),
+    time: Math.floor(Math.random() * 3000),
+    timeFormatted: 'mock',
+    ping: Math.floor(Math.random() * 100),
+    kills: Math.floor(Math.random() * 50),
+    timeHours: 0,
+    steamId: `STEAM_0:${Math.random() > 0.5 ? 1 : 0}:${Math.floor(Math.random() * 100000000)}`,
+}));
+
 const oocChatTemplates = [
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] бедный я, меня все пиздят и я бегаю на лоу хп` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] щас рейд?` }),
@@ -63,7 +82,8 @@ const rpActionTemplates = [
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Подумаю` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[RP} О.Авель ВУС` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[соо] господин рыба желает контракт с КМ` }),
-
+    (p: Player) => ({ type: 'RP' as LogType, user: p, details: `Образец Гибрид ломает ворота к.с Гибрида ${Math.floor(Math.random() * 5) + 1}/5` }),
+    (p: Player) => ({ type: 'RP' as LogType, user: p, details: `Образец Голоса ломает ворота к.с Голоса ${Math.floor(Math.random() * 5) + 1}/5` }),
 ];
 
 const notificationTemplates = [
@@ -74,6 +94,8 @@ const notificationTemplates = [
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] Образец Желейка покинул комплекс (${p.name})` }),
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] Образец ИИ покинул комплекс (${p.name})` }),
     (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: undefined, details: `[СКО] Образец ИИ прибыл в комплекс (${p.name})` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: p, details: `[VIP] Образец Кошмар покинул комплекс` }),
+    (p: Player) => ({ type: 'NOTIFICATION' as LogType, user: p, details: `[VIP] Образец Кошмар прибыл в комплекс` }),
 ];
 
 const killTemplates = [
@@ -82,76 +104,71 @@ const killTemplates = [
 ];
 
 const damageTemplates = [
-     (p1: Player, p2: Player) => ({ type: 'DAMAGE' as LogType, user: p2, details: `получил 35 урона от ${p1.name}.`, recipient: p1 }),
-]
+     (p1: Player, p2: Player) => ({ type: 'DAMAGE' as LogType, user: p2, details: `получил ${Math.floor(Math.random() * 99) + 1} урона от ${p1.name}.`, recipient: p1 }),
+];
 
+const connectionTemplates = [
+    (p: Player) => ({ type: 'CONNECTION' as LogType, user: p, details: `подключился к серверу.` }),
+    (p: Player) => ({ type: 'CONNECTION' as LogType, user: p, details: `отключился от сервера.` }),
+];
 
-// --- Main Generator Function ---
+// --- Main Generator Function for Historical Data ---
+function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
+    const allLogs: LogEntry[] = [];
+    const now = new Date();
 
-export function generateLiveLog(players: Player[]): LogEntry[] | null {
-    if (players.length === 0) return null;
+    for (let i = 0; i < days * logsPerDay; i++) {
+        const timestamp = new Date(now.getTime() - Math.random() * days * 24 * 60 * 60 * 1000);
+        let generatedLog: Omit<LogEntry, 'id' | 'timestamp'> | null = null;
+        
+        const eventType = Math.random();
 
-    // Use a weighted random selection to make some events rarer
-    const eventType = Math.random();
-    let generatedLogs: (Omit<LogEntry, 'id' | 'timestamp'> | null)[] = [];
-
-    if (eventType < 0.45) { // OOC Chat (45% chance)
-        if (players.length > 1 && Math.random() < 0.3) { // 30% of chats are dialogues
-             const twoPlayers = getTwoRandomPlayers(players);
-             if (twoPlayers) {
-                const [p1, p2] = twoPlayers;
+        if (eventType < 0.45) { // OOC Chat
+            if (mockPlayers.length > 1 && Math.random() < 0.2) {
+                const [p1, p2] = getTwoRandomPlayers(mockPlayers);
                 const dialogue = getRandomElement(oocDialogues);
-                generatedLogs = dialogue(p1, p2);
-             }
-        } else {
-            const p1 = getRandomElement(players);
-            const template = getRandomElement(oocChatTemplates);
-            generatedLogs.push(template(p1));
+                dialogue(p1, p2).forEach(logPart => {
+                    allLogs.push({ ...logPart, id: crypto.randomUUID(), timestamp });
+                });
+                continue;
+            } else {
+                generatedLog = getRandomElement(oocChatTemplates)(getRandomElement(mockPlayers));
+            }
+        } else if (eventType < 0.65) { // Kills/Damage
+            const [p1, p2] = getTwoRandomPlayers(mockPlayers);
+            if (Math.random() < 0.7) {
+                generatedLog = getRandomElement(killTemplates)(p1, p2);
+            } else {
+                generatedLog = getRandomElement(damageTemplates)(p1, p2);
+            }
+        } else if (eventType < 0.85) { // RP Actions
+            const template = getRandomElement(rpActionTemplates);
+            if (template.length === 2) {
+                const [p1, p2] = getTwoRandomPlayers(mockPlayers);
+                generatedLog = template(p1, p2);
+            } else {
+                generatedLog = template(getRandomElement(mockPlayers), null as any);
+            }
+        } else if (eventType < 0.95) { // System Notifications
+            generatedLog = getRandomElement(notificationTemplates)(getRandomElement(mockPlayers));
+        } else { // Connections
+            generatedLog = getRandomElement(connectionTemplates)(getRandomElement(mockPlayers));
         }
 
-    } else if (eventType < 0.65) { // Kills/Damage (20% chance)
-        const twoPlayers = getTwoRandomPlayers(players);
-        if (twoPlayers && Math.random() < 0.8) { // 80% involve another player
-            const [p1, p2] = twoPlayers;
-            if(Math.random() < 0.7) {
-                const template = getRandomElement(killTemplates.filter(t => t.length === 2));
-                generatedLogs.push(template(p1, p2));
-            } else {
-                const template = getRandomElement(damageTemplates);
-                generatedLogs.push(template(p1, p2));
-            }
-       } else {
-            const p1 = getRandomElement(players);
-            const template = getRandomElement(killTemplates.filter(t => t.length === 1));
-            generatedLogs.push(template(p1, null as any)); // Fall damage etc.
-       }
-    } else if (eventType < 0.85) { // RP Actions / Announcements (20% chance)
-        const template = getRandomElement(rpActionTemplates);
-         if (template.length === 2) {
-            const twoPlayers = getTwoRandomPlayers(players);
-            if (twoPlayers) {
-                generatedLogs.push(template(twoPlayers[0], twoPlayers[1]));
-            }
-        } else {
-            generatedLogs.push(template(getRandomElement(players), null as any));
+        if (generatedLog) {
+            allLogs.push({
+                ...generatedLog,
+                id: crypto.randomUUID(),
+                timestamp: timestamp,
+            });
         }
-    } else if (eventType < 0.95) { // System Notifications (10% chance)
-        const p1 = getRandomElement(players);
-        const template = getRandomElement(notificationTemplates);
-        generatedLogs.push(template(p1));
-    } else { // Connections (5% chance)
-         const p1 = getRandomElement(players);
-         const template = getRandomElement(connectionTemplates);
-         generatedLogs.push(template(p1));
     }
 
-    // Filter out any nulls and map to full LogEntry
-    return generatedLogs.filter(Boolean).map(log => ({
-        ...log,
-        id: crypto.randomUUID(),
-        timestamp: new Date(),
-    } as LogEntry));
+    return allLogs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
+
+// Generate a week of logs, with around 200 entries per day
+export const historicalLogs: LogEntry[] = generateHistoricalLogs(7, 200);
 
 
 // Mock data for player activity chart
