@@ -18,6 +18,7 @@ const oocChatTemplates = [
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] бедный я, меня все пиздят и я бегаю на лоу хп` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] щас рейд?` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Кто ролл 100к` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Кто ролл 300k` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Как вас КОБРА УБИЛА` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Дура на кобре блять` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] лол` }),
@@ -28,6 +29,9 @@ const oocChatTemplates = [
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] а чем причина?` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] помоги` }),
     (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] Да вы заебали км я щяс выйду и буду кримировать все что вижу` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] пиздец` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] герой на совре` }),
+    (p: Player) => ({ type: 'CHAT' as LogType, user: p, details: `[OOC] продам все непонятные чертежи,стероиды,пропитал,одноразовую броню,шасалеоший,ампулаХС-598,частица енергии,сыр,волчий клык,пластик,пустые банки,батарейки,обломок маски,лицо скромника,кцунцит,ампулы регенетатина и броневерина,серу,сердца` }),
 ];
 
 const oocDialogues = [
@@ -53,6 +57,7 @@ const rpActionTemplates = [
     (p1: Player, p2: Player) => ({ type: 'RP' as LogType, user: p1, details: `Ученый класса С должен привести испытуемых для Образец Гибрид (${p2.name}) 2 шт.` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред СОП] - [ДЗ] Отвечаете?` }),
     (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[Пред ДЗ]->[КМ] Подумаю` }),
+    (p: Player) => ({ type: 'ANNOUNCEMENT' as LogType, user: p, details: `[RP} О.Авель ВУС` }),
 
 ];
 
