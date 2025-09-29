@@ -119,6 +119,24 @@ function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
 
     for (let i = 0; i < days * logsPerDay; i++) {
         const timestamp = new Date(now.getTime() - Math.random() * days * 24 * 60 * 60 * 1000);
+        
+        // Ensure logs are between 6 AM and current time for each day
+        const dayStart = new Date(timestamp);
+        dayStart.setHours(6, 0, 0, 0);
+        const dayEnd = new Date(timestamp);
+        // If it's today, end at the current time. Otherwise, end at midnight.
+        if (dayEnd.toDateString() === now.toDateString()) {
+             dayEnd.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+        } else {
+             dayEnd.setHours(23, 59, 59, 999);
+        }
+
+        if (timestamp < dayStart || timestamp > dayEnd) {
+           // If the random timestamp is outside the 6 AM - now window, regenerate it within the window
+           const validTimeRange = dayEnd.getTime() - dayStart.getTime();
+           timestamp.setTime(dayStart.getTime() + Math.random() * validTimeRange);
+        }
+
         let generatedLog: Omit<LogEntry, 'id' | 'timestamp'> | null = null;
         
         const eventType = Math.random();
