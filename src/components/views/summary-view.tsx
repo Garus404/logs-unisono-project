@@ -28,31 +28,44 @@ const chartConfig = {
 const LiveConsole = () => {
     const [logs, setLogs] = React.useState<string[]>([]);
     const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+    const [isUserScrolling, setIsUserScrolling] = React.useState(false);
 
     React.useEffect(() => {
-        // Pre-seed with some initial logs
         setLogs(consoleLogs.slice(0, 20).sort(() => 0.5 - Math.random()));
         
         const interval = setInterval(() => {
             const newLog = consoleLogs[Math.floor(Math.random() * consoleLogs.length)];
             setLogs(prevLogs => {
                 const newLogs = [...prevLogs, newLog];
-                // Keep the log array from growing indefinitely
                 return newLogs.length > 150 ? newLogs.slice(newLogs.length - 150) : newLogs;
             });
-        }, Math.random() * 200 + 100); // every 100-300ms
+        }, Math.random() * 1000 + 1000); // every 1-2 seconds
 
         return () => clearInterval(interval);
     }, []);
 
     React.useEffect(() => {
-        if (scrollAreaRef.current) {
+        if (!isUserScrolling && scrollAreaRef.current) {
             const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
             if (viewport) {
                 viewport.scrollTop = viewport.scrollHeight;
             }
         }
-    }, [logs]);
+    }, [logs, isUserScrolling]);
+    
+    // Detect if user is scrolling up
+    const handleScroll = () => {
+        const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+        if (viewport) {
+            const isAtBottom = viewport.scrollHeight - viewport.scrollTop <= viewport.clientHeight + 1; // +1 for pixel perfection
+            if (isAtBottom) {
+                setIsUserScrolling(false);
+            } else {
+                setIsUserScrolling(true);
+            }
+        }
+    };
+
 
     const getLogStyle = (log: string) => {
         const lowerLog = log.toLowerCase();
@@ -94,7 +107,7 @@ const LiveConsole = () => {
                 <CardTitle>Консоль сервера</CardTitle>
             </CardHeader>
              <CardContent>
-                <ScrollArea className="h-[300px] w-full bg-black/50 rounded-md p-4 font-mono text-xs" ref={scrollAreaRef}>
+                <ScrollArea className="h-[300px] w-full bg-black/50 rounded-md p-4 font-mono text-xs" ref={scrollAreaRef} onScroll={handleScroll}>
                      {logs.map((log, index) => (
                         <div key={index} className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}>
                            <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
@@ -157,13 +170,19 @@ export default function SummaryView() {
   }, []);
 
  React.useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
     const updateMoscowTime = () => {
+      // Using client-side Date object which is fine for display purposes
       const moscowTime = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Singapore' });
       setCurrentTime(moscowTime);
     };
 
-    updateMoscowTime(); // Set initial time
-    const intervalId = setInterval(updateMoscowTime, 1000); // Update every second
+    // Set initial time right away on the client
+    if (typeof window !== 'undefined') {
+        updateMoscowTime();
+        intervalId = setInterval(updateMoscowTime, 1000);
+    }
 
     return () => clearInterval(intervalId);
   }, []);
