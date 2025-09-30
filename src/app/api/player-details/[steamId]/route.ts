@@ -1,7 +1,6 @@
 
 import { NextResponse, NextRequest } from "next/server";
 import { PlayerDetails, LogEntry, Player } from "@/lib/types";
-import { historicalLogs } from '@/lib/data';
 
 // --- Helper Functions ---
 function simpleHash(str: string): number {
@@ -279,7 +278,7 @@ export async function GET(
 
         const now = new Date();
         const baseTimestamp = new Date(now);
-        baseTimestamp.setHours(getDeterministicRandom(steamId + 'start_hour', 6, now.getHours() - 1), 0, 0, 0);
+        baseTimestamp.setHours(getDeterministicRandom(steamId + 'start_hour', 6, now.getHours() > 6 ? now.getHours() - 1 : 6), 0, 0, 0);
 
         let playerActivities: LogEntry[] = [];
         
