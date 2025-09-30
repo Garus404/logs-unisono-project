@@ -8,13 +8,121 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint, RefreshCw } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint, RefreshCw, ChevronsUpDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const donatedProfessionsList = [
+    'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор', 'Экзобоец', 
+    'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'БЕК-2 Робопатруль', 'ИИ Кобра', 
+    'Военный прототип | ПИЛИГРИМ', 'БРС - Миротворец', 'Наемный Агент'
+];
+
+const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: React.Dispatch<React.SetStateAction<PlayerDetails | null>> }) => {
+    const [levelInput, setLevelInput] = React.useState(player.level.toString());
+    const [moneyInput, setMoneyInput] = React.useState(player.money.toString());
+    const [selectedDonated, setSelectedDonated] = React.useState(donatedProfessionsList[0]);
+
+    const handleLevelChange = (value: string) => {
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+            setPlayer(p => p ? { ...p, level: numValue } : null);
+        }
+    };
+
+    const handleMoneyChange = (value: string) => {
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue) && numValue >= 0) {
+            setPlayer(p => p ? { ...p, money: numValue } : null);
+        }
+    };
+    
+    const handleAddDonated = () => {
+        if (selectedDonated && !player.donatedProfessions.includes(selectedDonated)) {
+            setPlayer(p => p ? { ...p, donatedProfessions: [...p.donatedProfessions, selectedDonated] } : null);
+        }
+    }
+    
+    const handleGroupChange = (value: string) => {
+        setPlayer(p => p ? { ...p, group: value } : null);
+    }
+    
+    const handlePrimeLevelChange = (value: number[]) => {
+        setPlayer(p => p ? { ...p, primeLevel: value[0] } : null);
+    };
+
+    return (
+        <Card className="bg-card/50">
+            <CardHeader>
+                <CardTitle>Панель администратора</CardTitle>
+                <CardDescription>Изменяйте параметры игрока. Изменения только визуальные.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Label htmlFor="level-slider">Прайм уровень: {player.primeLevel}</Label>
+                    <Slider
+                        id="level-slider"
+                        min={0}
+                        max={3}
+                        step={1}
+                        value={[player.primeLevel]}
+                        onValueChange={handlePrimeLevelChange}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="level-input">Игровой уровень</Label>
+                        <Input id="level-input" type="number" value={levelInput} onChange={e => setLevelInput(e.target.value)} onBlur={e => handleLevelChange(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="money-input">Деньги</Label>
+                        <Input id="money-input" type="number" value={moneyInput} onChange={e => setMoneyInput(e.target.value)} onBlur={e => handleMoneyChange(e.target.value)}/>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="group-select">Группа</Label>
+                     <Select value={player.group} onValueChange={handleGroupChange}>
+                        <SelectTrigger id="group-select">
+                            <SelectValue placeholder="Выберите группу" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Игрок">Игрок</SelectItem>
+                            <SelectItem value="VIP">VIP</SelectItem>
+                            <SelectItem value="Unisono Light">Unisono Light</SelectItem>
+                            <SelectItem value="Unisono Plus">Unisono Plus</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="space-y-2">
+                    <Label>Выдать донатную профессию</Label>
+                    <div className="flex gap-2">
+                         <Select value={selectedDonated} onValueChange={setSelectedDonated}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Выберите профессию"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {donatedProfessionsList.map(prof => (
+                                    <SelectItem key={prof} value={prof} disabled={player.donatedProfessions.includes(prof)}>
+                                        {prof}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button onClick={handleAddDonated}>Выдать</Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 const PrimeLevelDisplay = ({ level }: { level: number }) => {
     const levels = [1, 2, 3];
@@ -180,27 +288,34 @@ export default function PlayerPage() {
             }
             const data: PlayerDetails = await res.json();
             
-            setPlayer(prevPlayer => {
-                if (!prevPlayer || isInitialLoad) return data;
+            // For admin panel updates, we don't merge, just take the latest state from the component itself.
+            if (!isInitialLoad) {
+                 setPlayer(prevPlayer => {
+                    if (!prevPlayer) return data;
+                    
+                    const existingActivityIds = new Set(prevPlayer.activities.map(a => a.id));
+                    const newUniqueActivities = data.activities.filter(
+                        newActivity => !existingActivityIds.has(newActivity.id)
+                    );
+                     const combinedActivities = [...newUniqueActivities, ...prevPlayer.activities]
+                         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                        .slice(0, 50);
 
-                // Create a map of existing activity IDs for quick lookup
-                const existingActivityIds = new Set(prevPlayer.activities.map(a => a.id));
-
-                // Filter out any new activities that are already in the state
-                const newUniqueActivities = data.activities.filter(
-                    newActivity => !existingActivityIds.has(newActivity.id)
-                );
-
-                // Combine new unique activities with previous activities
-                const combinedActivities = [...newUniqueActivities, ...prevPlayer.activities]
-                     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                    .slice(0, 50); // Keep the list from growing indefinitely
-                
-                return {
-                    ...data, // Use the latest player data from the API
-                    activities: combinedActivities
-                };
-            });
+                    // We keep the client-side modified data, but update activities and other live data
+                    return {
+                        ...prevPlayer,
+                        profession: data.profession,
+                        ping: data.ping,
+                        kills: data.kills,
+                        deaths: data.deaths,
+                        activities: combinedActivities,
+                    };
+                });
+                return;
+            }
+            
+            // Initial load
+            setPlayer(data);
 
         } catch (e: any) {
             setError(e.message);
@@ -298,6 +413,9 @@ export default function PlayerPage() {
 
                 <div className="lg:col-span-2 space-y-6">
                     <PrimeLevelDisplay level={player.primeLevel} />
+                    
+                    <AdminPanel player={player} setPlayer={setPlayer} />
+
                     <Card className="bg-card/50">
                         <CardHeader>
                              <CardTitle className="flex items-center gap-2">
@@ -344,5 +462,3 @@ export default function PlayerPage() {
         </div>
     );
 }
-
-    
