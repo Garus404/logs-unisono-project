@@ -28,7 +28,7 @@ export default function SummaryView() {
   const [activity, setActivity] = React.useState<PlayerActivity[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [currentTime, setCurrentTime] = React.useState("");
+  const [currentTime, setCurrentTime] = React.useState<string>("");
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -67,6 +67,8 @@ export default function SummaryView() {
       }
     };
 
+    // Set initial time
+    setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
     fetchData();
     const interval = setInterval(fetchData, 30000); // Refresh data every 30 seconds
 
@@ -125,7 +127,7 @@ export default function SummaryView() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tabular-nums">
-              {currentTime || "Загрузка..."}
+              {currentTime || <Skeleton className="h-8 w-28" />}
             </div>
             <p className="text-xs text-muted-foreground">UTC+3 (Москва)</p>
           </CardContent>
