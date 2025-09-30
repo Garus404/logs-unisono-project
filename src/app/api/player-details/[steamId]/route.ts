@@ -153,7 +153,8 @@ export async function GET(
     }
 
     try {
-        let playerName = playerNames[simpleHash(steamId) % playerNames.length];
+        const playerName = playerNames[simpleHash(steamId) % playerNames.length];
+        const playerIndex = playerNames.indexOf(playerName);
 
         const levelDistribution = { "1-10": 30, "11-54": 55, "55-99": 15 };
         const levelRangeStr = selectWeighted(levelDistribution, steamId + 'levelRange');
@@ -307,11 +308,13 @@ export async function GET(
                     details: `[OOC] ${oocMessages[getDeterministicRandom(steamId+'msg'+i, 0, oocMessages.length - 1)]}`
                 });
             } else if (logTypeRand <= 80) { // Kill/Death
-                let otherPlayerName = playerNames[getDeterministicRandom(steamId + 'other_player' + i, 0, playerNames.length - 1)];
-                // Ensure the other player is not the same as the current player
-                while (otherPlayerName === playerName) {
-                    otherPlayerName = playerNames[getDeterministicRandom(steamId + 'other_player_retry' + i, 0, playerNames.length - 1)];
+                // --- Reliable way to get a different player ---
+                let otherPlayerIndex = getDeterministicRandom(steamId + 'other_player_idx' + i, 0, playerNames.length - 1);
+                if (otherPlayerIndex === playerIndex) {
+                    otherPlayerIndex = (otherPlayerIndex + 1) % playerNames.length; // Just get the next one
                 }
+                const otherPlayerName = playerNames[otherPlayerIndex];
+                // --- End of fix ---
 
                 if (getDeterministicRandom(steamId + 'kill_or_death' + i, 0, 1) === 0) {
                      playerActivities.push({
