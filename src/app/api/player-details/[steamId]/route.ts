@@ -279,8 +279,7 @@ export async function GET(
 
         const now = new Date();
         const baseTimestamp = new Date(now);
-        baseTimestamp.setDate(now.getDate() - getDeterministicRandom(steamId + 'start_day', 0, 6));
-        baseTimestamp.setHours(getDeterministicRandom(steamId + 'start_hour', 6, now.getHours() - 1));
+        baseTimestamp.setHours(getDeterministicRandom(steamId + 'start_hour', 6, now.getHours() - 1), 0, 0, 0);
 
         let playerActivities: LogEntry[] = [];
         
