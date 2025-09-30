@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint, RefreshCw, ChevronsUpDown } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint, RefreshCw, XCircle, PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,6 +49,10 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
             setPlayer(p => p ? { ...p, donatedProfessions: [...p.donatedProfessions, selectedDonated] } : null);
         }
     }
+
+    const handleRemoveDonated = (profToRemove: string) => {
+        setPlayer(p => p ? { ...p, donatedProfessions: p.donatedProfessions.filter(prof => prof !== profToRemove) } : null);
+    }
     
     const handleGroupChange = (value: string) => {
         setPlayer(p => p ? { ...p, group: value } : null);
@@ -59,10 +63,9 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
     };
 
     return (
-        <Card className="bg-card/50">
+        <Card>
             <CardHeader>
                 <CardTitle>Панель администратора</CardTitle>
-                <CardDescription>Изменяйте параметры игрока. Изменения только визуальные.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -70,38 +73,38 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
                     <Slider
                         id="level-slider"
                         min={0}
-                        max={3}
+                        max={5}
                         step={1}
                         value={[player.primeLevel]}
                         onValueChange={handlePrimeLevelChange}
                     />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div className="space-y-2">
-                        <Label htmlFor="level-input">Игровой уровень</Label>
+                        <Label htmlFor="level-input">Уровень</Label>
                         <Input id="level-input" type="number" value={levelInput} onChange={e => setLevelInput(e.target.value)} onBlur={e => handleLevelChange(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="money-input">Деньги</Label>
                         <Input id="money-input" type="number" value={moneyInput} onChange={e => setMoneyInput(e.target.value)} onBlur={e => handleMoneyChange(e.target.value)}/>
                     </div>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="group-select">Группа</Label>
-                     <Select value={player.group} onValueChange={handleGroupChange}>
-                        <SelectTrigger id="group-select">
-                            <SelectValue placeholder="Выберите группу" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Игрок">Игрок</SelectItem>
-                            <SelectItem value="VIP">VIP</SelectItem>
-                            <SelectItem value="Unisono Light">Unisono Light</SelectItem>
-                            <SelectItem value="Unisono Plus">Unisono Plus</SelectItem>
-                        </SelectContent>
-                    </Select>
+                     <div className="space-y-2">
+                        <Label htmlFor="group-select">Группа</Label>
+                         <Select value={player.group} onValueChange={handleGroupChange}>
+                            <SelectTrigger id="group-select">
+                                <SelectValue placeholder="Выберите группу" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Игрок">Игрок</SelectItem>
+                                <SelectItem value="VIP">VIP</SelectItem>
+                                <SelectItem value="Unisono Light">Unisono Light</SelectItem>
+                                <SelectItem value="Unisono Plus">Unisono Plus</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
                  <div className="space-y-2">
-                    <Label>Выдать донатную профессию</Label>
+                    <Label>Управление донатными профессиями</Label>
                     <div className="flex gap-2">
                          <Select value={selectedDonated} onValueChange={setSelectedDonated}>
                             <SelectTrigger>
@@ -115,8 +118,20 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
                                 ))}
                             </SelectContent>
                         </Select>
-                        <Button onClick={handleAddDonated}>Выдать</Button>
+                        <Button onClick={handleAddDonated} size="icon" variant="outline"><PlusCircle className="w-4 h-4 text-green-500"/></Button>
                     </div>
+                    {player.donatedProfessions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                           {player.donatedProfessions.map(prof => (
+                               <Badge key={prof} variant="outline" className="text-base py-1 pl-3 pr-2 bg-card border-primary/50 text-primary flex items-center gap-2">
+                                   {prof}
+                                   <button onClick={() => handleRemoveDonated(prof)} className="rounded-full hover:bg-destructive/20 transition-colors">
+                                     <XCircle className="w-4 h-4 text-destructive/80" />
+                                   </button>
+                               </Badge>
+                           ))}
+                       </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
@@ -125,7 +140,7 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
 
 
 const PrimeLevelDisplay = ({ level }: { level: number }) => {
-    const levels = [1, 2, 3];
+    const levels = [1, 2, 3, 4, 5];
     return (
         <Card className="bg-card/50">
             <CardHeader>
@@ -144,7 +159,7 @@ const PrimeLevelDisplay = ({ level }: { level: number }) => {
                     </div>
                 </div>
                  <div className="text-sm text-center text-muted-foreground mt-4">
-                    {level > 0 ? `Текущий уровень: ${level} / 3` : "Не активирован"}
+                    {level > 0 ? `Текущий уровень: ${level} / 5` : "Не активирован"}
                 </div>
             </CardContent>
         </Card>
