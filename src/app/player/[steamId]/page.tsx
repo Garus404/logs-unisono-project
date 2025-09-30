@@ -2,15 +2,19 @@
 
 import * as React from "react";
 import { useRouter, useParams } from 'next/navigation';
-import type { PlayerDetails } from "@/lib/types";
+import type { LogEntry, PlayerDetails } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, ChevronRight, Signal, Skull, HeartCrack } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 const PrimeLevelDisplay = ({ level }: { level: number }) => {
     const levels = [1, 2, 3, 4, 5];
@@ -80,6 +84,53 @@ const PlayerDetailsSkeleton = () => (
     </div>
 );
 
+const ActivityLog = ({ logs }: { logs: LogEntry[] }) => {
+    
+    const logTypeConfig = {
+      CONNECTION: { label: "Подключение", icon: LogIn, color: "text-sky-400" },
+      CHAT: { label: "Чат", icon: MessageSquare, color: "text-gray-400" },
+      DAMAGE: { label: "Урон", icon: HeartCrack, color: "text-orange-400" },
+      KILL: { label: "Убийство", icon: Skull, color: "text-red-500" },
+      SPAWN: { label: "Событие", icon: Sparkles, color: "text-yellow-400" },
+      ANNOUNCEMENT: { label: "Объявление", icon: Megaphone, color: "text-purple-400" },
+      NOTIFICATION: { label: "Оповещение", icon: Bell, color: "text-indigo-400" },
+      RP: { label: "Действие", icon: Fingerprint, color: "text-lime-400" },
+    };
+
+    if (logs.length === 0) {
+        return (
+             <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm h-40">
+                <Terminal />
+                <span>Нет записей об активности игрока.</span>
+            </div>
+        )
+    }
+
+    return (
+        <ScrollArea className="h-96">
+            <div className="space-y-4 pr-4">
+                {logs.map((log) => {
+                    const config = logTypeConfig[log.type] || { icon: Bell, color: "text-gray-500" };
+                    const Icon = config.icon;
+
+                    return (
+                        <div key={log.id} className="flex items-start gap-4">
+                            <div className={cn("mt-1 flex-shrink-0", config.color)}>
+                                <Icon className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <p className="text-sm text-foreground/90 break-words">{log.details}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {format(new Date(log.timestamp), "dd MMM yyyy, HH:mm:ss", { locale: ru })}
+                                </p>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+        </ScrollArea>
+    );
+}
 
 export default function PlayerPage() {
     const router = useRouter();
@@ -220,16 +271,7 @@ export default function PlayerPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                           <div className="bg-black/90 rounded-lg p-4 font-mono text-sm text-green-400 space-y-2 h-64 overflow-y-auto">
-                               {player.activities.length > 0 ? player.activities.map((activity, index) => (
-                                   <div key={index} className="flex gap-2 items-start">
-                                       <ChevronRight className="w-4 h-4 text-green-700 flex-shrink-0 mt-0.5"/>
-                                       <p className="break-all">{activity}</p>
-                                   </div>
-                               )) : (
-                                <p className="text-gray-500">Нет записей об активности игрока.</p>
-                               )}
-                           </div>
+                           <ActivityLog logs={player.activities} />
                         </CardContent>
                     </Card>
                 </div>

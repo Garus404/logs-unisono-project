@@ -1,6 +1,6 @@
 
 import { NextResponse, NextRequest } from "next/server";
-import { PlayerDetails } from "@/lib/types";
+import { PlayerDetails, LogEntry } from "@/lib/types";
 import { historicalLogs } from '@/lib/data';
 
 // --- Helper Functions ---
@@ -274,13 +274,20 @@ export async function GET(
 
         // --- Filter activities for this player ---
         const playerActivities = historicalLogs
-            .filter(log => log.user?.steamId === steamId || (log.user?.name === playerName && !log.details.toLowerCase().startsWith('[ooc]')))
-            .slice(0, 20)
-            .map(log => {
-                const time = new Date(log.timestamp).toLocaleTimeString('ru-RU');
-                return `(${time}) ${log.details}`;
-            })
-            .reverse();
+            .filter((log): log is LogEntry => {
+                 if (!log.user) return false;
+                 // Events initiated by the player
+                 if (log.user.steamId === steamId || log.user.name === playerName) {
+                     return ['CHAT', 'CONNECTION', 'KILL', 'SPAWN'].includes(log.type);
+                 }
+                 // Events where the player is the recipient
+                 if (log.recipient?.name === playerName && ['KILL', 'DAMAGE'].includes(log.type)) {
+                     return true;
+                 }
+                 return false;
+             })
+             .slice(0, 30) // Limit to the last 30 activities
+             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
 
         const playerDetails: PlayerDetails = {

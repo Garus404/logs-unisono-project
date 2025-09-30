@@ -88,7 +88,7 @@ export type PlayerDetails = {
     group: string;
     profession: string;
     donatedProfessions: string[];
-    activities: string[];
+    activities: LogEntry[];
     ping: number;
     kills: number;
     deaths: number;
