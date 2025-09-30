@@ -15,16 +15,23 @@ function simpleHash(str: string): number {
 }
 
 function getDeterministicRandom(seed: string, min: number, max: number): number {
+    if (min > max) [min, max] = [max, min];
     const hash = simpleHash(seed);
     const range = max - min + 1;
     if (range <= 0) return min;
     return (hash % range) + min;
 }
 
+
 function selectWeighted(options: Record<string, number>, seed: string): string {
     let sum = 0;
     for (const weight of Object.values(options)) {
         sum += weight;
+    }
+    // Ensure sum is at least 1 to avoid division by zero or negative random numbers
+    if (sum <= 0) {
+        const keys = Object.keys(options);
+        return keys[getDeterministicRandom(seed, 0, keys.length - 1)] || "";
     }
     const rand = getDeterministicRandom(seed, 0, sum - 1);
     let currentSum = 0;
@@ -34,8 +41,10 @@ function selectWeighted(options: Record<string, number>, seed: string): string {
             return name;
         }
     }
+    // Fallback in case of rounding errors
     return Object.keys(options)[0];
 }
+
 
 function formatTotalPlayTime(minutes: number): string {
     if (!minutes || minutes <= 0) return '0 минут';
@@ -159,6 +168,7 @@ export async function GET(
         const level = getDeterministicRandom(steamId + 'level', minLevel, maxLevel);
         const baseTimeInMinutes = (level * 120) + getDeterministicRandom(steamId + 'time_variance', 0, level * 30);
         
+        // This makes time "live" - it increases with every request
         const liveTimeMinutes = Math.floor((new Date().getTime() / 1000 / 60) % (60 * 24)); // 0-1439
         const timeInMinutes = baseTimeInMinutes + liveTimeMinutes;
         const timeInDays = timeInMinutes / (60 * 24);
@@ -168,6 +178,7 @@ export async function GET(
 
         // 3. Determine Group
         let group = "Игрок";
+        // Lower level players have a very small chance to have a subscription
         if (level >= 10 && getDeterministicRandom(steamId + 'low_level_sub_chance', 1, 100) > 5) {
              group = selectWeighted(groupDistribution, steamId + 'group');
         }
@@ -175,20 +186,20 @@ export async function GET(
         // 4. Determine Donated professions
         const donatedProfessions: string[] = [];
         let donationChance = 0;
-        if (level >= 1 && level <= 10) donationChance = getDeterministicRandom(steamId + 'donate_chance_1', 0, 5);
+        if (level >= 1 && level <= 10) donationChance = getDeterministicRandom(steamId + 'donate_chance_1', 0, 5); // very low chance
         else if (level >= 11 && level <= 54) donationChance = getDeterministicRandom(steamId + 'donate_chance_2', 10, 30);
         else if (level >= 55) donationChance = getDeterministicRandom(steamId + 'donate_chance_3', 40, 70);
 
         if (getDeterministicRandom(steamId + 'has_donated', 1, 100) <= donationChance) {
              let count = 0;
              const rand = getDeterministicRandom(steamId + 'donated_count_rand', 1, 100);
-             if (level >= 55) {
+             if (level >= 55) { // Higher level players can have more donated profs
                  if (rand <= 60) count = 1;
                  else if (rand <= 85) count = 2;
                  else count = 3;
              } else if (level >= 11) {
                  if (rand <= 80) count = 1; else count = 0;
-             } else {
+             } else { // 1-10 level
                  if (rand <= 50) count = 1; else count = 0;
              }
              
@@ -244,14 +255,17 @@ export async function GET(
 
         const availableProfessions = getAvailableProfessions(level, primeLevel, group);
 
-        // 6. Select final profession with time-based variation
+        // 6. Select final profession with time-based variation for "liveness"
         const calculateProfessionForSeed = (seed: string): string => {
             let profession = "Испытуемый";
              if (availableProfessions.length > 0) {
+                // Filter out limited professions based on a chance to simulate scarcity
                 const potentialProfessions = availableProfessions.filter(p => {
                     const limit = limitedProfessionsConfig[p];
                     if (limit) {
-                        return getDeterministicRandom(seed + p, 1, 100) <= (limit * 2);
+                        // The higher the limit, the higher the chance to be selected
+                        // This simulates that there are "slots" available
+                        return getDeterministicRandom(seed + p, 1, 100) <= (limit * 2); // Small chance
                     }
                     return true;
                 });
@@ -259,10 +273,12 @@ export async function GET(
                 if (potentialProfessions.length > 0) {
                     profession = potentialProfessions[getDeterministicRandom(seed + 'prof', 0, potentialProfessions.length - 1)];
                 } else {
+                    // Fallback if all potential professions were filtered out
                     profession = availableProfessions[getDeterministicRandom(seed + 'prof_fallback', 0, availableProfessions.length - 1)] || "Испытуемый";
                 }
             }
                 
+            // Give a small chance for a special profession if level is high enough
             if (level >= 55 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 2) {
                  const specialProfs = specialProfessions[55] || [];
                  if (specialProfs.length > 0) {
@@ -292,17 +308,23 @@ export async function GET(
         
         // 7. Final stats
         const money = Math.max(0, (level * getDeterministicRandom(steamId + 'money_rate', 500, 2500))) + (liveTimeMinutes * 10);
-        const ping = getDeterministicRandom(steamId + 'ping', 15, 85) + getDeterministicRandom(twoMinuteSeed.slice(-10), -5, 5);
+        const ping = getDeterministicRandom(steamId + 'ping', 15, 85) + getDeterministicRandom(twoMinuteSeed.slice(-10), -5, 5); // Ping fluctuates a bit
+        // Kills and deaths are based on level for realism
         const kills = Math.round(level * getDeterministicRandom(steamId + 'kills_rate', 0.1, 0.5));
         const deaths = Math.round(level * getDeterministicRandom(steamId + 'deaths_rate', 0.1, 0.8));
 
-        // --- Filter historical activities for this player ---
+
+        // --- Filter historical activities to create a PERSONALIZED log ---
         const playerActivities = historicalLogs
             .filter((log): log is LogEntry => {
                 if (!log.user || !log.user.steamId) return false;
 
                 // Include logs where the user is the direct actor (and it's a personal action type)
-                if (log.user.steamId === steamId && ['CHAT', 'CONNECTION', 'KILL'].includes(log.type)) {
+                if (log.user.steamId === steamId && ['CHAT', 'CONNECTION', 'KILL', 'RP'].includes(log.type)) {
+                    // For RP, only include their own profession changes
+                    if (log.type === 'RP') {
+                        return log.details.includes('сменил профессию');
+                    }
                     return true;
                 }
                 
@@ -310,14 +332,10 @@ export async function GET(
                 if (log.recipient?.name === playerName && ['KILL', 'DAMAGE'].includes(log.type)) {
                     return true;
                 }
-                 // Special handling for RP logs to only include profession changes for this user
-                if (log.type === 'RP' && log.user.steamId === steamId && log.details.includes('сменил профессию')) {
-                    return true;
-                }
-
+                
                 return false;
              })
-             .slice(0, 30) 
+             .slice(0, 30) // Limit initial log size
              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
         // Add live activity log if it exists
