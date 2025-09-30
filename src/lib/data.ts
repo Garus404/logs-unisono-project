@@ -372,7 +372,6 @@ const hardcodedLogs: Partial<LogEntry>[] = [
   { timestamp: new Date('2024-07-25T17:51:00'), type: 'CHAT', user: findUser('Sergey Bulbа'), details: '[OOC] опну пизда' },
   { timestamp: new Date('2024-07-25T17:51:00'), type: 'RP', user: findUser('Алекс Тролген'), details: '[СКО] [VIP] Образец Суккуб прибыл в комплекс' },
   { timestamp: new Date('2024-07-25T17:51:00'), type: 'CHAT', user: findUser('Ярик Великий'), details: '[OOC] авель 3 тира не успокаевается' },
-  { timestamp: new Date('2024-07-25T17:51:00'), type: 'RP', user: findUser('Алекс Тролген'), details: '[СКО] [VIP] Образец Кошмар покинул комплекс' },
   { timestamp: new Date('2024-07-25T17:50:00'), type: 'CHAT', user: findUser('Sergey Bulbа'), details: '[OOC] обычные' },
   { timestamp: new Date('2024-07-25T17:50:00'), type: 'NOTIFICATION', details: 'Оповещения Образец Мясник покинул камеру содержания. (Толя Дальнобой)' },
   { timestamp: new Date('2024-07-25T17:50:00'), type: 'NOTIFICATION', details: 'Оповещения Образец Маска покинул камеру содержания. (Валера Святославович)' },
@@ -842,7 +841,7 @@ const hardcodedLogs: Partial<LogEntry>[] = [
 
 
 // --- Main Generator Function for Historical Data ---
-function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
+function generateHistoricalLogs(startDate: Date, logsPerDay: number): LogEntry[] {
     const allLogs: LogEntry[] = hardcodedLogs.map(log => ({
         ...log,
         id: crypto.randomUUID(),
@@ -850,9 +849,12 @@ function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
     } as LogEntry));
 
     const now = new Date();
+    const start = new Date(startDate);
+    const days = Math.ceil((now.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
 
     for (let day = 0; day < days; day++) {
         const currentDay = new Date(now.getTime() - day * 24 * 60 * 60 * 1000);
+        if (currentDay < start) continue;
 
         for (let i = 0; i < logsPerDay; i++) {
             const timestamp = new Date(currentDay.getTime());
@@ -888,8 +890,8 @@ function generateHistoricalLogs(days: number, logsPerDay: number): LogEntry[] {
 }
 
 
-// Generate a week of logs, with around 1000 entries per day
-export const historicalLogs: LogEntry[] = generateHistoricalLogs(7, 500);
+// Generate logs from Sep 1st
+export const historicalLogs: LogEntry[] = generateHistoricalLogs(new Date('2024-09-01'), 500);
 
 
 // Mock data for player activity chart
@@ -981,3 +983,4 @@ export const consoleLogs: string[] = [
     "AUTH: Multiple failed RCON login attempts from 77.88.55.22.",
     "FIREWALL: IP 77.88.55.22 has been permanently banned from RCON access.",
 ];
+
