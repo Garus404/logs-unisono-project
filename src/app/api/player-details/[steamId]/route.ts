@@ -239,13 +239,29 @@ export async function GET(
         }
 
         // 6. Select final profession
-        let profession = availableProfessions.length > 0
-            ? availableProfessions[getDeterministicRandom(steamId + 'prof', 0, availableProfessions.length - 1)]
-            : 'Испытуемый';
+        let profession = "Испытуемый"; // Default profession
+        if (availableProfessions.length > 0) {
+            // Give preference to non-limited professions
+            const unlimitedProfessions = availableProfessions.filter(p => !['Барыга', 'Рабочий', 'Медицинский Персонал', 'Психолог', 'Грузчик', 'Сотрудник Службы Безопасности', 'БЕК-1 Робопатруль'].includes(p));
+            const limitedProfessions = availableProfessions.filter(p => ['Барыга', 'Рабочий', 'Медицинский Персонал', 'Психолог', 'Грузчик', 'Сотрудник Службы Безопасности', 'БЕК-1 Робопатруль'].includes(p));
+            
+            let chosenProfessionPool = unlimitedProfessions;
+            // Add limited professions with a lower probability
+            if (getDeterministicRandom(steamId + 'limited_prof_chance', 1, 10) <= 2) { // 20% chance to even consider a limited prof
+                chosenProfessionPool.push(...limitedProfessions);
+            }
+
+            if (chosenProfessionPool.length > 0) {
+                 profession = chosenProfessionPool[getDeterministicRandom(steamId + 'prof', 0, chosenProfessionPool.length - 1)];
+            }
+        }
             
         // Special professions (AFK/NONRP) override with a very small chance for high-level players
         if (level >= 55 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 2) {
-             profession = getRandomElement(specialProfessions[55]);
+             const specialProfs = specialProfessions[55] || [];
+             if (specialProfs.length > 0) {
+                profession = specialProfs[getDeterministicRandom(steamId + 'special_prof_select', 0, specialProfs.length - 1)];
+             }
         }
         
         const money = Math.max(0, (level * getDeterministicRandom(steamId + 'money_rate', 500, 2500)));
@@ -294,3 +310,5 @@ export async function GET(
         );
     }
 }
+
+    
