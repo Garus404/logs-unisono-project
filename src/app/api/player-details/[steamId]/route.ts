@@ -105,7 +105,7 @@ const leadershipProfessions: { [level: number]: { name: string, prime?: number }
 };
 
 const specialProfessions: { [level: number]: string[] } = {
-    1: ['AFK', 'NONRP'],
+    55: ['AFK', 'NONRP', 'Образец Домовой'],
 };
 
 // --- Main GET Handler ---
@@ -136,36 +136,35 @@ export async function GET(
         const [minLevel, maxLevel] = levelRangeStr.split('-').map(Number);
         const level = getDeterministicRandom(steamId + 'level', minLevel, maxLevel);
         
-        // Prime level can only be assigned if level is 99+
-        const primeLevel = (level >= 99) ? getDeterministicRandom(steamId + 'prime', 0, 3) : 0;
+        const timeInMinutes = (level * 120) + getDeterministicRandom(steamId + 'time_variance', 0, level * 30);
+        const timeInDays = timeInMinutes / (60 * 24);
         
-        // Total time in minutes is now based on level (e.g. 2 hours per level) + variance
-        const baseTimeInMinutes = level * 120;
-        const timeVariance = getDeterministicRandom(steamId + 'time_variance', 60, (level + primeLevel * 10) * 60);
-        const timeInMinutes = baseTimeInMinutes + timeVariance;
+        // Prime level can only be assigned if level is 99+ and playtime is sufficient
+        const primeLevel = (level >= 99 && timeInDays >= 8) ? getDeterministicRandom(steamId + 'prime', 0, 3) : 0;
 
         // 2. Determine Group (subscription)
         let group = "Игрок";
-        const groupRoll = getDeterministicRandom(steamId + 'group_roll', 1, 100);
-        if (groupRoll <= 2) {
-             group = "Unisono Plus";
-        } else if (groupRoll <= 10) { // 2 + 8
-             group = "Unisono Light";
-        } else if (groupRoll <= 25) { // 10 + 15
-             group = "VIP";
-        }
         // Lower level players are less likely to have a subscription
-        if (level < 10 && getDeterministicRandom(steamId + 'low_level_sub_chance', 1, 100) > 10) {
+        if (level < 10 && getDeterministicRandom(steamId + 'low_level_sub_chance', 1, 100) > 5) {
             group = "Игрок";
+        } else {
+             group = selectWeighted(groupDistribution, steamId + 'group');
         }
 
         // 3. Determine available main professions
         let availableProfessions: string[] = [];
-        Object.entries(freeProfessions).forEach(([lvl, profs]) => {
-            if (level >= Number(lvl)) availableProfessions.push(...profs);
-        });
-
-        if (group !== "Игрок") {
+        
+        // Basic professions for low levels
+        if (level <= 10) {
+             availableProfessions.push('Испытуемый', 'Медицинский Персонал', 'Грузчик', 'Сотрудник Службы Безопасности');
+        } else {
+            Object.entries(freeProfessions).forEach(([lvl, profs]) => {
+                if (level >= Number(lvl)) availableProfessions.push(...profs);
+            });
+        }
+        
+        // VIP professions if player has a subscription and meets level requirements
+        if (group !== "Игрок" && level > 10) {
             Object.entries(vipProfessions).forEach(([lvl, profs]) => {
                  if (level >= Number(lvl)) {
                     availableProfessions.push(...profs);
@@ -173,34 +172,43 @@ export async function GET(
             });
         }
         
-        // Check for leadership roles
-        Object.entries(leadershipProfessions).forEach(([lvl, profs]) => {
-            if (level >= Number(lvl)) {
-                profs.forEach(prof => {
-                    if (!prof.prime || prof.prime <= primeLevel) {
-                        availableProfessions.push(prof.name);
-                    }
-                });
-            }
-        });
+        // Leadership roles for high-level players with prime
+        if (timeInDays >= 7) {
+            Object.entries(leadershipProfessions).forEach(([lvl, profs]) => {
+                if (level >= Number(lvl)) {
+                    profs.forEach(prof => {
+                        if (!prof.prime || prof.prime <= primeLevel) {
+                            availableProfessions.push(prof.name);
+                        }
+                    });
+                }
+            });
+        }
         
         let profession = availableProfessions.length > 0 
             ? availableProfessions[getDeterministicRandom(steamId + 'prof', 0, availableProfessions.length - 1)] 
             : 'Испытуемый';
         
-        const isAfkOrNonRp = getDeterministicRandom(steamId + 'afk_nonrp_chance', 1, 100) <= 7;
-        if (isAfkOrNonRp) {
-            const otherProfessions = specialProfessions[1];
-            profession = otherProfessions[getDeterministicRandom(steamId + 'other_prof', 0, otherProfessions.length - 1)];
+        // Special professions for experienced players
+        if (level >= 55 && timeInDays >= 7 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 10) {
+             let availableSpecial: string[] = [];
+             Object.entries(specialProfessions).forEach(([lvl, profs]) => {
+                if (level >= Number(lvl)) {
+                    availableSpecial.push(...profs);
+                }
+             });
+             if (availableSpecial.length > 0) {
+                 profession = availableSpecial[getDeterministicRandom(steamId + 'special_prof_select', 0, availableSpecial.length - 1)];
+             }
         }
 
 
         // 4. Determine donated professions
         const donatedProfessions: string[] = [];
         let donationChance = 0;
-        if (level >= 1 && level <= 10) donationChance = 10;
-        else if (level >= 11 && level <= 54) donationChance = 25;
-        else if (level >= 55) donationChance = 85;
+        if (level >= 1 && level <= 10) donationChance = getDeterministicRandom(steamId + 'donate_chance_1', 1, 10); // 1-10%
+        else if (level >= 11 && level <= 54) donationChance = getDeterministicRandom(steamId + 'donate_chance_2', 10, 25); // 10-25%
+        else if (level >= 55) donationChance = getDeterministicRandom(steamId + 'donate_chance_3', 25, 75); // 25-75%
 
         if (getDeterministicRandom(steamId + 'has_donated', 1, 100) <= donationChance) {
              let count = 1;
@@ -218,15 +226,12 @@ export async function GET(
             }
         }
         
-        const money = Math.max(0, (timeInMinutes * getDeterministicRandom(steamId + 'money_rate', 5, 25)) + (level * 1000));
+        const money = Math.max(0, (level * getDeterministicRandom(steamId + 'money_rate', 500, 2500)));
         const ping = getDeterministicRandom(steamId + 'ping', 15, 85);
         
         // Kills and deaths based on level
-        const baseKills = level * getDeterministicRandom(steamId + 'kills_rate', 20, 100);
-        const kills = baseKills + getDeterministicRandom(steamId + 'kills_variance', -baseKills/2, baseKills * 2);
-        
-        const baseDeaths = level * getDeterministicRandom(steamId + 'deaths_rate', 20, 100);
-        const deaths = baseDeaths + getDeterministicRandom(steamId + 'deaths_variance', -baseDeaths/2, baseDeaths * 2);
+        const kills = Math.round(level * getDeterministicRandom(steamId + 'kills_rate', 0.5, 5) + getDeterministicRandom(steamId, 0, level * 10));
+        const deaths = Math.round(level * getDeterministicRandom(steamId + 'deaths_rate', 0.5, 5) + getDeterministicRandom(steamId, 0, level * 10));
 
 
         // --- Filter activities for this player ---
@@ -267,5 +272,3 @@ export async function GET(
         );
     }
 }
-
-    
