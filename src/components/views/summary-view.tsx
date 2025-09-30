@@ -3,12 +3,12 @@
 import * as React from "react";
 import { Clock, Users, Server, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartConfig,
+  type ChartConfig,
 } from "@/components/ui/chart";
 import type { PlayerActivity, ServerStateResponse } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
@@ -138,36 +138,57 @@ export default function SummaryView() {
         <CardContent className="pl-2">
             {loading && <div className="h-[300px] w-full flex items-center justify-center"><Skeleton className="h-full w-full" /></div>}
             {!loading && activity.length > 0 && (
-                <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                    <BarChart
-                    accessibilityLayer
-                    data={activity}
-                    margin={{
-                        top: 5,
-                        right: 10,
-                        left: 10,
-                        bottom: 5,
-                    }}
+                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <AreaChart
+                        accessibilityLayer
+                        data={activity}
+                        margin={{
+                            left: 12,
+                            right: 12,
+                        }}
                     >
-                    <CartesianGrid vertical={false} />
-                    <XAxis
+                        <CartesianGrid vertical={false} />
+                        <XAxis
                         dataKey="time"
                         tickLine={false}
                         axisLine={false}
                         tickMargin={8}
                         tickFormatter={(value) => value.slice(0, 5)}
-                    />
-                    <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
                         />
-                    <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent />}
-                    />
-                    <Bar dataKey="players" fill="var(--color-players)" radius={4} />
-                    </BarChart>
+                        <ChartTooltip
+                        cursor={true}
+                        content={
+                            <ChartTooltipContent
+                            indicator="line"
+                            labelFormatter={(label, payload) => {
+                                return `${payload[0]?.payload.time}`
+                            }}
+                            />
+                        }
+                        />
+                        <defs>
+                            <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--color-players)"
+                                    stopOpacity={0.8}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--color-players)"
+                                    stopOpacity={0.1}
+                                />
+                            </linearGradient>
+                        </defs>
+                        <Area
+                            dataKey="players"
+                            type="natural"
+                            fill="url(#fillPlayers)"
+                            fillOpacity={0.4}
+                            stroke="var(--color-players)"
+                            stackId="a"
+                        />
+                    </AreaChart>
                 </ChartContainer>
             )}
              {!loading && activity.length === 0 && !error && (
