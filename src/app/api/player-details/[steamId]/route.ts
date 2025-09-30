@@ -68,7 +68,7 @@ const levelDistribution = { "1-20": 50, "21-40": 25, "41-60": 15, "61-80": 7, "8
 const groupDistribution = { "Игрок": 52, "VIP": 25, "Unisono Light": 13, "Unisono Plus": 3, "Другие": 7 };
 
 const freeProfessions: { [level: number]: string[] } = {
-    1: ['Испытуемый', 'AFK'],
+    1: ['Испытуемый'],
     3: ['Медицинский Персонал'],
     5: ['Грузчик'],
     7: ['Рабочий', 'Лаборант'],
@@ -80,14 +80,14 @@ const freeProfessions: { [level: number]: string[] } = {
 };
 
 const vipProfessions: { [level: number]: string[] } = {
-    1: ['[VIP] SCP: Суккуб', '[VIP] SCP: Кошмар', '[VIP] SCP: Хищник'],
+    1: ['[VIP] SCP: Суккуб', '[VIP] SCP: Кошмар', '[VIP] SCP: Хищник', 'БЕК-2 Робопатруль'],
     10: [],
     20: ['МОГ Эпсилон-11 Солдат'],
 };
 
 const donatedProfessionsList = [
     'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор',
-    'Экзобоец', 'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'БЕК-2 Робопатруль', 'ИИ Кобра',
+    'Экзобоец', 'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'ИИ Кобра',
     'Военный прототип | ПИЛИГРИМ', 'БРС - Миротворец', 'Наемный Агент'
 ];
 
@@ -100,6 +100,10 @@ const leadershipProfessions: { [level: number]: { name: string, prime?: number }
     80: [{ name: 'Глава ученых' }],
     90: [{ name: 'МОГ Лейтенант', prime: 1 }],
     99: [{ name: 'Образец Ионик', prime: 3 }],
+};
+
+const specialProfessions: { [level: number]: string[] } = {
+    1: ['AFK', 'NONRP'],
 };
 
 // --- Main GET Handler ---
@@ -130,7 +134,7 @@ export async function GET(
         const level = getDeterministicRandom(steamId + 'level', minLevel, maxLevel);
 
         // 2. Determine Group (subscription)
-        const group = selectWeighted(groupDistribution, steamId + 'group');
+        let group = selectWeighted(groupDistribution, steamId + 'group');
         const hasSubscription = group === "VIP" || group === "Unisono Light" || group === "Unisono Plus";
         
         // Prime level can only be assigned if level is 99+
@@ -168,10 +172,17 @@ export async function GET(
             }
         });
         
-        const profession = availableProfessions.length > 0 
+        let profession = availableProfessions.length > 0 
             ? availableProfessions[getDeterministicRandom(steamId + 'prof', 0, availableProfessions.length - 1)] 
             : 'Испытуемый';
         
+        if (group === "Другие") {
+            const otherProfessions = specialProfessions[1];
+            profession = otherProfessions[getDeterministicRandom(steamId + 'other_prof', 0, otherProfessions.length - 1)];
+            group = "Без группы";
+        }
+
+
         // 4. Determine donated professions
         const donatedProfessions: string[] = [];
         let donationChance = 0;
@@ -238,5 +249,3 @@ export async function GET(
         );
     }
 }
-
-    
