@@ -89,5 +89,8 @@ export type PlayerDetails = {
     profession: string;
     donatedProfessions: string[];
     activities: string[];
+    ping: number;
+    kills: number;
+    deaths: number;
 };
     

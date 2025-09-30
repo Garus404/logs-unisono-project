@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, ChevronRight } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, ChevronRight, Signal, Skull, HeartCrack } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
@@ -61,6 +61,9 @@ const PlayerDetailsSkeleton = () => (
                         <Skeleton className="h-4 w-full" />
                     </div>
                      <div className="grid grid-cols-2 gap-4 pt-4">
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
                         <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
                         <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
                         <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
@@ -175,6 +178,9 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
                             <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} />
                             <InfoItem icon={User} label="Группа" value={<Badge variant="secondary">{player.group}</Badge>} />
                             <InfoItem icon={Briefcase} label="Профессия" value={player.profession} />
+                            <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} />
+                            <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} />
+                            <InfoItem icon={HeartCrack} label="Смерти" value={player.deaths.toLocaleString('ru-RU')} />
                         </div>
                     </CardContent>
                 </Card>

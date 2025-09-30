@@ -71,10 +71,11 @@ const freeProfessions: { [level: number]: string[] } = {
     7: ['Рабочий', 'Лаборант'], 10: ['Барыга'], 12: ['Ученый класса А'],
     15: ['Психолог'], 18: ['Ученый класса В'], 24: ['Ученый класса С']
 };
-const vipProfessions: { [level: number]: string[] } = {
-    1: ['[VIP] SCP: Суккуб', '[VIP] SCP: Кошмар', '[VIP] SCP: Хищник'],
-    10: ['[VIP] Сотрудник Службы Безопасности'],
-    20: ['[VIP] МОГ Эпсилон-11 Солдат'],
+const vipProfessions: { [level: number]: {name: string}[] } = {
+    1: [{name:'[VIP] SCP: Суккуб'}, {name:'[VIP] SCP: Кошмар'}, {name:'[VIP] SCP: Хищник'}],
+    10: [{name:'[VIP] Сотрудник Службы Безопасности'}],
+    20: [{name:'[VIP] МОГ Эпсилон-11 Солдат'}],
+    1: [{name:'БЕК-2 Робопатруль'}]
 };
 const paidProfessions = [
     'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор',
@@ -133,7 +134,11 @@ export async function GET(
 
         if (hasSubscription) {
             Object.entries(vipProfessions).forEach(([lvl, profs]) => {
-                if (level >= Number(lvl)) availableProfessions.push(...profs);
+                 if (level >= Number(lvl)) {
+                    profs.forEach(prof => {
+                       availableProfessions.push(prof.name);
+                    });
+                }
             });
         }
         
@@ -171,7 +176,10 @@ export async function GET(
         // --- Generate other stats based on level ---
         const timeInMinutes = (level * 120) + getDeterministicRandom(steamId + 'time_variance', -60, 180);
         const money = Math.max(0, (timeInMinutes * getDeterministicRandom(steamId + 'money_rate', 15, 60)) + getDeterministicRandom(steamId + 'money_base', 1000, 10000));
-        
+        const ping = getDeterministicRandom(steamId + 'ping', 15, 85);
+        const kills = getDeterministicRandom(steamId + 'kills', 2600, 25000);
+        const deaths = getDeterministicRandom(steamId + 'deaths', 2600, 25000);
+
         // --- Filter activities for this player ---
         const playerActivities = historicalLogs
             .filter(log => log.user?.steamId === steamId || (log.user?.name === playerName && !log.details.toLowerCase().startsWith('[ooc]')))
@@ -195,6 +203,9 @@ export async function GET(
             profession: profession,
             donatedProfessions: donatedProfessions,
             activities: playerActivities,
+            ping,
+            kills,
+            deaths,
         };
 
         return NextResponse.json(playerDetails);
