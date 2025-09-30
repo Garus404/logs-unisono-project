@@ -66,18 +66,23 @@ export default function SummaryView() {
     fetchData();
     const interval = setInterval(fetchData, 300000); // Refresh data every 5 minutes
 
-    const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
-    }, 1000);
-    
-    // Set initial time right away
-    setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
-
     return () => {
-      clearInterval(timer);
       clearInterval(interval);
     }
   }, []);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Singapore' }));
+    }, 1000);
+
+    // Set initial time right away
+    setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Singapore' }));
+    
+    return () => {
+      clearInterval(timer);
+    }
+  },[])
 
   return (
     <div className="space-y-6">
@@ -130,7 +135,7 @@ export default function SummaryView() {
             <div className="text-2xl font-bold tabular-nums">
               {currentTime || <Skeleton className="h-8 w-28" />}
             </div>
-            <p className="text-xs text-muted-foreground">UTC+3 (Москва)</p>
+            <p className="text-xs text-muted-foreground">UTC+8</p>
           </CardContent>
         </Card>
       </div>
