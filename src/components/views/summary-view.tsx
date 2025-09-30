@@ -31,10 +31,6 @@ export default function SummaryView() {
   const [currentTime, setCurrentTime] = React.useState<string>("");
 
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
-    }, 1000);
-
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -67,10 +63,15 @@ export default function SummaryView() {
       }
     };
 
-    // Set initial time
-    setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh data every 30 seconds
+    const interval = setInterval(fetchData, 300000); // Refresh data every 5 minutes
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
+    }, 1000);
+    
+    // Set initial time right away
+    setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
 
     return () => {
       clearInterval(timer);
@@ -116,7 +117,7 @@ export default function SummaryView() {
                 </div>
              }
             <div className="text-xs text-muted-foreground">
-              Обновляется каждые 30 сек.
+              Обновляется каждые 5 мин.
             </div>
           </CardContent>
         </Card>

@@ -88,7 +88,7 @@ export default function PlayersView() {
     };
 
     fetchServerState();
-    const interval = setInterval(fetchServerState, 30000); // обновление каждые 30 секунд
+    const interval = setInterval(fetchServerState, 300000); // обновление каждые 5 минут
 
     return () => clearInterval(interval);
   }, []);

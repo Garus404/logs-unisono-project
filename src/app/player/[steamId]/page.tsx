@@ -367,7 +367,7 @@ export default function PlayerPage() {
         
         const interval = setInterval(() => {
             fetchPlayerDetails(false);
-        }, 30000); 
+        }, 300000); 
 
         return () => clearInterval(interval);
     }, [fetchPlayerDetails]);
