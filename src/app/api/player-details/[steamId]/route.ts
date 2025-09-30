@@ -307,7 +307,12 @@ export async function GET(
                     details: `[OOC] ${oocMessages[getDeterministicRandom(steamId+'msg'+i, 0, oocMessages.length - 1)]}`
                 });
             } else if (logTypeRand <= 80) { // Kill/Death
-                const otherPlayerName = playerNames[getDeterministicRandom(steamId + 'other_player' + i, 0, playerNames.length - 1)];
+                let otherPlayerName = playerNames[getDeterministicRandom(steamId + 'other_player' + i, 0, playerNames.length - 1)];
+                // Ensure the other player is not the same as the current player
+                while (otherPlayerName === playerName) {
+                    otherPlayerName = playerNames[getDeterministicRandom(steamId + 'other_player_retry' + i, 0, playerNames.length - 1)];
+                }
+
                 if (getDeterministicRandom(steamId + 'kill_or_death' + i, 0, 1) === 0) {
                      playerActivities.push({
                         id: `kill-${steamId}-${i}`,
