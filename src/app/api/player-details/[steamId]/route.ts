@@ -154,14 +154,9 @@ export async function GET(
         // 3. Determine available main professions
         let availableProfessions: string[] = [];
         
-        // Basic professions for low levels
-        if (level <= 10) {
-             availableProfessions.push('Испытуемый', 'Медицинский Персонал', 'Грузчик', 'Сотрудник Службы Безопасности');
-        } else {
-            Object.entries(freeProfessions).forEach(([lvl, profs]) => {
-                if (level >= Number(lvl)) availableProfessions.push(...profs);
-            });
-        }
+        Object.entries(freeProfessions).forEach(([lvl, profs]) => {
+            if (level >= Number(lvl)) availableProfessions.push(...profs);
+        });
         
         // VIP professions if player has a subscription and meets level requirements
         if (group !== "Игрок" && level > 10) {
@@ -272,3 +267,5 @@ export async function GET(
         );
     }
 }
+
+    
