@@ -147,7 +147,6 @@ const PrimeLevelDisplay = ({ level }: { level: number }) => {
         <Card className="bg-card/50">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Crown className="text-primary"/>Прайм уровень</CardTitle>
-                <CardDescription>Прайм уровень можно активировать по достижению 100 уровня.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="relative mb-4">
@@ -497,5 +496,3 @@ export default function PlayerPage() {
         </div>
     );
 }
-
-    
