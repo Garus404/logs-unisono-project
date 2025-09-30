@@ -299,16 +299,23 @@ export async function GET(
         // --- Filter historical activities for this player ---
         const playerActivities = historicalLogs
             .filter((log): log is LogEntry => {
-                 if (!log.user) return false;
-                 // Only include logs where the user is the direct actor or a chat message
-                 if (log.user.steamId === steamId || log.user.name === playerName) {
-                     return ['CHAT', 'CONNECTION', 'KILL', 'RP'].includes(log.type);
-                 }
-                 // Include logs where the user is the recipient of a kill/damage action
-                 if ((log.recipient?.name === playerName || log.details.includes(playerName)) && ['KILL', 'DAMAGE'].includes(log.type)) {
-                     return true;
-                 }
-                 return false;
+                if (!log.user || !log.user.steamId) return false;
+
+                // Include logs where the user is the direct actor (and it's a personal action type)
+                if (log.user.steamId === steamId && ['CHAT', 'CONNECTION', 'KILL'].includes(log.type)) {
+                    return true;
+                }
+                
+                // Include logs where the user is the recipient of a kill/damage action
+                if (log.recipient?.name === playerName && ['KILL', 'DAMAGE'].includes(log.type)) {
+                    return true;
+                }
+                 // Special handling for RP logs to only include profession changes for this user
+                if (log.type === 'RP' && log.user.steamId === steamId && log.details.includes('сменил профессию')) {
+                    return true;
+                }
+
+                return false;
              })
              .slice(0, 30) 
              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
