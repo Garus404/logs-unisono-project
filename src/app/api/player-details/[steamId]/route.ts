@@ -250,8 +250,8 @@ export async function GET(
         let profession = "Испытуемый";
         let liveActivityLog: LogEntry | null = null;
         
-        // Use minutes of the current hour to add variation
-        const currentMinuteSeed = steamId + Math.floor(new Date().getTime() / (1000 * 60)); 
+        // Use minutes of the current hour (divided by 2) to add variation every 2 minutes
+        const twoMinuteSeed = steamId + Math.floor(new Date().getTime() / (1000 * 60 * 2)); 
         
         if (availableProfessions.length > 0) {
              // Filter out limited professions if their "slots" are likely filled
@@ -259,16 +259,16 @@ export async function GET(
                 const limit = limitedProfessionsConfig[p];
                 if (limit) {
                     // Reduce probability for limited professions. e.g. 2 slots = 2/100 chance to be considered
-                    return getDeterministicRandom(currentMinuteSeed + p, 1, 100) <= (limit * 2);
+                    return getDeterministicRandom(twoMinuteSeed + p, 1, 100) <= (limit * 2);
                 }
                 return true;
             });
             
             if (potentialProfessions.length > 0) {
-                profession = potentialProfessions[getDeterministicRandom(currentMinuteSeed + 'prof', 0, potentialProfessions.length - 1)];
+                profession = potentialProfessions[getDeterministicRandom(twoMinuteSeed + 'prof', 0, potentialProfessions.length - 1)];
             } else {
                  // Fallback if all available professions are "limited out"
-                profession = availableProfessions[getDeterministicRandom(currentMinuteSeed + 'prof_fallback', 0, availableProfessions.length - 1)] || "Испытуемый";
+                profession = availableProfessions[getDeterministicRandom(twoMinuteSeed + 'prof_fallback', 0, availableProfessions.length - 1)] || "Испытуемый";
             }
         }
             
@@ -276,31 +276,31 @@ export async function GET(
         if (level >= 55 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 2) {
              const specialProfs = specialProfessions[55] || [];
              if (specialProfs.length > 0) {
-                profession = specialProfs[getDeterministicRandom(currentMinuteSeed + 'special_prof_select', 0, specialProfs.length - 1)];
+                profession = specialProfs[getDeterministicRandom(twoMinuteSeed + 'special_prof_select', 0, specialProfs.length - 1)];
              }
         }
 
-        // Check if profession changed from the last minute
-        const previousMinuteSeed = steamId + (Math.floor(new Date().getTime() / (1000 * 60)) - 1);
+        // Check if profession changed from the last 2-minute interval
+        const previousTwoMinuteSeed = steamId + (Math.floor(new Date().getTime() / (1000 * 60 * 2)) - 1);
         let previousProfession = "Испытуемый"; // Calculate previous profession to check for change
          if (availableProfessions.length > 0) {
             const previousPotential = availableProfessions.filter(p => {
                  const limit = limitedProfessionsConfig[p];
-                if (limit) return getDeterministicRandom(previousMinuteSeed + p, 1, 100) <= (limit * 2);
+                if (limit) return getDeterministicRandom(previousTwoMinuteSeed + p, 1, 100) <= (limit * 2);
                 return true;
             });
-            if(previousPotential.length > 0) previousProfession = previousPotential[getDeterministicRandom(previousMinuteSeed + 'prof', 0, previousPotential.length - 1)];
+            if(previousPotential.length > 0) previousProfession = previousPotential[getDeterministicRandom(previousTwoMinuteSeed + 'prof', 0, previousPotential.length - 1)];
         }
         if (level >= 55 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 2) {
              const specialProfs = specialProfessions[55] || [];
              if (specialProfs.length > 0) {
-                previousProfession = specialProfs[getDeterministicRandom(previousMinuteSeed + 'special_prof_select', 0, specialProfs.length - 1)];
+                previousProfession = specialProfs[getDeterministicRandom(previousTwoMinuteSeed + 'special_prof_select', 0, specialProfs.length - 1)];
              }
         }
 
-        if (profession !== previousProfession && getDeterministicRandom(currentMinuteSeed, 1, 100) <= 90) { // 90% chance to log the change
+        if (profession !== previousProfession && getDeterministicRandom(twoMinuteSeed, 1, 100) <= 10) { // 10% chance to log the change
              liveActivityLog = {
-                id: `live-prof-change-${currentMinuteSeed}`,
+                id: `live-prof-change-${twoMinuteSeed}`,
                 timestamp: new Date(),
                 type: 'RP',
                 user: { name: playerName, steamId: steamId },
@@ -310,7 +310,7 @@ export async function GET(
         
         // 7. Final stats
         const money = Math.max(0, (level * getDeterministicRandom(steamId + 'money_rate', 500, 2500))) + (liveTimeMinutes * 10);
-        const ping = getDeterministicRandom(steamId + 'ping', 15, 85) + getDeterministicRandom(currentMinuteSeed, -5, 5);
+        const ping = getDeterministicRandom(steamId + 'ping', 15, 85) + getDeterministicRandom(twoMinuteSeed, -5, 5);
         const kills = Math.round(level * getDeterministicRandom(steamId + 'kills_rate', 0.5, 2) + getDeterministicRandom(steamId, 0, level * 2));
         const deaths = Math.round(level * getDeterministicRandom(steamId + 'deaths_rate', 0.5, 3) + getDeterministicRandom(steamId, 0, level * 3));
 
@@ -362,3 +362,5 @@ export async function GET(
         );
     }
 }
+
+    
