@@ -55,7 +55,7 @@ export async function GET() {
     const totalPlayTimeSeconds = state.players.reduce((sum, player) => sum + (player.raw?.time || player.time || 0), 0);
     const totalKills = state.players.reduce((sum, player) => sum + generateRealisticKills(player.raw?.score || 0, state.players.indexOf(player)), 0);
 
-    const sortedPlayers = state.players
+    const players = state.players
       .map((player, index) => {
           const sessionTimeInSeconds = player.raw?.time || player.time || (Math.random() * (300 * 60 - 10 * 60) + 10 * 60); // Random time if not provided
           return {
@@ -70,8 +70,7 @@ export async function GET() {
             raw: player.raw,
         }
       })
-      .filter(player => player.name && player.name.trim() !== '')
-      .sort((a, b) => b.time - a.time);
+      .filter(player => player.name && player.name.trim() !== '');
 
 
     const tags = state.raw?.tags && typeof state.raw.tags === 'string'
@@ -84,7 +83,7 @@ export async function GET() {
         map: state.map,
         game: state.raw?.game || 'Garry\'s Mod',
         maxplayers: state.maxplayers,
-        online: sortedPlayers.length,
+        online: players.length,
         serverPing: state.ping || 0
       },
       connection: {
@@ -93,13 +92,13 @@ export async function GET() {
         protocol: state.raw?.protocol,
         secure: state.raw?.secure === 1
       },
-      players: sortedPlayers,
+      players: players,
       statistics: {
-        totalPlayers: sortedPlayers.length,
+        totalPlayers: players.length,
         totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds), // Use same formatter for total session time
         totalKills: totalKills,
         averagePing: averagePing,
-        topPlayer: sortedPlayers.length > 0 ? sortedPlayers[0] : null
+        topPlayer: players.length > 0 ? [...players].sort((a, b) => b.time - a.time)[0] : null
       },
       details: {
         version: state.raw?.version,
@@ -139,5 +138,3 @@ function generateRealisticKills(score: number, playerIndex: number): number {
   
   return Math.max(0, baseKills + positionBonus + randomVariation);
 }
-
-    
