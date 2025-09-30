@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint, RefreshCw, XCircle, PlusCircle } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, Fingerprint, RefreshCw, XCircle, PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,6 +24,8 @@ const donatedProfessionsList = [
     'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'БЕК-2 Робопатруль', 'ИИ Кобра', 
     'Военный прототип | ПИЛИГРИМ', 'БРС - Миротворец', 'Наемный Агент'
 ];
+
+type PlayerOverrides = Partial<Pick<PlayerDetails, 'level' | 'money' | 'group' | 'primeLevel' | 'donatedProfessions'>>;
 
 const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: React.Dispatch<React.SetStateAction<PlayerDetails | null>> }) => {
     const [levelInput, setLevelInput] = React.useState(player.level.toString());
@@ -214,9 +216,6 @@ const ActivityLog = ({ logs, isLoading }: { logs: LogEntry[], isLoading: boolean
       CHAT: { label: "Чат", icon: MessageSquare, color: "text-gray-400" },
       DAMAGE: { label: "Урон", icon: HeartCrack, color: "text-orange-400" },
       KILL: { label: "Убийство", icon: Skull, color: "text-red-500" },
-      SPAWN: { label: "Событие", icon: Sparkles, color: "text-yellow-400" },
-      ANNOUNCEMENT: { label: "Объявление", icon: Megaphone, color: "text-purple-400" },
-      NOTIFICATION: { label: "Оповещение", icon: Bell, color: "text-indigo-400" },
       RP: { label: "Действие", icon: Fingerprint, color: "text-lime-400" },
     };
 
@@ -280,6 +279,9 @@ export default function PlayerPage() {
     const [loading, setLoading] = React.useState(true);
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    
+    const storageKey = `player_overrides_${steamId}`;
+
 
     const fetchPlayerDetails = React.useCallback(async (isInitialLoad = false) => {
         if (!steamId) {
@@ -303,8 +305,16 @@ export default function PlayerPage() {
             }
             const data: PlayerDetails = await res.json();
             
-            // For admin panel updates, we don't merge, just take the latest state from the component itself.
-            if (!isInitialLoad) {
+            if (isInitialLoad) {
+                const savedOverridesRaw = localStorage.getItem(storageKey);
+                if (savedOverridesRaw) {
+                    const savedOverrides: PlayerOverrides = JSON.parse(savedOverridesRaw);
+                    const mergedData = { ...data, ...savedOverrides };
+                    setPlayer(mergedData);
+                } else {
+                    setPlayer(data);
+                }
+            } else {
                  setPlayer(prevPlayer => {
                     if (!prevPlayer) return data;
                     
@@ -316,7 +326,6 @@ export default function PlayerPage() {
                          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                         .slice(0, 50);
 
-                    // We keep the client-side modified data, but update activities and other live data
                     return {
                         ...prevPlayer,
                         profession: data.profession,
@@ -326,11 +335,7 @@ export default function PlayerPage() {
                         activities: combinedActivities,
                     };
                 });
-                return;
             }
-            
-            // Initial load
-            setPlayer(data);
 
         } catch (e: any) {
             setError(e.message);
@@ -341,15 +346,29 @@ export default function PlayerPage() {
                 setIsUpdating(false);
             }
         }
-    }, [steamId]);
+    }, [steamId, storageKey]);
+
+    // Save changes to localStorage
+    React.useEffect(() => {
+        if (player && !loading) {
+             const overrides: PlayerOverrides = {
+                level: player.level,
+                money: player.money,
+                group: player.group,
+                primeLevel: player.primeLevel,
+                donatedProfessions: player.donatedProfessions,
+            };
+            localStorage.setItem(storageKey, JSON.stringify(overrides));
+        }
+    }, [player, loading, storageKey]);
 
 
     React.useEffect(() => {
-        fetchPlayerDetails(true); // Initial fetch
+        fetchPlayerDetails(true);
         
         const interval = setInterval(() => {
-            fetchPlayerDetails(false); // Subsequent updates
-        }, 30000); // Update every 30 seconds
+            fetchPlayerDetails(false);
+        }, 30000); 
 
         return () => clearInterval(interval);
     }, [fetchPlayerDetails]);
@@ -378,7 +397,7 @@ export default function PlayerPage() {
     }
 
     if (!player) {
-         return <PlayerDetailsSkeleton />; // Should not happen if not loading and no error, but as a fallback
+         return <PlayerDetailsSkeleton />;
     }
     
     const InfoItem = ({ icon: Icon, label, value, isLoading = false, skeletonWidth = 'w-2/3' }: { icon: React.ElementType; label: string; value: React.ReactNode, isLoading?: boolean, skeletonWidth?: string }) => (
@@ -478,3 +497,5 @@ export default function PlayerPage() {
         </div>
     );
 }
+
+    
