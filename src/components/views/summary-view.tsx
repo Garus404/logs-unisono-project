@@ -89,7 +89,7 @@ const LiveConsole = () => {
     }
 
     return (
-        <Card className="h-[414px]">
+        <Card>
              <CardHeader>
                 <CardTitle>Консоль сервера</CardTitle>
             </CardHeader>
@@ -224,76 +224,80 @@ export default function SummaryView() {
         </Card>
       </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-                <CardHeader>
-                <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
-                </CardHeader>
-                <CardContent className="pl-2">
-                    {loading && <div className="h-[300px] w-full flex items-center justify-center"><Skeleton className="h-full w-full" /></div>}
-                    {!loading && activity.length > 0 && (
-                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                            <AreaChart
-                                accessibilityLayer
-                                data={activity}
-                                margin={{
-                                    left: 12,
-                                    right: 12,
-                                }}
-                            >
-                                <CartesianGrid vertical={false} />
-                                <XAxis
-                                dataKey="time"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={8}
-                                tickFormatter={(value) => value.slice(0, 5)}
-                                />
-                                <ChartTooltip
-                                cursor={true}
-                                content={
-                                    <ChartTooltipContent
-                                    indicator="line"
-                                    labelFormatter={(label, payload) => {
-                                        return `${payload[0]?.payload.time}`
-                                    }}
-                                    />
-                                }
-                                />
-                                <defs>
-                                    <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
-                                        <stop
-                                            offset="5%"
-                                            stopColor="var(--color-players)"
-                                            stopOpacity={0.8}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="var(--color-players)"
-                                            stopOpacity={0.1}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <Area
-                                    dataKey="players"
-                                    type="natural"
-                                    fill="url(#fillPlayers)"
-                                    fillOpacity={0.4}
-                                    stroke="var(--color-players)"
-                                    stackId="a"
-                                />
-                            </AreaChart>
-                        </ChartContainer>
-                    )}
-                    {!loading && activity.length === 0 && !error && (
-                        <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
-                            <p>Не удалось загрузить данные об активности.</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-            <LiveConsole />
-        </div>
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+            {loading && (
+              <div className="h-[300px] w-full flex items-center justify-center">
+                <Skeleton className="h-full w-full" />
+              </div>
+            )}
+            {!loading && activity.length > 0 && (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <AreaChart
+                  accessibilityLayer
+                  data={activity}
+                  margin={{
+                    left: 12,
+                    right: 12,
+                  }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="time"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => value.slice(0, 5)}
+                  />
+                  <ChartTooltip
+                    cursor={true}
+                    content={
+                      <ChartTooltipContent
+                        indicator="line"
+                        labelFormatter={(label, payload) => {
+                          return `${payload[0]?.payload.time}`;
+                        }}
+                      />
+                    }
+                  />
+                  <defs>
+                    <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="var(--color-players)"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="var(--color-players)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    dataKey="players"
+                    type="natural"
+                    fill="url(#fillPlayers)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-players)"
+                    stackId="a"
+                  />
+                </AreaChart>
+              </ChartContainer>
+            )}
+            {!loading && activity.length === 0 && !error && (
+              <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
+                <p>Не удалось загрузить данные об активности.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <LiveConsole />
+      </div>
     </div>
   );
 }
