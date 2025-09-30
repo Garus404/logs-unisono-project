@@ -413,8 +413,24 @@ export default function PlayerPage() {
 
                 <div className="lg:col-span-2 space-y-6">
                     <PrimeLevelDisplay level={player.primeLevel} />
-                    
-                    <AdminPanel player={player} setPlayer={setPlayer} />
+
+                    <Card className="bg-card/50">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                    <Terminal />
+                                    Активность на сервере
+                                </div>
+                                <div className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
+                                    <RefreshCw className={cn("w-3 h-3", isUpdating && "animate-spin")}/>
+                                    <span>{isUpdating ? "Обновление..." : "Обновляется"}</span>
+                                </div>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                           <ActivityLog logs={player.activities} isLoading={isUpdating && player.activities.length === 0} />
+                        </CardContent>
+                    </Card>
 
                     <Card className="bg-card/50">
                         <CardHeader>
@@ -440,23 +456,8 @@ export default function PlayerPage() {
                            )}
                         </CardContent>
                     </Card>
-                    <Card className="bg-card/50">
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2">
-                                    <Terminal />
-                                    Активность на сервере
-                                </div>
-                                <div className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
-                                    <RefreshCw className={cn("w-3 h-3", isUpdating && "animate-spin")}/>
-                                    <span>{isUpdating ? "Обновление..." : "Обновляется"}</span>
-                                </div>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                           <ActivityLog logs={player.activities} isLoading={isUpdating && player.activities.length === 0} />
-                        </CardContent>
-                    </Card>
+
+                    <AdminPanel player={player} setPlayer={setPlayer} />
                 </div>
             </div>
         </div>
