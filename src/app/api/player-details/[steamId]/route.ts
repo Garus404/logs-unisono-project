@@ -318,9 +318,11 @@ export async function GET(
         const playerActivities = historicalLogs
             .filter((log): log is LogEntry => {
                  if (!log.user) return false;
+                 // Only include logs where the user is the direct actor
                  if (log.user.steamId === steamId || log.user.name === playerName) {
-                     return ['CHAT', 'CONNECTION', 'KILL', 'SPAWN', 'RP'].includes(log.type);
+                     return ['CHAT', 'CONNECTION', 'KILL', 'RP'].includes(log.type);
                  }
+                 // Include logs where the user is the recipient of a kill/damage action
                  if (log.recipient?.name === playerName && ['KILL', 'DAMAGE'].includes(log.type)) {
                      return true;
                  }
