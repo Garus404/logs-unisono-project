@@ -65,31 +65,40 @@ const playerNames = [
 ];
 
 const levelDistribution = { "1-20": 50, "21-40": 25, "41-60": 15, "61-80": 7, "81-99": 3 };
-const groupDistribution = { "Игрок": 52, "VIP": 25, "Unisono Light": 13, "Unisono Plus": 3 };
+const groupDistribution = { "Игрок": 52, "VIP": 25, "Unisono Light": 13, "Unisono Plus": 3, "Другие": 7 };
 
 const freeProfessions: { [level: number]: string[] } = {
-    1: ['Испытуемый'], 3: ['Медицинский Персонал'], 5: ['Грузчик'],
-    7: ['Рабочий', 'Лаборант'], 10: ['Барыга'], 12: ['Ученый класса А'],
-    15: ['Психолог'], 18: ['Ученый класса В'], 24: ['Ученый класса С']
+    1: ['Испытуемый', 'AFK'],
+    3: ['Медицинский Персонал'],
+    5: ['Грузчик'],
+    7: ['Рабочий', 'Лаборант'],
+    10: ['Барыга', 'Сотрудник Службы Безопасности', 'Горный рабочий'],
+    12: ['Ученый класса А'],
+    15: ['Психолог'],
+    18: ['Ученый класса В'],
+    24: ['Ученый класса С'],
 };
-const vipProfessions: { [level: number]: {name: string}[] } = {
-    1: [{name:'[VIP] SCP: Суккуб'}, {name:'[VIP] SCP: Кошмар'}, {name:'[VIP] SCP: Хищник'}],
-    10: [{name:'[VIP] Сотрудник Службы Безопасности'}],
-    20: [{name:'[VIP] МОГ Эпсилон-11 Солдат'}],
-    1: [{name:'БЕК-2 Робопатруль'}]
+
+const vipProfessions: { [level: number]: string[] } = {
+    1: ['[VIP] SCP: Суккуб', '[VIP] SCP: Кошмар', '[VIP] SCP: Хищник'],
+    10: [],
+    20: ['МОГ Эпсилон-11 Солдат'],
 };
-const paidProfessions = [
+
+const donatedProfessionsList = [
     'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор',
-    'Экзобоец', 'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'ИИ Кобра',
+    'Экзобоец', 'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'БЕК-2 Робопатруль', 'ИИ Кобра',
     'Военный прототип | ПИЛИГРИМ', 'БРС - Миротворец', 'Наемный Агент'
 ];
+
 const leadershipProfessions: { [level: number]: { name: string, prime?: number }[] } = {
     30: [{ name: 'БЕК-1 Робопатруль' }],
     40: [{ name: 'Директор', prime: 1 }],
-    45: [{ name: 'Командир СБ' }, { name: 'Образец Домовой' }],
-    50: [{ name: 'МОГ Лейтенант', prime: 1 }, { name: 'Член Совета ОБ', prime: 2 }],
+    45: [{ name: 'Командир СБ' }],
+    50: [{ name: 'Член Совета ОБ', prime: 2 }],
     70: [{ name: 'МОГ Командир', prime: 2 }],
     80: [{ name: 'Глава ученых' }],
+    90: [{ name: 'МОГ Лейтенант', prime: 1 }],
     99: [{ name: 'Образец Ионик', prime: 3 }],
 };
 
@@ -122,12 +131,19 @@ export async function GET(
 
         // 2. Determine Group (subscription)
         const group = selectWeighted(groupDistribution, steamId + 'group');
-        const hasSubscription = group !== "Игрок";
+        const hasSubscription = group === "VIP" || group === "Unisono Light" || group === "Unisono Plus";
         
         // Prime level can only be assigned if level is 99+
-        const primeLevel = level >= 99 ? getDeterministicRandom(steamId + 'prime', 0, 3) : 0;
+        // Min 8 days of playtime for prime. 1 level = 2 hours -> 96 levels = 192 hours = 8 days
+        const primeLevel = (level >= 99) ? getDeterministicRandom(steamId + 'prime', 0, 3) : 0;
+        
+        // --- Generate other stats based on level ---
+        // Total time in minutes is now based on level (e.g. 2 hours per level) + variance
+        const baseTimeInMinutes = level * 120;
+        const timeVariance = getDeterministicRandom(steamId + 'time_variance', 60, (level + primeLevel * 10) * 60);
+        const timeInMinutes = baseTimeInMinutes + timeVariance;
 
-        // 3. Determine available professions and select one
+        // 3. Determine available main professions
         let availableProfessions: string[] = [];
         Object.entries(freeProfessions).forEach(([lvl, profs]) => {
             if (level >= Number(lvl)) availableProfessions.push(...profs);
@@ -136,9 +152,7 @@ export async function GET(
         if (hasSubscription) {
             Object.entries(vipProfessions).forEach(([lvl, profs]) => {
                  if (level >= Number(lvl)) {
-                    profs.forEach(prof => {
-                       availableProfessions.push(prof.name);
-                    });
+                    availableProfessions.push(...profs);
                 }
             });
         }
@@ -158,25 +172,29 @@ export async function GET(
             ? availableProfessions[getDeterministicRandom(steamId + 'prof', 0, availableProfessions.length - 1)] 
             : 'Испытуемый';
         
-        // 4. Determine if player has paid professions
+        // 4. Determine donated professions
         const donatedProfessions: string[] = [];
-        if (getDeterministicRandom(steamId + 'has_donated', 1, 100) <= 20) { // 20% chance to have donated
-            const count = getDeterministicRandom(steamId + 'donated_count', 1, 3);
-            for (let i = 0; i < count; i++) {
-                const prof = paidProfessions[getDeterministicRandom(steamId + 'donated_prof_' + i, 0, paidProfessions.length - 1)];
+        let donationChance = 0;
+        if (level >= 1 && level <= 10) donationChance = 10;
+        else if (level >= 11 && level <= 54) donationChance = 25;
+        else if (level >= 55) donationChance = 85;
+
+        if (getDeterministicRandom(steamId + 'has_donated', 1, 100) <= donationChance) {
+             let count = 1;
+             if (level >= 55) {
+                 const rand = getDeterministicRandom(steamId + 'donated_count_rand', 1, 100);
+                 if (rand <= 60) count = 1;
+                 else if (rand <= 85) count = 2;
+                 else count = 3;
+             }
+             for (let i = 0; i < count; i++) {
+                const prof = donatedProfessionsList[getDeterministicRandom(steamId + 'donated_prof_' + i, 0, donatedProfessionsList.length - 1)];
                 if (!donatedProfessions.includes(prof)) {
                     donatedProfessions.push(prof);
                 }
             }
         }
         
-        // --- Generate other stats based on level ---
-        // Total time in minutes is now based on level (e.g. 2 hours per level)
-        const baseTimeInMinutes = level * 120;
-        // Add random variance based on prime level, up to 360 days for max level players
-        const timeVariance = getDeterministicRandom(steamId + 'time_variance', 60, (level + primeLevel * 10) * 60);
-        const timeInMinutes = baseTimeInMinutes + timeVariance;
-
         const money = Math.max(0, (timeInMinutes * getDeterministicRandom(steamId + 'money_rate', 15, 60)) + getDeterministicRandom(steamId + 'money_base', 1000, 10000));
         const ping = getDeterministicRandom(steamId + 'ping', 15, 85);
         const kills = getDeterministicRandom(steamId + 'kills', 2600, 25000);
@@ -201,7 +219,7 @@ export async function GET(
             level: level,
             primeLevel: primeLevel,
             money: money,
-            group: group,
+            group: group === "Игрок" ? "Без группы" : group,
             profession: profession,
             donatedProfessions: donatedProfessions,
             activities: playerActivities,
