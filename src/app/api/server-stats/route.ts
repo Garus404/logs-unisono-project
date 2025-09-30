@@ -20,6 +20,21 @@ function generateDeterministicSteamId(name: string): string {
     return `STEAM_0:${hashPart1}:${hashPart2}`;
 }
 
+// This function now formats session time (shorter durations)
+function formatSessionPlayTime(seconds: number): string {
+    if (!seconds || seconds <= 0) return '0м';
+
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    let result = '';
+    if (hours > 0) result += `${hours}ч `;
+    if (remainingMinutes > 0 || hours === 0) result += `${remainingMinutes}м`;
+
+    return result.trim();
+}
+
 export async function GET() {
   try {
     const { default: gamedig } = await import('gamedig');
@@ -36,24 +51,28 @@ export async function GET() {
     console.log("Игроков онлайн:", state.players.length);
 
     const averagePing = Math.floor(Math.random() * 31) + 50;
+    
+    const totalPlayTimeSeconds = state.players.reduce((sum, player) => sum + (player.raw?.time || player.time || 0), 0);
+    const totalKills = state.players.reduce((sum, player) => sum + generateRealisticKills(player.raw?.score || 0, state.players.indexOf(player)), 0);
 
     const sortedPlayers = state.players
-      .map((player, index) => ({
-        name: player.name || 'Неизвестный игрок',
-        score: player.raw?.score || player.score || 0,
-        kills: generateRealisticKills(player.raw?.score || 0, index),
-        time: player.raw?.time || player.time || 0,
-        timeFormatted: formatPlayTime(player.raw?.time || player.time || 0),
-        ping: generateRandomPing(),
-        timeHours: Math.round((player.raw?.time || 0) / 60 * 10) / 10,
-        steamId: player.raw?.steamid || generateDeterministicSteamId(player.name || `player_${index}`),
-        raw: player.raw,
-      }))
+      .map((player, index) => {
+          const sessionTimeInSeconds = player.raw?.time || player.time || (Math.random() * (300 * 60 - 10 * 60) + 10 * 60); // Random time if not provided
+          return {
+            name: player.name || 'Неизвестный игрок',
+            score: player.raw?.score || player.score || 0,
+            kills: generateRealisticKills(player.raw?.score || 0, index),
+            time: sessionTimeInSeconds, 
+            timeFormatted: formatSessionPlayTime(sessionTimeInSeconds),
+            ping: generateRandomPing(),
+            timeHours: Math.round((sessionTimeInSeconds / 3600) * 10) / 10,
+            steamId: player.raw?.steamid || generateDeterministicSteamId(player.name || `player_${index}`),
+            raw: player.raw,
+        }
+      })
       .filter(player => player.name && player.name.trim() !== '')
       .sort((a, b) => b.time - a.time);
 
-    const totalPlayTime = sortedPlayers.reduce((sum, player) => sum + player.time, 0);
-    const totalKills = sortedPlayers.reduce((sum, player) => sum + player.kills, 0);
 
     const tags = state.raw?.tags && typeof state.raw.tags === 'string'
       ? state.raw.tags.trim().split(' ').filter(Boolean)
@@ -77,7 +96,7 @@ export async function GET() {
       players: sortedPlayers,
       statistics: {
         totalPlayers: sortedPlayers.length,
-        totalPlayTime: formatPlayTime(totalPlayTime),
+        totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds), // Use same formatter for total session time
         totalKills: totalKills,
         averagePing: averagePing,
         topPlayer: sortedPlayers.length > 0 ? sortedPlayers[0] : null
@@ -106,23 +125,6 @@ export async function GET() {
       },
       { status: 500 }
     );
-  }
-}
-
-function formatPlayTime(minutes: number): string {
-  if (!minutes || minutes <= 0) return '0 минут';
-  
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-  const remainingMinutes = Math.round(minutes % 60);
-
-  if (days > 0) {
-    return `${days}д ${remainingHours}ч ${remainingMinutes}м`;
-  } else if (hours > 0) {
-    return `${hours}ч ${remainingMinutes}м`;
-  } else {
-    return `${remainingMinutes}м`;
   }
 }
 

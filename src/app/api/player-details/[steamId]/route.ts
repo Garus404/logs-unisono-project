@@ -31,7 +31,8 @@ function selectWeighted(options: Record<string, number>, seed: string): string {
     return weighted.find(item => item.weight > rand)?.name || Object.keys(options)[0];
 }
 
-function formatPlayTime(minutes: number): string {
+// This function now formats total playtime (long durations)
+function formatTotalPlayTime(minutes: number): string {
     if (!minutes || minutes <= 0) return '0 минут';
     const days = Math.floor(minutes / (60 * 24));
     const hours = Math.floor((minutes % (60 * 24)) / 60);
@@ -174,7 +175,12 @@ export async function GET(
         }
         
         // --- Generate other stats based on level ---
-        const timeInMinutes = (level * 120) + getDeterministicRandom(steamId + 'time_variance', -60, 180);
+        // Total time in minutes is now based on level (e.g. 2 hours per level)
+        const baseTimeInMinutes = level * 120;
+        // Add random variance based on prime level, up to 360 days for max level players
+        const timeVariance = getDeterministicRandom(steamId + 'time_variance', 60, (level + primeLevel * 10) * 60);
+        const timeInMinutes = baseTimeInMinutes + timeVariance;
+
         const money = Math.max(0, (timeInMinutes * getDeterministicRandom(steamId + 'money_rate', 15, 60)) + getDeterministicRandom(steamId + 'money_base', 1000, 10000));
         const ping = getDeterministicRandom(steamId + 'ping', 15, 85);
         const kills = getDeterministicRandom(steamId + 'kills', 2600, 25000);
@@ -194,7 +200,7 @@ export async function GET(
         const playerDetails: PlayerDetails = {
             name: playerName,
             steamId: steamId,
-            timeFormatted: formatPlayTime(timeInMinutes),
+            timeFormatted: formatTotalPlayTime(timeInMinutes),
             timeHours: Math.round(timeInMinutes / 60 * 10) / 10,
             level: level,
             primeLevel: primeLevel,
