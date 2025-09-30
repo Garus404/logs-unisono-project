@@ -69,19 +69,19 @@ const LiveConsole = () => {
 
     const getLogStyle = (log: string) => {
         const lowerLog = log.toLowerCase();
-        if (lowerLog.startsWith("have -") || lowerLog.startsWith("already downloaded")) {
+        if (lowerLog.startsWith("success") || lowerLog.includes(" successfully") || lowerLog.includes(" passed")) {
             return "text-green-400";
         }
-        if (lowerLog.includes("ignoring server") || lowerLog.includes("is blacklisted")) {
+        if (lowerLog.includes("warn") || lowerLog.includes("throttling") || lowerLog.includes("detected")) {
              return "text-yellow-500";
         }
-        if (lowerLog.includes("unknown command") || lowerLog.includes("bad sequence") || lowerLog.includes("error")) {
+        if (lowerLog.includes("error") || lowerLog.includes("failed") || lowerLog.includes("blocked") || lowerLog.includes("alert")) {
             return "text-red-500";
         }
-        if (lowerLog.startsWith("[darkrp]")) {
+        if (lowerLog.startsWith("[auth]")) {
             return "text-cyan-400";
         }
-         if (lowerLog.startsWith("[_loader_]")) {
+         if (lowerLog.startsWith("[system]")) {
             return "text-purple-400";
         }
         return "text-muted-foreground";
@@ -89,13 +89,13 @@ const LiveConsole = () => {
     
     const getIcon = (log: string) => {
         const lowerLog = log.toLowerCase();
-        if (lowerLog.startsWith("have -") || lowerLog.startsWith("already downloaded")) {
-            return <DownloadCloud className="w-3.5 h-3.5 text-green-500/80" />;
+        if (lowerLog.startsWith("threat_intelligence") || lowerLog.includes("updating")) {
+            return <DownloadCloud className="w-3.5 h-3.5 text-blue-500/80" />;
         }
-        if (lowerLog.includes("ignoring server") || lowerLog.includes("is blacklisted")) {
-             return <Ban className="w-3.5 h-3.5 text-yellow-500/80" />;
+        if (lowerLog.includes("blocked") || lowerLog.includes("banned")) {
+             return <Ban className="w-3.5 h-3.5 text-red-500/80" />;
         }
-        if (lowerLog.includes("unknown command") || lowerLog.includes("bad sequence") || lowerLog.includes("error")) {
+        if (lowerLog.includes("error") || lowerLog.includes("failed") || lowerLog.includes("alert")) {
             return <AlertCircle className="w-3.5 h-3.5 text-red-500/80" />;
         }
         return <Terminal className="w-3.5 h-3.5 text-slate-500" />;
@@ -170,7 +170,7 @@ export default function SummaryView() {
   }, []);
 
  React.useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | undefined = undefined;
     
     const updateMoscowTime = () => {
       // Using client-side Date object which is fine for display purposes
@@ -184,7 +184,11 @@ export default function SummaryView() {
         intervalId = setInterval(updateMoscowTime, 1000);
     }
 
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
   return (
