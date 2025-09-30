@@ -121,7 +121,7 @@ export async function GET(
         const level = getDeterministicRandom(steamId + 'level', minLevel, maxLevel);
 
         // 2. Determine Group (subscription)
-        let group = selectWeighted(groupDistribution, steamId + 'group');
+        const group = selectWeighted(groupDistribution, steamId + 'group');
         const hasSubscription = group !== "Игрок";
         
         // Prime level can only be assigned if level is 99+
@@ -149,10 +149,6 @@ export async function GET(
                 profs.forEach(prof => {
                     if (!prof.prime || prof.prime <= primeLevel) {
                         availableProfessions.push(prof.name);
-                        // If a leadership role is assigned, it often becomes the main group as well
-                        if (getDeterministicRandom(steamId + 'leadership_role_group', 1, 10) > 6) {
-                            group = prof.name;
-                        }
                     }
                 });
             }
@@ -224,3 +220,5 @@ export async function GET(
         );
     }
 }
+
+    
