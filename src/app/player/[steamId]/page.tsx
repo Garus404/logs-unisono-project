@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
 const PrimeLevelDisplay = ({ level }: { level: number }) => {
-    const levels = [1, 2, 3, 4, 5];
+    const levels = [1, 2, 3];
     return (
         <Card className="bg-card/50">
             <CardHeader>
@@ -36,7 +36,7 @@ const PrimeLevelDisplay = ({ level }: { level: number }) => {
                     </div>
                 </div>
                  <div className="text-sm text-center text-muted-foreground mt-4">
-                    {level > 0 ? `Текущий уровень: ${level} / 5` : "Не активирован"}
+                    {level > 0 ? `Текущий уровень: ${level} / 3` : "Не активирован"}
                 </div>
             </CardContent>
         </Card>
@@ -180,20 +180,24 @@ export default function PlayerPage() {
             }
             const data: PlayerDetails = await res.json();
             
-             // Merge activities instead of replacing them
             setPlayer(prevPlayer => {
-                if (!prevPlayer) return data;
+                if (!prevPlayer || isInitialLoad) return data;
 
-                const newActivities = data.activities.filter(
-                    newActivity => !prevPlayer.activities.some(existing => existing.id === newActivity.id)
+                // Create a map of existing activity IDs for quick lookup
+                const existingActivityIds = new Set(prevPlayer.activities.map(a => a.id));
+
+                // Filter out any new activities that are already in the state
+                const newUniqueActivities = data.activities.filter(
+                    newActivity => !existingActivityIds.has(newActivity.id)
                 );
 
-                const combinedActivities = [...newActivities, ...prevPlayer.activities]
-                    .slice(0, 30)
-                    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                // Combine new unique activities with previous activities
+                const combinedActivities = [...newUniqueActivities, ...prevPlayer.activities]
+                     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                    .slice(0, 50); // Keep the list from growing indefinitely
                 
                 return {
-                    ...data,
+                    ...data, // Use the latest player data from the API
                     activities: combinedActivities
                 };
             });
@@ -340,3 +344,5 @@ export default function PlayerPage() {
         </div>
     );
 }
+
+    
