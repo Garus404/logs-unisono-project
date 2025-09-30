@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -31,7 +32,7 @@ export default function SummaryView() {
 
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('ru-RU'));
+      setCurrentTime(new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }));
     }, 1000);
 
     const fetchData = async () => {
