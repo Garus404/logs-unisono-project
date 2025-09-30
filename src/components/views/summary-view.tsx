@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, Users, Server, AlertTriangle } from "lucide-react";
+import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
@@ -14,6 +14,9 @@ import {
 import type { PlayerActivity, ServerStateResponse } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "../ui/scroll-area";
+import { consoleLogs } from "@/lib/data";
 
 const chartConfig = {
   players: {
@@ -21,6 +24,89 @@ const chartConfig = {
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
+
+const LiveConsole = () => {
+    const [logs, setLogs] = React.useState<string[]>([]);
+    const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        // Pre-seed with some initial logs
+        setLogs(consoleLogs.slice(0, 20).sort(() => 0.5 - Math.random()));
+        
+        const interval = setInterval(() => {
+            const newLog = consoleLogs[Math.floor(Math.random() * consoleLogs.length)];
+            setLogs(prevLogs => {
+                const newLogs = [...prevLogs, newLog];
+                // Keep the log array from growing indefinitely
+                return newLogs.length > 150 ? newLogs.slice(newLogs.length - 150) : newLogs;
+            });
+        }, Math.random() * 200 + 100); // every 100-300ms
+
+        return () => clearInterval(interval);
+    }, []);
+
+    React.useEffect(() => {
+        if (scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }
+    }, [logs]);
+
+    const getLogStyle = (log: string) => {
+        const lowerLog = log.toLowerCase();
+        if (lowerLog.startsWith("have -") || lowerLog.startsWith("already downloaded")) {
+            return "text-green-400";
+        }
+        if (lowerLog.includes("ignoring server") || lowerLog.includes("is blacklisted")) {
+             return "text-yellow-500";
+        }
+        if (lowerLog.includes("unknown command") || lowerLog.includes("bad sequence") || lowerLog.includes("error")) {
+            return "text-red-500";
+        }
+        if (lowerLog.startsWith("[darkrp]")) {
+            return "text-cyan-400";
+        }
+         if (lowerLog.startsWith("[_loader_]")) {
+            return "text-purple-400";
+        }
+        return "text-muted-foreground";
+    }
+    
+    const getIcon = (log: string) => {
+        const lowerLog = log.toLowerCase();
+        if (lowerLog.startsWith("have -") || lowerLog.startsWith("already downloaded")) {
+            return <DownloadCloud className="w-3.5 h-3.5 text-green-500/80" />;
+        }
+        if (lowerLog.includes("ignoring server") || lowerLog.includes("is blacklisted")) {
+             return <Ban className="w-3.5 h-3.5 text-yellow-500/80" />;
+        }
+        if (lowerLog.includes("unknown command") || lowerLog.includes("bad sequence") || lowerLog.includes("error")) {
+            return <AlertCircle className="w-3.5 h-3.5 text-red-500/80" />;
+        }
+        return <Terminal className="w-3.5 h-3.5 text-slate-500" />;
+    }
+
+    return (
+        <Card className="h-[414px]">
+             <CardHeader>
+                <CardTitle>Консоль сервера</CardTitle>
+            </CardHeader>
+             <CardContent>
+                <ScrollArea className="h-[300px] w-full bg-black/50 rounded-md p-4 font-mono text-xs" ref={scrollAreaRef}>
+                     {logs.map((log, index) => (
+                        <div key={index} className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}>
+                           <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
+                           <span className="flex-1 break-all">{log}</span>
+                        </div>
+                    ))}
+                </ScrollArea>
+             </CardContent>
+        </Card>
+    );
+}
+
 
 export default function SummaryView() {
   const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
@@ -138,73 +224,76 @@ export default function SummaryView() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
-        </CardHeader>
-        <CardContent className="pl-2">
-            {loading && <div className="h-[350px] w-full flex items-center justify-center"><Skeleton className="h-full w-full" /></div>}
-            {!loading && activity.length > 0 && (
-                <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                    <AreaChart
-                        accessibilityLayer
-                        data={activity}
-                        margin={{
-                            left: 12,
-                            right: 12,
-                        }}
-                    >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                        dataKey="time"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tickFormatter={(value) => value.slice(0, 5)}
-                        />
-                        <ChartTooltip
-                        cursor={true}
-                        content={
-                            <ChartTooltipContent
-                            indicator="line"
-                            labelFormatter={(label, payload) => {
-                                return `${payload[0]?.payload.time}`
-                            }}
-                            />
-                        }
-                        />
-                        <defs>
-                            <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
-                                <stop
-                                    offset="5%"
-                                    stopColor="var(--color-players)"
-                                    stopOpacity={0.8}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    {loading && <div className="h-[300px] w-full flex items-center justify-center"><Skeleton className="h-full w-full" /></div>}
+                    {!loading && activity.length > 0 && (
+                        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                            <AreaChart
+                                accessibilityLayer
+                                data={activity}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
+                                }}
+                            >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                dataKey="time"
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={8}
+                                tickFormatter={(value) => value.slice(0, 5)}
                                 />
-                                <stop
-                                    offset="95%"
-                                    stopColor="var(--color-players)"
-                                    stopOpacity={0.1}
+                                <ChartTooltip
+                                cursor={true}
+                                content={
+                                    <ChartTooltipContent
+                                    indicator="line"
+                                    labelFormatter={(label, payload) => {
+                                        return `${payload[0]?.payload.time}`
+                                    }}
+                                    />
+                                }
                                 />
-                            </linearGradient>
-                        </defs>
-                        <Area
-                            dataKey="players"
-                            type="natural"
-                            fill="url(#fillPlayers)"
-                            fillOpacity={0.4}
-                            stroke="var(--color-players)"
-                            stackId="a"
-                        />
-                    </AreaChart>
-                </ChartContainer>
-            )}
-             {!loading && activity.length === 0 && !error && (
-                <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground">
-                    <p>Не удалось загрузить данные об активности.</p>
-                </div>
-            )}
-        </CardContent>
-      </Card>
+                                <defs>
+                                    <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
+                                        <stop
+                                            offset="5%"
+                                            stopColor="var(--color-players)"
+                                            stopOpacity={0.8}
+                                        />
+                                        <stop
+                                            offset="95%"
+                                            stopColor="var(--color-players)"
+                                            stopOpacity={0.1}
+                                        />
+                                    </linearGradient>
+                                </defs>
+                                <Area
+                                    dataKey="players"
+                                    type="natural"
+                                    fill="url(#fillPlayers)"
+                                    fillOpacity={0.4}
+                                    stroke="var(--color-players)"
+                                    stackId="a"
+                                />
+                            </AreaChart>
+                        </ChartContainer>
+                    )}
+                    {!loading && activity.length === 0 && !error && (
+                        <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
+                            <p>Не удалось загрузить данные об активности.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            <LiveConsole />
+        </div>
     </div>
   );
 }
