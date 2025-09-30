@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import type { PlayerDetails } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -81,9 +81,10 @@ const PlayerDetailsSkeleton = () => (
 );
 
 
-export default function PlayerPage({ params }: { params: { steamId: string }}) {
+export default function PlayerPage() {
     const router = useRouter();
-    const steamId = params.steamId;
+    const params = useParams();
+    const steamId = params.steamId as string;
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
@@ -176,7 +177,7 @@ export default function PlayerPage({ params }: { params: { steamId: string }}) {
                         <div className="grid grid-cols-2 gap-4 pt-4">
                             <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} />
                             <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} />
-                            <InfoItem icon={User} label="Группа" value={<Badge variant="secondary">{player.group}</Badge>} />
+                            <InfoItem icon={User} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} />
                             <InfoItem icon={Briefcase} label="Профессия" value={player.profession} />
                             <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} />
                             <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} />

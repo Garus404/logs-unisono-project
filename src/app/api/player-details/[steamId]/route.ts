@@ -230,7 +230,7 @@ export async function GET(
             level: level,
             primeLevel: primeLevel,
             money: money,
-            group: group === "Игрок" ? "Без группы" : group,
+            group: group,
             profession: profession,
             donatedProfessions: donatedProfessions,
             activities: playerActivities,
