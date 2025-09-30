@@ -65,14 +65,14 @@ const playerNames = [
 ];
 
 const levelDistribution = { "1-20": 50, "21-40": 25, "41-60": 15, "61-80": 7, "81-99": 3 };
-const groupDistribution = { "Игрок": 52, "VIP": 25, "Unisono Light": 13, "Unisono Plus": 3, "Другие": 7 };
+const groupDistribution = { "Игрок": 75, "VIP": 15, "Unisono Light": 8, "Unisono Plus": 2 };
 
 const freeProfessions: { [level: number]: string[] } = {
     1: ['Испытуемый'],
     3: ['Медицинский Персонал'],
     5: ['Грузчик'],
     7: ['Рабочий', 'Лаборант'],
-    10: ['Барыга', 'Сотрудник Службы Безопасности', 'Горный рабочий'],
+    10: ['Барыга', 'Сотрудник Службы Безопасности'],
     12: ['Ученый класса А'],
     15: ['Психолог'],
     18: ['Ученый класса В'],
@@ -81,7 +81,7 @@ const freeProfessions: { [level: number]: string[] } = {
 
 const vipProfessions: { [level: number]: string[] } = {
     1: ['[VIP] SCP: Суккуб', '[VIP] SCP: Кошмар', '[VIP] SCP: Хищник', 'БЕК-2 Робопатруль'],
-    10: [],
+    10: ['Сотрудник Службы Безопасности'],
     20: ['МОГ Эпсилон-11 Солдат'],
 };
 
@@ -176,10 +176,10 @@ export async function GET(
             ? availableProfessions[getDeterministicRandom(steamId + 'prof', 0, availableProfessions.length - 1)] 
             : 'Испытуемый';
         
-        if (group === "Другие") {
+        const isAfkOrNonRp = getDeterministicRandom(steamId + 'afk_nonrp_chance', 1, 100) <= 7;
+        if (isAfkOrNonRp) {
             const otherProfessions = specialProfessions[1];
             profession = otherProfessions[getDeterministicRandom(steamId + 'other_prof', 0, otherProfessions.length - 1)];
-            group = "Без группы";
         }
 
 
@@ -249,3 +249,5 @@ export async function GET(
         );
     }
 }
+
+    
