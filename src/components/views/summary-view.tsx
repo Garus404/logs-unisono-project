@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, Users, Server, AlertTriangle, Cpu, CircleDashed, CircleCheck } from "lucide-react";
+import { Clock, Users, Server, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
@@ -14,7 +14,6 @@ import {
 import type { PlayerActivity, ServerStateResponse } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { cn } from "@/lib/utils";
 
 const chartConfig = {
   players: {
@@ -22,76 +21,6 @@ const chartConfig = {
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
-
-const processList = [
-    { id: "AnomalyDetector", name: "Детектор аномалий", status: "Активен" },
-    { id: "PlayerSync", name: "Синхронизация игроков", status: "Активен" },
-    { id: "WorldEvent", name: "Менеджер событий", status: "Ожидание" },
-    { id: "SCP_AI_Director", name: "ИИ-директор SCP", status: "Активен" },
-    { id: "SecurityProtocol", name: "Протоколы безопасности", status: "Активен" },
-    { id: "PhysicsEnv", name: "Физическая среда", status: "Стабильно" },
-    { id: "NavMeshGenerator", name: "Генератор NavMesh", status: "Завершено" },
-    { id: "EconomyService", name: "Экономическая служба", status: "Активен" },
-];
-
-const ServerProcessesCard = () => {
-    const [runningProcesses, setRunningProcesses] = React.useState(processList.slice(0, 5));
-
-    React.useEffect(() => {
-        const interval = setInterval(() => {
-            setRunningProcesses(prev => {
-                // Take 5 random unique processes from the list
-                const shuffled = [...processList].sort(() => 0.5 - Math.random());
-                return shuffled.slice(0, 5);
-            });
-        }, 7000); // Update every 7 seconds
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const getStatusIcon = (status: string) => {
-        switch(status) {
-            case "Активен": return <CircleDashed className="w-4 h-4 text-green-400 animate-spin-slow" />;
-            case "Ожидание": return <Clock className="w-4 h-4 text-yellow-400" />;
-            case "Стабильно":
-            case "Завершено": return <CircleCheck className="w-4 h-4 text-blue-400" />;
-            default: return <CircleDashed className="w-4 h-4 text-muted-foreground" />;
-        }
-    }
-    
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Cpu className="w-5 h-5"/>
-                    <span>Процессы сервера</span>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {runningProcesses.map(proc => (
-                        <div key={proc.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {getStatusIcon(proc.status)}
-                                <span className="font-mono text-sm">{proc.name}</span>
-                            </div>
-                            <span className={cn(
-                                "text-xs font-semibold",
-                                proc.status === "Активен" && "text-green-400",
-                                proc.status === "Ожидание" && "text-yellow-400",
-                                proc.status === "Стабильно" && "text-blue-400",
-                                proc.status === "Завершено" && "text-blue-400",
-                            )}>
-                                {proc.status}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
-
 
 export default function SummaryView() {
   const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
@@ -209,78 +138,73 @@ export default function SummaryView() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="lg:col-span-1">
-            <CardHeader>
-            <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
-            </CardHeader>
-            <CardContent className="pl-2">
-                {loading && <div className="h-[300px] w-full flex items-center justify-center"><Skeleton className="h-full w-full" /></div>}
-                {!loading && activity.length > 0 && (
-                    <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                        <AreaChart
-                            accessibilityLayer
-                            data={activity}
-                            margin={{
-                                left: 12,
-                                right: 12,
+      <Card>
+        <CardHeader>
+          <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
+        </CardHeader>
+        <CardContent className="pl-2">
+            {loading && <div className="h-[350px] w-full flex items-center justify-center"><Skeleton className="h-full w-full" /></div>}
+            {!loading && activity.length > 0 && (
+                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                    <AreaChart
+                        accessibilityLayer
+                        data={activity}
+                        margin={{
+                            left: 12,
+                            right: 12,
+                        }}
+                    >
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                        dataKey="time"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tickFormatter={(value) => value.slice(0, 5)}
+                        />
+                        <ChartTooltip
+                        cursor={true}
+                        content={
+                            <ChartTooltipContent
+                            indicator="line"
+                            labelFormatter={(label, payload) => {
+                                return `${payload[0]?.payload.time}`
                             }}
-                        >
-                            <CartesianGrid vertical={false} />
-                            <XAxis
-                            dataKey="time"
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            tickFormatter={(value) => value.slice(0, 5)}
                             />
-                            <ChartTooltip
-                            cursor={true}
-                            content={
-                                <ChartTooltipContent
-                                indicator="line"
-                                labelFormatter={(label, payload) => {
-                                    return `${payload[0]?.payload.time}`
-                                }}
+                        }
+                        />
+                        <defs>
+                            <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--color-players)"
+                                    stopOpacity={0.8}
                                 />
-                            }
-                            />
-                            <defs>
-                                <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
-                                    <stop
-                                        offset="5%"
-                                        stopColor="var(--color-players)"
-                                        stopOpacity={0.8}
-                                    />
-                                    <stop
-                                        offset="95%"
-                                        stopColor="var(--color-players)"
-                                        stopOpacity={0.1}
-                                    />
-                                </linearGradient>
-                            </defs>
-                            <Area
-                                dataKey="players"
-                                type="natural"
-                                fill="url(#fillPlayers)"
-                                fillOpacity={0.4}
-                                stroke="var(--color-players)"
-                                stackId="a"
-                            />
-                        </AreaChart>
-                    </ChartContainer>
-                )}
-                {!loading && activity.length === 0 && !error && (
-                    <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
-                        <p>Не удалось загрузить данные об активности.</p>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-        <div className="lg:col-span-1">
-            <ServerProcessesCard />
-        </div>
-      </div>
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--color-players)"
+                                    stopOpacity={0.1}
+                                />
+                            </linearGradient>
+                        </defs>
+                        <Area
+                            dataKey="players"
+                            type="natural"
+                            fill="url(#fillPlayers)"
+                            fillOpacity={0.4}
+                            stroke="var(--color-players)"
+                            stackId="a"
+                        />
+                    </AreaChart>
+                </ChartContainer>
+            )}
+             {!loading && activity.length === 0 && !error && (
+                <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground">
+                    <p>Не удалось загрузить данные об активности.</p>
+                </div>
+            )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
