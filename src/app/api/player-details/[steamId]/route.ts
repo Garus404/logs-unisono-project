@@ -37,8 +37,6 @@ function selectWeighted(options: Record<string, number>, seed: string): string {
     return Object.keys(options)[0];
 }
 
-
-// This function now formats total playtime (long durations)
 function formatTotalPlayTime(minutes: number): string {
     if (!minutes || minutes <= 0) return '0 минут';
     const days = Math.floor(minutes / (60 * 24));
@@ -54,7 +52,6 @@ function formatTotalPlayTime(minutes: number): string {
 }
 
 // --- Data for Generation ---
-
 const playerNames = [
     'Яра Шист', 'Эрик Дубрович', 'Кирилл Водкокрим', 'Akakii Akakievich', 'Fanera Alatash', 'Чад Пепел',
     'Marquel Santana', 'Nikitos Roller', 'Egor Familov', 'John Doe', 'Jane Smith', 'Alex Ray', 'Tony Stark',
@@ -74,7 +71,6 @@ const playerNames = [
 const levelDistribution = { "1-20": 50, "21-40": 25, "41-60": 15, "61-80": 7, "81-99": 3 };
 const groupDistribution = { "Игрок": 75, "VIP": 15, "Unisono Light": 8, "Unisono Plus": 2 };
 
-
 const freeProfessions: { [level: number]: string[] } = {
     1: ['Испытуемый'],
     3: ['Медицинский Персонал'],
@@ -84,19 +80,11 @@ const freeProfessions: { [level: number]: string[] } = {
     12: ['Ученый класса А'],
     15: ['Психолог'],
     18: ['Ученый класса В'],
-    20: ['МОГ Эпсилон-П | Солдат', 'Образец Каплеглазик А', 'Образец Каплеглазик Б'],
+    20: ['МОГ Эпсилон-П | Солдат'],
     24: ['Ученый класса С'],
-    25: ['Образец Желейка', 'Образец Медвежонок'],
-    30: ['БЕК-1 Робопатруль', 'Образец Господин Рыба'],
-    35: ['Образец Бессонник'],
-    40: ['Образец Чужой'],
-    45: ['Командир СБ', 'Образец Маска', 'Образец Гибрид', 'Образец Домовой'],
-    50: ['Образец ИИ', 'Образец Мимик'],
-    60: ['Образец Чумной Доктор'],
-    65: ['Образец Огненный Человек', 'Образец Амфибия'],
-    75: ['Образец Скромник'],
-    80: ['Глава ученых', 'Образец Голоса'],
-    95: ['Образец Старик'],
+    30: ['БЕК-1 Робопатруль'],
+    45: ['Командир СБ'],
+    80: ['Глава ученых'],
 };
 
 const vipProfessions: { [level: number]: string[] } = {
@@ -109,7 +97,21 @@ const leadershipProfessions: { [level: number]: { name: string, prime: number }[
     50: [{ name: 'Член Совета ОБ', prime: 2 }, { name: 'Образец Ящерица', prime: 1 }],
     70: [{ name: 'МОГ Эпсилон-П | Командир', prime: 2 }],
     90: [{ name: 'МОГ Эпсилон-П | Лейтенант', prime: 1 }],
-    99: [{ name: 'Образец Ионик', prime: 3 }],
+};
+
+const sampleProfessions: { [level: number]: string[] } = {
+    20: ['Образец Каплеглазик А', 'Образец Каплеглазик Б'],
+    25: ['Образец Желейка', 'Образец Медвежонок'],
+    30: ['Образец Господин Рыба'],
+    35: ['Образец Бессонник'],
+    40: ['Образец Чужой'],
+    45: ['Образец Маска', 'Образец Домовой', 'Образец Гибрид'],
+    50: ['Образец ИИ', 'Образец Мимик'],
+    60: ['Образец Чумной Доктор'],
+    65: ['Образец Огненный Человек', 'Образец Амфибия'],
+    75: ['Образец Скромник'],
+    80: ['Образец Голоса'],
+    95: ['Образец Старик'],
 };
 
 const donatedProfessionsList = [
@@ -122,12 +124,18 @@ const specialProfessions: { [level: number]: string[] } = {
     55: ['AFK', 'NONRP'],
 };
 
-const allSampleProfessions = [
-    ...Object.values(freeProfessions).flat(),
+const allNonDonatedSampleProfessions = [
     ...Object.values(vipProfessions).flat(),
     ...Object.values(leadershipProfessions).map(profs => profs.map(p => p.name)).flat(),
+    ...Object.values(sampleProfessions).flat()
 ].filter(p => p.startsWith('Образец'));
 
+const limitedProfessionsConfig: Record<string, number> = {
+    'Барыга': 2, 'Рабочий': 4, 'Медицинский Персонал': 4, 'Психолог': 6, 'Грузчик': 4,
+    'Сотрудник Службы Безопасности': 6, 'БЕК-1 Робопатруль': 2,
+    'Штурмовик ОБР': 2, 'Ликвидатор': 1, 'Медик ОБР': 2, 'БЕК-2 Робопатруль': 2,
+    'МОГ Эпсилон-П | Солдат': 6
+};
 
 // --- Main GET Handler ---
 export async function GET(
@@ -146,66 +154,37 @@ export async function GET(
         if (playerFromLogs && playerFromLogs.user) {
             playerName = playerFromLogs.user.name;
         } else {
-            // Deterministic name selection if not found in logs
             playerName = playerNames[simpleHash(steamId) % playerNames.length];
         }
 
         // --- Generate Player Data Deterministically based on rules ---
 
-        // 1. Determine Level based on distribution
+        // 1. Determine Level & Time
         const levelRangeStr = selectWeighted(levelDistribution, steamId + 'levelRange');
         const [minLevel, maxLevel] = levelRangeStr.split('-').map(Number);
         const level = getDeterministicRandom(steamId + 'level', minLevel, maxLevel);
+        const baseTimeInMinutes = (level * 120) + getDeterministicRandom(steamId + 'time_variance', 0, level * 30);
         
-        const timeInMinutes = (level * 120) + getDeterministicRandom(steamId + 'time_variance', 0, level * 30);
+        // Add live time component based on current time
+        const liveTimeMinutes = Math.floor((new Date().getTime() / 1000 / 60) % 60); // 0-59
+        const timeInMinutes = baseTimeInMinutes + liveTimeMinutes;
         const timeInDays = timeInMinutes / (60 * 24);
-        
-        // 2. Prime level can only be assigned if level is 99+ and playtime is at least 8 days
+
+        // 2. Prime level
         const primeLevel = (level >= 99 && timeInDays >= 8) ? getDeterministicRandom(steamId + 'prime', 1, 3) : 0;
 
-        // 3. Determine Group (subscription)
+        // 3. Determine Group
         let group = "Игрок";
-        // Lower level players are less likely to have a subscription
-        if (level < 10 && getDeterministicRandom(steamId + 'low_level_sub_chance', 1, 100) > 5) {
-            group = "Игрок";
-        } else {
+        if (level >= 10 && getDeterministicRandom(steamId + 'low_level_sub_chance', 1, 100) > 5) {
              group = selectWeighted(groupDistribution, steamId + 'group');
         }
 
-        // 4. Determine available main professions
-        let availableProfessions: string[] = [];
-        
-        Object.entries(freeProfessions).forEach(([lvl, profs]) => {
-            if (level >= Number(lvl)) availableProfessions.push(...profs);
-        });
-        
-        if (group !== "Игрок") {
-            Object.entries(vipProfessions).forEach(([lvl, profs]) => {
-                 if (level >= Number(lvl)) {
-                    availableProfessions.push(...profs);
-                }
-            });
-        }
-        
-        Object.entries(leadershipProfessions).forEach(([lvl, profs]) => {
-            if (level >= Number(lvl)) {
-                profs.forEach(prof => {
-                    if (!prof.prime || prof.prime <= primeLevel) {
-                        availableProfessions.push(prof.name);
-                    }
-                });
-            }
-        });
-        
-        // Filter out sample professions if player already has one from a donated source (rule below)
-        // This is a pre-emptive check; we refine the final profession later.
-        
-        // 5. Determine donated professions
+        // 4. Determine Donated professions
         const donatedProfessions: string[] = [];
         let donationChance = 0;
-        if (level >= 1 && level <= 10) donationChance = getDeterministicRandom(steamId + 'donate_chance_1', 0, 10);
-        else if (level >= 11 && level <= 54) donationChance = getDeterministicRandom(steamId + 'donate_chance_2', 20, 30);
-        else if (level >= 55) donationChance = getDeterministicRandom(steamId + 'donate_chance_3', 50, 70);
+        if (level >= 1 && level <= 10) donationChance = getDeterministicRandom(steamId + 'donate_chance_1', 0, 5);
+        else if (level >= 11 && level <= 54) donationChance = getDeterministicRandom(steamId + 'donate_chance_2', 10, 30);
+        else if (level >= 55) donationChance = getDeterministicRandom(steamId + 'donate_chance_3', 40, 70);
 
         if (getDeterministicRandom(steamId + 'has_donated', 1, 100) <= donationChance) {
              let count = 0;
@@ -231,64 +210,130 @@ export async function GET(
             }
         }
         
-        // If a donated profession is a sample, it takes precedence.
-        const hasDonatedSample = donatedProfessions.some(p => allSampleProfessions.includes(p));
+        // 5. Build list of available main professions
+        let availableProfessions: string[] = [];
+        const hasDonatedSample = donatedProfessions.some(p => p.startsWith('Образец'));
+        
+        Object.entries(freeProfessions).forEach(([lvl, profs]) => {
+            if (level >= Number(lvl)) availableProfessions.push(...profs);
+        });
+        
+        if (group !== "Игрок") {
+            Object.entries(vipProfessions).forEach(([lvl, profs]) => {
+                 if (level >= Number(lvl) && !hasDonatedSample) {
+                    availableProfessions.push(...profs);
+                }
+            });
+        }
+        
+        Object.entries(leadershipProfessions).forEach(([lvl, profs]) => {
+            if (level >= Number(lvl)) {
+                profs.forEach(prof => {
+                    if (prof.prime <= primeLevel) {
+                         if (prof.name.startsWith('Образец') && !hasDonatedSample) {
+                             availableProfessions.push(prof.name);
+                         } else if (!prof.name.startsWith('Образец')) {
+                              availableProfessions.push(prof.name);
+                         }
+                    }
+                });
+            }
+        });
 
-        if(hasDonatedSample){
-            availableProfessions = availableProfessions.filter(p => !allSampleProfessions.includes(p));
+        if (!hasDonatedSample) {
+            Object.entries(sampleProfessions).forEach(([lvl, profs]) => {
+                if (level >= Number(lvl)) availableProfessions.push(...profs);
+            });
         }
 
-        // 6. Select final profession
-        let profession = "Испытуемый"; // Default profession
+        // 6. Select final profession with time-based variation
+        let profession = "Испытуемый";
+        let liveActivityLog: LogEntry | null = null;
+        
+        // Use minutes of the current hour to add variation
+        const currentMinuteSeed = steamId + Math.floor(new Date().getTime() / (1000 * 60)); 
+        
         if (availableProfessions.length > 0) {
-            // Give preference to non-limited professions
-            const unlimitedProfessions = availableProfessions.filter(p => !['Барыга', 'Рабочий', 'Медицинский Персонал', 'Психолог', 'Грузчик', 'Сотрудник Службы Безопасности', 'БЕК-1 Робопатруль'].includes(p));
-            const limitedProfessions = availableProfessions.filter(p => ['Барыга', 'Рабочий', 'Медицинский Персонал', 'Психолог', 'Грузчик', 'Сотрудник Службы Безопасности', 'БЕК-1 Робопатруль'].includes(p));
+             // Filter out limited professions if their "slots" are likely filled
+            const potentialProfessions = availableProfessions.filter(p => {
+                const limit = limitedProfessionsConfig[p];
+                if (limit) {
+                    // Reduce probability for limited professions. e.g. 2 slots = 2/100 chance to be considered
+                    return getDeterministicRandom(currentMinuteSeed + p, 1, 100) <= (limit * 2);
+                }
+                return true;
+            });
             
-            let chosenProfessionPool = unlimitedProfessions;
-            // Add limited professions with a lower probability
-            if (getDeterministicRandom(steamId + 'limited_prof_chance', 1, 10) <= 2) { // 20% chance to even consider a limited prof
-                chosenProfessionPool.push(...limitedProfessions);
-            }
-
-            if (chosenProfessionPool.length > 0) {
-                 profession = chosenProfessionPool[getDeterministicRandom(steamId + 'prof', 0, chosenProfessionPool.length - 1)];
+            if (potentialProfessions.length > 0) {
+                profession = potentialProfessions[getDeterministicRandom(currentMinuteSeed + 'prof', 0, potentialProfessions.length - 1)];
+            } else {
+                 // Fallback if all available professions are "limited out"
+                profession = availableProfessions[getDeterministicRandom(currentMinuteSeed + 'prof_fallback', 0, availableProfessions.length - 1)] || "Испытуемый";
             }
         }
             
-        // Special professions (AFK/NONRP) override with a very small chance for high-level players
+        // Special professions override with a small chance
         if (level >= 55 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 2) {
              const specialProfs = specialProfessions[55] || [];
              if (specialProfs.length > 0) {
-                profession = specialProfs[getDeterministicRandom(steamId + 'special_prof_select', 0, specialProfs.length - 1)];
+                profession = specialProfs[getDeterministicRandom(currentMinuteSeed + 'special_prof_select', 0, specialProfs.length - 1)];
              }
         }
-        
-        const money = Math.max(0, (level * getDeterministicRandom(steamId + 'money_rate', 500, 2500)));
-        const ping = getDeterministicRandom(steamId + 'ping', 15, 85);
-        
-        // Kills and deaths based on level (more realistic)
-        const kills = Math.round(level * getDeterministicRandom(steamId + 'kills_rate', 0.5, 5) + getDeterministicRandom(steamId, 0, level * 10));
-        const deaths = Math.round(level * getDeterministicRandom(steamId + 'deaths_rate', 0.5, 5) + getDeterministicRandom(steamId, 0, level * 10));
 
+        // Check if profession changed from the last minute
+        const previousMinuteSeed = steamId + (Math.floor(new Date().getTime() / (1000 * 60)) - 1);
+        let previousProfession = "Испытуемый"; // Calculate previous profession to check for change
+         if (availableProfessions.length > 0) {
+            const previousPotential = availableProfessions.filter(p => {
+                 const limit = limitedProfessionsConfig[p];
+                if (limit) return getDeterministicRandom(previousMinuteSeed + p, 1, 100) <= (limit * 2);
+                return true;
+            });
+            if(previousPotential.length > 0) previousProfession = previousPotential[getDeterministicRandom(previousMinuteSeed + 'prof', 0, previousPotential.length - 1)];
+        }
+        if (level >= 55 && getDeterministicRandom(steamId + 'special_prof_chance', 1, 100) <= 2) {
+             const specialProfs = specialProfessions[55] || [];
+             if (specialProfs.length > 0) {
+                previousProfession = specialProfs[getDeterministicRandom(previousMinuteSeed + 'special_prof_select', 0, specialProfs.length - 1)];
+             }
+        }
 
-        // --- Filter activities for this player ---
+        if (profession !== previousProfession && getDeterministicRandom(currentMinuteSeed, 1, 100) <= 90) { // 90% chance to log the change
+             liveActivityLog = {
+                id: `live-prof-change-${currentMinuteSeed}`,
+                timestamp: new Date(),
+                type: 'RP',
+                user: { name: playerName, steamId: steamId },
+                details: `сменил профессию с "${previousProfession}" на "${profession}".`
+            };
+        }
+        
+        // 7. Final stats
+        const money = Math.max(0, (level * getDeterministicRandom(steamId + 'money_rate', 500, 2500))) + (liveTimeMinutes * 10);
+        const ping = getDeterministicRandom(steamId + 'ping', 15, 85) + getDeterministicRandom(currentMinuteSeed, -5, 5);
+        const kills = Math.round(level * getDeterministicRandom(steamId + 'kills_rate', 0.5, 2) + getDeterministicRandom(steamId, 0, level * 2));
+        const deaths = Math.round(level * getDeterministicRandom(steamId + 'deaths_rate', 0.5, 3) + getDeterministicRandom(steamId, 0, level * 3));
+
+        // --- Filter historical activities for this player ---
         const playerActivities = historicalLogs
             .filter((log): log is LogEntry => {
                  if (!log.user) return false;
-                 // Events initiated by the player
                  if (log.user.steamId === steamId || log.user.name === playerName) {
-                     return ['CHAT', 'CONNECTION', 'KILL', 'SPAWN'].includes(log.type);
+                     return ['CHAT', 'CONNECTION', 'KILL', 'SPAWN', 'RP'].includes(log.type);
                  }
-                 // Events where the player is the recipient
                  if (log.recipient?.name === playerName && ['KILL', 'DAMAGE'].includes(log.type)) {
                      return true;
                  }
                  return false;
              })
-             .slice(0, 30) // Limit to the last 30 activities
+             .slice(0, 30) 
              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+        // Add live activity log if it exists
+        if(liveActivityLog){
+            playerActivities.unshift(liveActivityLog);
+            if(playerActivities.length > 30) playerActivities.pop();
+        }
 
         const playerDetails: PlayerDetails = {
             name: playerName,
@@ -317,5 +362,3 @@ export async function GET(
         );
     }
 }
-
-    

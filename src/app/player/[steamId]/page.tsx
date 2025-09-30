@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint } from "lucide-react";
+import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, LogOut, Sparkles, Megaphone, Bell, Fingerprint, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -84,7 +84,7 @@ const PlayerDetailsSkeleton = () => (
     </div>
 );
 
-const ActivityLog = ({ logs }: { logs: LogEntry[] }) => {
+const ActivityLog = ({ logs, isLoading }: { logs: LogEntry[], isLoading: boolean }) => {
     
     const logTypeConfig = {
       CONNECTION: { label: "Подключение", icon: LogIn, color: "text-sky-400" },
@@ -96,6 +96,22 @@ const ActivityLog = ({ logs }: { logs: LogEntry[] }) => {
       NOTIFICATION: { label: "Оповещение", icon: Bell, color: "text-indigo-400" },
       RP: { label: "Действие", icon: Fingerprint, color: "text-lime-400" },
     };
+
+    if (isLoading && logs.length === 0) {
+        return (
+             <div className="space-y-4 pr-4 h-96">
+                {Array.from({length: 5}).map((_, i) => (
+                    <div key={i} className="flex items-start gap-4">
+                        <Skeleton className="w-5 h-5 rounded-full" />
+                        <div className="flex-1 space-y-1">
+                             <Skeleton className="h-4 w-full" />
+                             <Skeleton className="h-3 w-1/3" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )
+    }
 
     if (logs.length === 0) {
         return (
@@ -139,41 +155,76 @@ export default function PlayerPage() {
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [isUpdating, setIsUpdating] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
 
-    React.useEffect(() => {
+    const fetchPlayerDetails = React.useCallback(async (isInitialLoad = false) => {
         if (!steamId) {
             setError("SteamID не найден в URL.");
-            setLoading(false);
+            if(isInitialLoad) setLoading(false);
             return;
         }
-            
-        const fetchPlayerDetails = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const res = await fetch(`/api/player-details/${steamId}`);
-                if (!res.ok) {
-                    const errData = await res.json();
-                    throw new Error(errData.error || 'Не удалось загрузить данные игрока');
-                }
-                const data: PlayerDetails = await res.json();
-                setPlayer(data);
-            } catch (e: any) {
-                setError(e.message);
-            } finally {
-                setLoading(false);
-            }
-        };
+        
+        if (isInitialLoad) {
+            setLoading(true);
+        } else {
+            setIsUpdating(true);
+        }
+        setError(null);
 
-        fetchPlayerDetails();
+        try {
+            const res = await fetch(`/api/player-details/${steamId}`);
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Не удалось загрузить данные игрока');
+            }
+            const data: PlayerDetails = await res.json();
+            
+             // Merge activities instead of replacing them
+            setPlayer(prevPlayer => {
+                if (!prevPlayer) return data;
+
+                const newActivities = data.activities.filter(
+                    newActivity => !prevPlayer.activities.some(existing => existing.id === newActivity.id)
+                );
+
+                const combinedActivities = [...newActivities, ...prevPlayer.activities]
+                    .slice(0, 30)
+                    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                
+                return {
+                    ...data,
+                    activities: combinedActivities
+                };
+            });
+
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            if (isInitialLoad) {
+                setLoading(false);
+            } else {
+                setIsUpdating(false);
+            }
+        }
     }, [steamId]);
+
+
+    React.useEffect(() => {
+        fetchPlayerDetails(true); // Initial fetch
+        
+        const interval = setInterval(() => {
+            fetchPlayerDetails(false); // Subsequent updates
+        }, 30000); // Update every 30 seconds
+
+        return () => clearInterval(interval);
+    }, [fetchPlayerDetails]);
     
     if (loading) {
         return <PlayerDetailsSkeleton />;
     }
 
-    if (error || !player) {
+    if (error && !player) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen text-center p-8">
                 <Card className="max-w-md w-full">
@@ -191,13 +242,17 @@ export default function PlayerPage() {
             </div>
         );
     }
+
+    if (!player) {
+         return <PlayerDetailsSkeleton />; // Should not happen if not loading and no error, but as a fallback
+    }
     
-    const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) => (
+    const InfoItem = ({ icon: Icon, label, value, isLoading = false, skeletonWidth = 'w-2/3' }: { icon: React.ElementType; label: string; value: React.ReactNode, isLoading?: boolean, skeletonWidth?: string }) => (
         <div className="flex items-start gap-3 text-sm p-3 bg-card/30 rounded-md border">
             <Icon className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
             <div className="flex flex-col">
                 <span className="text-muted-foreground">{label}</span>
-                <span className="font-semibold text-base">{value}</span>
+                {isLoading ? <Skeleton className={`h-5 mt-0.5 ${skeletonWidth}`} /> : <span className="font-semibold text-base">{value}</span>}
             </div>
         </div>
     );
@@ -221,18 +276,18 @@ export default function PlayerPage() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-baseline text-sm">
                                 <Label htmlFor="level" className="font-medium text-muted-foreground">Уровень</Label>
-                                <span className="font-bold">{player.level} / 100</span>
+                                {isUpdating ? <Skeleton className="h-4 w-16" /> : <span className="font-bold">{player.level} / 100</span>}
                             </div>
-                            <Progress value={player.level} id="level" />
+                            {isUpdating ? <Skeleton className="h-4 w-full" /> : <Progress value={player.level} id="level" />}
                         </div>
                         <div className="grid grid-cols-2 gap-4 pt-4">
-                            <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} />
-                            <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} />
-                            <InfoItem icon={User} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} />
-                            <InfoItem icon={Briefcase} label="Профессия" value={player.profession} />
-                            <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} />
-                            <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} />
-                            <InfoItem icon={HeartCrack} label="Смерти" value={player.deaths.toLocaleString('ru-RU')} />
+                            <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} isLoading={isUpdating} skeletonWidth="w-full"/>
+                            <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} isLoading={isUpdating} />
+                            <InfoItem icon={User} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} isLoading={isUpdating} />
+                            <InfoItem icon={Briefcase} label="Профессия" value={player.profession} isLoading={isUpdating} />
+                            <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} isLoading={isUpdating} skeletonWidth="w-1/2"/>
+                            <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} isLoading={isUpdating} />
+                            <InfoItem icon={HeartCrack} label="Смерти" value={player.deaths.toLocaleString('ru-RU')} isLoading={isUpdating} />
                         </div>
                     </CardContent>
                 </Card>
@@ -247,7 +302,7 @@ export default function PlayerPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                           {player.donatedProfessions.length > 0 ? (
+                           {isUpdating && player.donatedProfessions.length === 0 ? <Skeleton className="h-8 w-2/3" /> : player.donatedProfessions.length > 0 ? (
                                <div className="flex flex-wrap gap-2">
                                    {player.donatedProfessions.map(prof => (
                                        <Badge key={prof} variant="outline" className="text-base py-1 px-3 bg-card border-primary/50 text-primary">
@@ -265,13 +320,19 @@ export default function PlayerPage() {
                     </Card>
                     <Card className="bg-card/50">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Terminal />
-                                Активность на сервере
+                            <CardTitle className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                    <Terminal />
+                                    Активность на сервере
+                                </div>
+                                <div className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
+                                    <RefreshCw className={cn("w-3 h-3", isUpdating && "animate-spin")}/>
+                                    <span>{isUpdating ? "Обновление..." : "Обновляется"}</span>
+                                </div>
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                           <ActivityLog logs={player.activities} />
+                           <ActivityLog logs={player.activities} isLoading={isUpdating && player.activities.length === 0} />
                         </CardContent>
                     </Card>
                 </div>
