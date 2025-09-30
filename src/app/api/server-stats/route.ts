@@ -35,6 +35,14 @@ function formatSessionPlayTime(seconds: number): string {
     return result.trim();
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 export async function GET() {
   try {
     const { default: gamedig } = await import('gamedig');
@@ -72,6 +80,7 @@ export async function GET() {
       })
       .filter(player => player.name && player.name.trim() !== '');
 
+    const shuffledPlayers = shuffleArray(players);
 
     const tags = state.raw?.tags && typeof state.raw.tags === 'string'
       ? state.raw.tags.trim().split(' ').filter(Boolean)
@@ -92,7 +101,7 @@ export async function GET() {
         protocol: state.raw?.protocol,
         secure: state.raw?.secure === 1
       },
-      players: players,
+      players: shuffledPlayers,
       statistics: {
         totalPlayers: players.length,
         totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds), // Use same formatter for total session time
