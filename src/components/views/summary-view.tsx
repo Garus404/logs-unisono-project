@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -18,7 +17,6 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { consoleLogs } from "@/lib/data";
-import { useSessionManager } from "@/hooks/use-session-manager";
 
 const chartConfig = {
   players: {
@@ -33,7 +31,21 @@ const LiveConsole = () => {
     const [isUserScrolling, setIsUserScrolling] = React.useState(false);
     const [isAllowed, setIsAllowed] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
-    const { currentUser } = useSessionManager();
+    const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const user = localStorage.getItem("loggedInUser");
+        setCurrentUser(user);
+
+        const handleStorageChange = () => {
+            setCurrentUser(localStorage.getItem("loggedInUser"));
+        };
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []);
 
     React.useEffect(() => {
         const checkPermissions = async () => {

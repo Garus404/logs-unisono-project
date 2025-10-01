@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, WifiOff } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { useSessionManager } from "@/hooks/use-session-manager";
 
 type UserForDisplay = Omit<UserType, 'password'>;
 
@@ -35,7 +34,12 @@ export default function PermissionsPage() {
     const [users, setUsers] = React.useState<UserForDisplay[]>([]);
     const [loading, setLoading] = React.useState(true);
     const { toast } = useToast();
-    const { currentUser } = useSessionManager();
+    const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const user = localStorage.getItem("loggedInUser");
+        setCurrentUser(user);
+    }, []);
 
     const fetchUsers = React.useCallback(async () => {
         try {

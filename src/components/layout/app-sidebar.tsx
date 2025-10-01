@@ -22,17 +22,34 @@ import {
 import { Logo } from "@/components/icons/logo";
 import { Separator } from "../ui/separator";
 import React from 'react';
-import { useSessionManager } from '@/hooks/use-session-manager';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, logout } = useSessionManager();
+  const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    const user = localStorage.getItem("loggedInUser");
+    setCurrentUser(user);
+
+    const handleStorageChange = () => {
+        setCurrentUser(localStorage.getItem("loggedInUser"));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+
+  }, []);
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem("loggedInUser");
+    window.dispatchEvent(new Event("storage"));
     router.push('/login');
   };
+
+  const isAdmin = currentUser === 'Intercom';
 
   return (
     <>
@@ -82,7 +99,7 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          {currentUser === 'Intercom' && (
+          {isAdmin && (
              <SidebarMenuItem>
                <Link href="/permissions" className="w-full">
                   <SidebarMenuButton

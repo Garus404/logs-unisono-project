@@ -21,8 +21,6 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useSessionManager } from "@/hooks/use-session-manager";
-
 
 const donatedProfessionsList = [
     'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор', 'Экзобоец', 
@@ -321,7 +319,12 @@ export default function PlayerPage() {
     const router = useRouter();
     const params = useParams();
     const steamId = params.steamId as string;
-    const { currentUser } = useSessionManager();
+    
+    const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        const user = localStorage.getItem("loggedInUser");
+        setCurrentUser(user);
+    }, []);
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
