@@ -9,10 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, ShieldOff, User, Globe, Pencil, UserCheck, UserX } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type UserForDisplay = Omit<UserType, 'password'>;
 
@@ -110,14 +122,42 @@ export default function PermissionsPage() {
             fetchUsers();
         }
     };
+
+    const handleDeleteUser = async (userId: string) => {
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                method: "DELETE",
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || "Не удалось удалить пользователя");
+            }
+            
+            toast({
+                title: "Успешно",
+                description: "Пользователь был удален.",
+            });
+            fetchUsers(); // Refresh the list
+        } catch (error: any) {
+             toast({
+                variant: "destructive",
+                title: "Ошибка",
+                description: error.message,
+            });
+        }
+    };
     
     const UserRowSkeleton = () => (
         <TableRow>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+            <TableCell><Skeleton className="h-8 w-8" /></TableCell>
         </TableRow>
     )
 
@@ -133,17 +173,19 @@ export default function PermissionsPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Управление пользователями</CardTitle>
-                                <CardDescription>Настройте доступ и подтверждайте учетные записи.</CardDescription>
+                                <CardDescription>Настройте доступ, подтверждайте и удаляйте учетные записи.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead><User className="inline-block w-4 h-4 mr-2"/>Логин</TableHead>
+                                            <TableHead><Mail className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
                                             <TableHead><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
-                                            <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус аккаунта</TableHead>
-                                            <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Доступ к консоли</TableHead>
+                                            <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус</TableHead>
+                                            <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Консоль</TableHead>
                                             <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
+                                            <TableHead>Действия</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -153,6 +195,7 @@ export default function PermissionsPage() {
                                             users.map(user => (
                                                 <TableRow key={user.id}>
                                                     <TableCell className="font-medium">{user.login}</TableCell>
+                                                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                                     <TableCell>{user.ip}</TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
@@ -168,30 +211,47 @@ export default function PermissionsPage() {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center">
                                                             <Switch
                                                                 id={`console-access-${user.id}`}
                                                                 checked={user.permissions?.viewConsole || false}
                                                                 onCheckedChange={(value) => handlePermissionChange(user.id, 'viewConsole', value)}
                                                                 disabled={user.login === 'Intercom'}
                                                             />
-                                                             <label htmlFor={`console-access-${user.id}`} className="text-sm text-muted-foreground">
-                                                                {user.permissions?.viewConsole ? "Включен" : "Выключен"}
-                                                            </label>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center">
                                                             <Switch
                                                                 id={`edit-players-${user.id}`}
                                                                 checked={user.permissions?.editPlayers || false}
                                                                 onCheckedChange={(value) => handlePermissionChange(user.id, 'editPlayers', value)}
                                                                 disabled={user.login === 'Intercom'}
                                                             />
-                                                             <label htmlFor={`edit-players-${user.id}`} className="text-sm text-muted-foreground">
-                                                                {user.permissions?.editPlayers ? "Включен" : "Выключен"}
-                                                            </label>
                                                         </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" disabled={user.login === 'Intercom'}>
+                                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Вы собираетесь навсегда удалить пользователя <span className="font-bold">{user.login}</span>. Это действие нельзя отменить.
+                                                                </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                    Удалить
+                                                                </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
                                                     </TableCell>
                                                 </TableRow>
                                             ))

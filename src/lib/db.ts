@@ -114,6 +114,19 @@ export function updateUser(userId: string, data: Partial<{ permissions: Partial<
     return null;
 }
 
+// Удаление пользователя
+export function deleteUser(userId: string): boolean {
+    const db = readDB();
+    const initialLength = db.users.length;
+    db.users = db.users.filter(u => u.id !== userId);
+    
+    if (db.users.length < initialLength) {
+        writeDB(db);
+        return true;
+    }
+    return false;
+}
+
 
 // Хэширование пароля
 export async function hashPassword(password: string): Promise<string> {

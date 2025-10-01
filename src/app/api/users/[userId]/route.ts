@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { findUserById, updateUser } from "@/lib/db";
+import { findUserById, updateUser, deleteUser } from "@/lib/db";
 import type { User, UserPermission } from "@/lib/types";
 
 export async function PATCH(
@@ -55,5 +55,34 @@ export async function PATCH(
       { error: "Внутренняя ошибка сервера." },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    const userId = params.userId;
+
+    const user = findUserById(userId);
+    if (!user) {
+      return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+    }
+
+    if (user.login === "Intercom") {
+        return NextResponse.json({ error: "Невозможно удалить главного администратора" }, { status: 403 });
+    }
+
+    const deleted = deleteUser(userId);
+
+    if (deleted) {
+      return NextResponse.json({ success: true, message: "Пользователь удален" });
+    } else {
+      return NextResponse.json({ error: "Не удалось удалить пользователя" }, { status: 500 });
+    }
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
   }
 }
