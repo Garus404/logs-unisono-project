@@ -4,10 +4,14 @@ import { findUser, recordLoginHistory } from "@/lib/db";
 
 async function getBody(request: Request) {
     try {
-        // For sendBeacon, the content type is often text/plain
-        if (request.headers.get('content-type')?.includes('text/plain')) {
+        // For sendBeacon, the content type is often text/plain or not set,
+        // and the body is sent as a string.
+        if (request.headers.get('content-type')?.includes('text/plain') || !request.headers.get('content-type')) {
              const text = await request.text();
-             return JSON.parse(text);
+             if (text) {
+                return JSON.parse(text);
+             }
+             return null;
         }
         return await request.json();
     } catch (error) {
@@ -28,7 +32,8 @@ export async function POST(request: Request) {
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     if (!login) {
-        return NextResponse.json({ error: "Логин обязателен" }, { status: 400 });
+        // Don't return an error for beacon calls, just exit gracefully.
+        return NextResponse.json({ success: true });
     }
 
     const user = findUser(login);

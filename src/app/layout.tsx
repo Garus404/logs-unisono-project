@@ -39,6 +39,7 @@ function SessionManager({ children }: { children: React.ReactNode }) {
       const currentUser = localStorage.getItem("loggedInUser");
       if (currentUser) {
          const data = JSON.stringify({ login: currentUser });
+         // Use sendBeacon for reliable background sending
          navigator.sendBeacon('/api/auth/logout', data);
       }
     };
