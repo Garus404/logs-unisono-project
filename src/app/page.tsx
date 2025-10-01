@@ -1,4 +1,4 @@
-import LoginPage from "./login/page";
+import LoginPage from "./login-panel/page";
 
 export default function Home() {
   // For now, we'll just render the login page.
