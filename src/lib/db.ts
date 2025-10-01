@@ -50,10 +50,12 @@ export function findUserById(id: string): User | undefined {
 }
 
 // Получение всех пользователей
-export function getAllUsers(): Omit<User, 'password'>[] {
+export function getAllUsers(): User[] {
     const db = readDB();
-    return db.users.map(({ password, ...user }) => user);
+    // Return the full user object, password will be omitted by the API route
+    return db.users;
 }
+
 
 // Проверка существования email или login
 export function isEmailOrLoginTaken(email: string, login: string): boolean {
@@ -64,7 +66,7 @@ export function isEmailOrLoginTaken(email: string, login: string): boolean {
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions'>): Promise<User> {
   const db = readDB();
   
   const user: User = {

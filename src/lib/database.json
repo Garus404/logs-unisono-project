@@ -16,14 +16,14 @@
       "isVerified": true
     },
     {
-      "id": "1759335101212",
+      "id": "1759337281578",
       "email": "texnuk7@gmail.com",
-      "login": "12312123",
-      "password": "$2a$12$1f/8WjVNIu0al9rVntVjke5TqxLxrDES27CrDDy2FwQqhKihMyCTS",
+      "login": "pakemon",
+      "password": "$2a$12$QDXwRDDKjcN4CuVRTX1GQeIod5x2/ZWZT2IrE.KTxP1ByAbZxW1JS",
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
-      "createdAt": "2025-10-01T16:11:41.212Z",
-      "lastLogin": "2025-10-01T16:11:41.212Z",
+      "createdAt": "2025-10-01T16:48:01.578Z",
+      "lastLogin": "2025-10-01T16:48:01.578Z",
       "permissions": {
         "viewConsole": false,
         "editPlayers": false
@@ -31,29 +31,14 @@
       "isVerified": false
     },
     {
-      "id": "1759335428902",
-      "email": "morozbalkon@gmail.com",
-      "login": "123",
-      "password": "$2a$12$JfM18TsS/5Ptez2bMzkfNOcurVo8a4LnNsyueuJ3E0qm7gGTJqEVi",
-      "ip": "127.0.0.1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
-      "createdAt": "2025-10-01T16:17:08.902Z",
-      "lastLogin": "2025-10-01T16:34:59.360Z",
-      "permissions": {
-        "viewConsole": false,
-        "editPlayers": false
-      },
-      "isVerified": false
-    },
-    {
-      "id": "1759336406156",
+      "id": "1759337335200",
       "email": "BLACKRUSSIAVIPLATYBOT@GMAIL.COM",
-      "login": "1233",
-      "password": "$2a$12$ZsOxjS/B.gsj7xfBTdtqo.ci/FAnvvwGl4n2R1oHjQc5/R3GEqfW6",
+      "login": "pakemon1",
+      "password": "$2a$12$8kaeB.Y1PjqR5kFhSt2tUeZIiiwnyEv7aBuO8vg8bn.F6fduqQnmq",
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
-      "createdAt": "2025-10-01T16:33:26.156Z",
-      "lastLogin": "2025-10-01T16:33:37.135Z",
+      "createdAt": "2025-10-01T16:48:55.200Z",
+      "lastLogin": "2025-10-01T16:48:55.200Z",
       "permissions": {
         "viewConsole": false,
         "editPlayers": false

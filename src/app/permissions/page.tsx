@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, WifiOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 type UserForDisplay = Omit<UserType, 'password'>;
 
@@ -40,7 +41,7 @@ export default function PermissionsPage() {
             if (!response.ok) {
                 throw new Error("Не удалось загрузить пользователей");
             }
-            const data = await response.json();
+            const data: UserForDisplay[] = await response.json();
             setUsers(data);
         } catch (error: any) {
             toast({
@@ -56,6 +57,15 @@ export default function PermissionsPage() {
     React.useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
+    
+    // Periodically re-fetch to update online status
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            fetchUsers();
+        }, 60000); // every minute
+        return () => clearInterval(interval);
+    }, [fetchUsers]);
+
 
     const handlePermissionChange = async (userId: string, permission: keyof UserPermission, value: boolean) => {
         // Optimistic update
@@ -155,12 +165,20 @@ export default function PermissionsPage() {
             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
             <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-8 w-8" /></TableCell>
         </TableRow>
     )
+
+    const isOnline = (lastLogin: string) => {
+        const lastLoginTime = new Date(lastLogin).getTime();
+        const currentTime = new Date().getTime();
+        // 5 minutes threshold
+        return (currentTime - lastLoginTime) < 5 * 60 * 1000;
+    }
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -184,6 +202,7 @@ export default function PermissionsPage() {
                                             <TableHead><Mail className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
                                             <TableHead><KeySquare className="inline-block w-4 h-4 mr-2"/>Пароль</TableHead>
                                             <TableHead><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
+                                            <TableHead><Wifi className="inline-block w-4 h-4 mr-2"/>Статус сети</TableHead>
                                             <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Консоль</TableHead>
                                             <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
@@ -200,6 +219,14 @@ export default function PermissionsPage() {
                                                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                                     <TableCell className="text-muted-foreground font-mono tracking-wider">••••••••</TableCell>
                                                     <TableCell>{user.ip}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                           {isOnline(user.lastLogin) ? 
+                                                             <><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span>В сети</span></> : 
+                                                             <><div className="w-2 h-2 rounded-full bg-gray-500"></div><span className="text-muted-foreground">Не в сети</span></>
+                                                           }
+                                                        </div>
+                                                    </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                             <Switch

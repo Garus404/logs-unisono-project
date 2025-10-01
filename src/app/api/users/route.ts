@@ -9,7 +9,9 @@ export async function GET(request: Request) {
     // In a real app, you'd want to protect this endpoint
     // to ensure only admins can access it.
     const users = getAllUsers();
-    return NextResponse.json(users);
+    // Omit password before sending to client
+    const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+    return NextResponse.json(usersWithoutPasswords);
   } catch (error) {
     console.error("Failed to get users:", error);
     return NextResponse.json(

