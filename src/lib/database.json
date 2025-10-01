@@ -1,3 +1,4 @@
+
 {
   "users": [
     {
@@ -8,7 +9,10 @@
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-01T14:19:49.402Z",
-      "lastLogin": "2025-10-01T14:22:53.228Z"
+      "lastLogin": "2025-10-01T14:22:53.228Z",
+      "permissions": {
+        "viewConsole": false
+      }
     },
     {
       "id": "1759328770877",
@@ -18,7 +22,10 @@
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-01T14:26:10.877Z",
-      "lastLogin": "2025-10-01T14:53:02.894Z"
+      "lastLogin": "2025-10-01T14:59:19.647Z",
+      "permissions": {
+        "viewConsole": false
+      }
     },
     {
       "id": "1759330549199",
@@ -28,7 +35,10 @@
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-01T14:55:49.200Z",
-      "lastLogin": "2025-10-01T14:56:01.496Z"
+      "lastLogin": "2025-10-01T14:59:35.537Z",
+      "permissions": {
+        "viewConsole": true
+      }
     }
   ]
 }

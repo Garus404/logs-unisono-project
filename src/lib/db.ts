@@ -1,20 +1,10 @@
+
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import type { User, UserPermission } from './types';
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'database.json');
-
-interface User {
-  id: string;
-  email: string;
-  login: string;
-  password: string;
-  createdAt: string;
-  lastLogin: string;
-  ip: string;
-  userAgent: string;
-  cookies?: string;
-}
 
 interface Database {
   users: User[];
@@ -23,15 +13,12 @@ interface Database {
 // Чтение базы данных
 export function readDB(): Database {
   try {
+    if (!fs.existsSync(dbPath)) {
+        writeDB({ users: [] });
+    }
     const data = fs.readFileSync(dbPath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    // If the file doesn't exist or is empty, return an empty structure
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return { users: [] };
-    }
-    // For other errors, we might still want to return a default structure
-    // or re-throw, depending on the desired behavior.
     console.error("Error reading database, returning empty structure:", error);
     return { users: [] };
   }
@@ -50,6 +37,18 @@ export function findUser(emailOrLogin: string): User | undefined {
   );
 }
 
+// Поиск пользователя по ID
+export function findUserById(id: string): User | undefined {
+    const db = readDB();
+    return db.users.find(user => user.id === id);
+}
+
+// Получение всех пользователей
+export function getAllUsers(): Omit<User, 'password'>[] {
+    const db = readDB();
+    return db.users.map(({ password, ...user }) => user);
+}
+
 // Проверка существования email или login
 export function isEmailOrLoginTaken(email: string, login: string): boolean {
   const db = readDB();
@@ -66,7 +65,10 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     id: Date.now().toString(),
     ...userData,
     createdAt: new Date().toISOString(),
-    lastLogin: new Date().toISOString()
+    lastLogin: new Date().toISOString(),
+    permissions: {
+        viewConsole: false
+    }
   };
 
   db.users.push(user);
@@ -76,17 +78,33 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
 }
 
 // Обновление lastLogin
-export function updateLastLogin(userId: string, ip: string, userAgent: string, cookies?: string): void {
+export function updateLastLogin(userId: string, ip: string, userAgent: string): void {
   const db = readDB();
-  const user = db.users.find(u => u.id === userId);
+  const userIndex = db.users.findIndex(u => u.id === userId);
   
-  if (user) {
-    user.lastLogin = new Date().toISOString();
-    user.ip = ip;
-    user.userAgent = userAgent;
-    if (cookies) user.cookies = cookies;
+  if (userIndex !== -1) {
+    db.users[userIndex].lastLogin = new Date().toISOString();
+    db.users[userIndex].ip = ip;
+    db.users[userIndex].userAgent = userAgent;
     writeDB(db);
   }
+}
+
+// Обновление разрешений
+export function updateUserPermissions(userId: string, permissions: UserPermission): User | null {
+    const db = readDB();
+    const userIndex = db.users.findIndex(u => u.id === userId);
+
+    if (userIndex !== -1) {
+        db.users[userIndex].permissions = {
+            ...db.users[userIndex].permissions,
+            ...permissions
+        };
+        writeDB(db);
+        const { password, ...updatedUser } = db.users[userIndex];
+        return updatedUser;
+    }
+    return null;
 }
 
 // Хэширование пароля

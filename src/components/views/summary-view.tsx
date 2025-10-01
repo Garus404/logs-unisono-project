@@ -11,7 +11,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { PlayerActivity, ServerStateResponse } from "@/lib/types";
+import type { PlayerActivity, ServerStateResponse, User } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
@@ -30,17 +30,50 @@ const LiveConsole = () => {
     const scrollAreaRef = React.useRef<HTMLDivElement>(null);
     const [isUserScrolling, setIsUserScrolling] = React.useState(false);
     const [isAllowed, setIsAllowed] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
-        // This is a simulation of checking user permissions.
-        // In a real app, this would come from an auth context or a server check.
-        const user = localStorage.getItem('loggedInUser');
-        if (user === 'Intercom') {
-            setIsAllowed(true);
-        }
+        const checkPermissions = async () => {
+            const loggedInUserLogin = localStorage.getItem('loggedInUser');
+            if (!loggedInUserLogin) {
+                setIsAllowed(false);
+                setIsLoading(false);
+                return;
+            }
+
+            if (loggedInUserLogin === 'Intercom') {
+                setIsAllowed(true);
+                setIsLoading(false);
+                return;
+            }
+            
+            try {
+                // In a real app, you might get the full user object on login
+                // Here, we fetch all users and find the current one.
+                const res = await fetch('/api/users');
+                const users: User[] = await res.json();
+                const currentUser = users.find(u => u.login === loggedInUserLogin);
+
+                if (currentUser?.permissions?.viewConsole) {
+                    setIsAllowed(true);
+                } else {
+                    setIsAllowed(false);
+                }
+
+            } catch (error) {
+                console.error("Failed to check permissions", error);
+                setIsAllowed(false);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkPermissions();
     }, []);
 
     React.useEffect(() => {
+        if (!isAllowed || isLoading) return;
+
         setLogs(consoleLogs.slice(0, 20).sort(() => 0.5 - Math.random()));
         
         const interval = setInterval(() => {
@@ -52,7 +85,7 @@ const LiveConsole = () => {
         }, Math.random() * 1000 + 1000); // every 1-2 seconds
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isAllowed, isLoading]);
 
     React.useEffect(() => {
         if (!isUserScrolling && scrollAreaRef.current) {
@@ -118,13 +151,13 @@ const LiveConsole = () => {
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <div className={cn("bg-black/50 rounded-md font-mono text-xs", !isAllowed && "blur-sm")}>
+             <div className={cn("bg-black/50 rounded-md font-mono text-xs", !isAllowed && !isLoading && "blur-sm")}>
               <ScrollArea
                 className="h-[300px] w-full p-4"
                 ref={scrollAreaRef}
                 onScroll={handleScroll}
               >
-                {logs.map((log, index) => (
+                {isAllowed && logs.map((log, index) => (
                   <div
                     key={index}
                     className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}
@@ -137,19 +170,28 @@ const LiveConsole = () => {
               <div className="relative p-2 border-t border-border">
                 <input
                   type="text"
-                  placeholder="Нужны права Тех.Администратора, обратитесь к вышестоящем за доступом."
-                  disabled
+                  placeholder={isAllowed ? "Введите команду..." : "Нужны права для доступа к консоли."}
+                  disabled={!isAllowed}
                   className="w-full bg-transparent pl-8 pr-2 py-1 text-xs text-muted-foreground placeholder:text-yellow-500/60 focus:outline-none focus:ring-0 border-none"
                 />
               </div>
             </div>
-            {!isAllowed && (
+            {(!isAllowed || isLoading) && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md">
-                  <Lock className="w-12 h-12 text-yellow-500/80" />
-                  <p className="mt-4 text-center font-semibold text-white">
-                  Нужны права Тех.Администратора
-                  </p>
-                  <p className="text-xs text-muted-foreground">Обратитесь к вышестоящему за доступом.</p>
+                 {isLoading ? (
+                     <div className="flex items-center gap-2 text-white">
+                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                         <span>Проверка разрешений...</span>
+                     </div>
+                 ) : (
+                    <>
+                      <Lock className="w-12 h-12 text-yellow-500/80" />
+                      <p className="mt-4 text-center font-semibold text-white">
+                        Доступ запрещен
+                      </p>
+                      <p className="text-xs text-muted-foreground">Обратитесь к администратору для получения доступа.</p>
+                    </>
+                 )}
               </div>
             )}
           </div>

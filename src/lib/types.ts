@@ -1,4 +1,21 @@
+
 export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN' | 'ANNOUNCEMENT' | 'NOTIFICATION' | 'RP';
+
+export type UserPermission = {
+  viewConsole?: boolean;
+};
+
+export type User = {
+  id: string;
+  email: string;
+  login: string;
+  password: string;
+  createdAt: string;
+  lastLogin: string;
+  ip: string;
+  userAgent: string;
+  permissions?: UserPermission;
+};
 
 export type LogEntry = {
   id: string;
