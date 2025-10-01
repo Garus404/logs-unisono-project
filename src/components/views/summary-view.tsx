@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban } from "lucide-react";
+import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
@@ -107,14 +107,25 @@ const LiveConsole = () => {
                 <CardTitle>Консоль сервера</CardTitle>
             </CardHeader>
              <CardContent>
-                <ScrollArea className="h-[300px] w-full bg-black/50 rounded-md p-4 font-mono text-xs" ref={scrollAreaRef} onScroll={handleScroll}>
-                     {logs.map((log, index) => (
-                        <div key={index} className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}>
-                           <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
-                           <span className="flex-1 break-all">{log}</span>
-                        </div>
-                    ))}
-                </ScrollArea>
+                <div className='bg-black/50 rounded-md font-mono text-xs'>
+                    <ScrollArea className="h-[300px] w-full p-4" ref={scrollAreaRef} onScroll={handleScroll}>
+                        {logs.map((log, index) => (
+                            <div key={index} className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}>
+                            <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
+                            <span className="flex-1 break-all">{log}</span>
+                            </div>
+                        ))}
+                    </ScrollArea>
+                    <div className="relative p-2 border-t border-border">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <input
+                            type="text"
+                            placeholder="Нужны права Тех.Администратора, обратитесь к вышестоящем за доступом."
+                            disabled
+                            className="w-full bg-transparent pl-8 pr-2 py-1 text-xs text-muted-foreground placeholder:text-yellow-500/60 focus:outline-none focus:ring-0 border-none"
+                        />
+                    </div>
+                </div>
              </CardContent>
         </Card>
     );
@@ -324,4 +335,5 @@ export default function SummaryView() {
     </div>
   );
 }
+
 
