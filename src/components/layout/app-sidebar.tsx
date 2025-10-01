@@ -22,22 +22,15 @@ import {
 import { Logo } from "@/components/icons/logo";
 import { Separator } from "../ui/separator";
 import React from 'react';
+import { useSessionManager } from '@/hooks/use-session-manager';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [currentUser, setCurrentUser] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    // This is a simulation of getting the current user.
-    // In a real app, this would come from a context or a session store.
-    const user = localStorage.getItem('loggedInUser');
-    setCurrentUser(user);
-  }, []);
+  const { currentUser, logout } = useSessionManager();
 
   const handleLogout = () => {
-    // In a real app, you'd also clear the user's session/token here.
-    localStorage.removeItem('loggedInUser');
+    logout();
     router.push('/login');
   };
 

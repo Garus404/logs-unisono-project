@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -17,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { consoleLogs } from "@/lib/data";
+import { useSessionManager } from "@/hooks/use-session-manager";
 
 const chartConfig = {
   players: {
@@ -31,17 +33,17 @@ const LiveConsole = () => {
     const [isUserScrolling, setIsUserScrolling] = React.useState(false);
     const [isAllowed, setIsAllowed] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
+    const { currentUser } = useSessionManager();
 
     React.useEffect(() => {
         const checkPermissions = async () => {
-            const loggedInUserLogin = localStorage.getItem('loggedInUser');
-            if (!loggedInUserLogin) {
+            if (!currentUser) {
                 setIsAllowed(false);
                 setIsLoading(false);
                 return;
             }
 
-            if (loggedInUserLogin === 'Intercom') {
+            if (currentUser === 'Intercom') {
                 setIsAllowed(true);
                 setIsLoading(false);
                 return;
@@ -52,9 +54,9 @@ const LiveConsole = () => {
                 // Here, we fetch all users and find the current one.
                 const res = await fetch('/api/users');
                 const users: User[] = await res.json();
-                const currentUser = users.find(u => u.login === loggedInUserLogin);
+                const user = users.find(u => u.login === currentUser);
 
-                if (currentUser?.permissions?.viewConsole) {
+                if (user?.permissions?.viewConsole) {
                     setIsAllowed(true);
                 } else {
                     setIsAllowed(false);
@@ -69,7 +71,7 @@ const LiveConsole = () => {
         };
 
         checkPermissions();
-    }, []);
+    }, [currentUser]);
 
     React.useEffect(() => {
         if (!isAllowed || isLoading) return;

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -20,6 +21,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useSessionManager } from "@/hooks/use-session-manager";
 
 
 const donatedProfessionsList = [
@@ -319,6 +321,7 @@ export default function PlayerPage() {
     const router = useRouter();
     const params = useParams();
     const steamId = params.steamId as string;
+    const { currentUser } = useSessionManager();
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
@@ -332,8 +335,7 @@ export default function PlayerPage() {
 
      React.useEffect(() => {
         const checkPermissions = async () => {
-            const loggedInUserLogin = localStorage.getItem('loggedInUser');
-            if (!loggedInUserLogin) {
+            if (!currentUser) {
                 setIsAllowed(false);
                 setIsLoadingPermissions(false);
                 return;
@@ -342,9 +344,9 @@ export default function PlayerPage() {
             try {
                 const res = await fetch('/api/users');
                 const users: User[] = await res.json();
-                const currentUser = users.find(u => u.login === loggedInUserLogin);
+                const user = users.find(u => u.login === currentUser);
 
-                if (currentUser?.permissions?.editPlayers) {
+                if (user?.permissions?.editPlayers) {
                     setIsAllowed(true);
                 } else {
                     setIsAllowed(false);
@@ -359,7 +361,7 @@ export default function PlayerPage() {
         };
 
         checkPermissions();
-    }, []);
+    }, [currentUser]);
 
     const fetchPlayerDetails = React.useCallback(async (isInitialLoad = false) => {
         if (!steamId) {

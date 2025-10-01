@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -26,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useSessionManager } from "@/hooks/use-session-manager";
 
 type UserForDisplay = Omit<UserType, 'password'>;
 
@@ -33,6 +35,7 @@ export default function PermissionsPage() {
     const [users, setUsers] = React.useState<UserForDisplay[]>([]);
     const [loading, setLoading] = React.useState(true);
     const { toast } = useToast();
+    const { currentUser } = useSessionManager();
 
     const fetchUsers = React.useCallback(async () => {
         try {
@@ -174,6 +177,7 @@ export default function PermissionsPage() {
     )
 
     const isOnline = (lastLogin: string) => {
+        if (!lastLogin) return false;
         const lastLoginTime = new Date(lastLogin).getTime();
         const currentTime = new Date().getTime();
         // 5 minutes threshold
@@ -221,7 +225,7 @@ export default function PermissionsPage() {
                                                     <TableCell>{user.ip}</TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
-                                                           {isOnline(user.lastLogin) ? 
+                                                           {isOnline(user.lastLogin) && user.login === currentUser ? 
                                                              <><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span>В сети</span></> : 
                                                              <><div className="w-2 h-2 rounded-full bg-gray-500"></div><span className="text-muted-foreground">Не в сети</span></>
                                                            }
