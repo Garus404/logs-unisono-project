@@ -1,6 +1,6 @@
+
 import { NextResponse } from "next/server";
-import { isEmailOrLoginTaken, createUser, hashPassword, setVerificationCode, generateVerificationCode } from "@/lib/db";
-import { sendVerificationEmail } from "@/lib/email";
+import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
@@ -32,25 +32,9 @@ export async function POST(request: Request) {
       userAgent: userAgent
     });
 
-    // Генерируем код подтверждения
-    const verificationCode = generateVerificationCode();
-    setVerificationCode(user.id, verificationCode);
-
-    // Отправляем email с кодом подтверждения
-    const emailSent = await sendVerificationEmail(email, verificationCode);
-
-    if (!emailSent) {
-      return NextResponse.json({ 
-        success: true, 
-        message: "Аккаунт создан, но не удалось отправить код подтверждения. Свяжитесь с администратором.",
-        verificationSent: false
-      });
-    }
-
     return NextResponse.json({ 
       success: true, 
-      message: "Регистрация прошла успешно. Код подтверждения отправлен на вашу почту.",
-      verificationSent: true
+      message: "Регистрация прошла успешно. Ожидайте подтверждения администратором.",
     });
 
   } catch (error) {

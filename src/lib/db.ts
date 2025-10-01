@@ -64,7 +64,7 @@ export function isEmailOrLoginTaken(email: string, login: string): boolean {
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'verificationCode' | 'verificationCodeExpires' | 'isVerified' | 'emailVerified'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified'>): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -76,10 +76,7 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
         viewConsole: false,
         editPlayers: false,
     },
-    emailVerified: false, // New users have not verified their email
     isVerified: false, // New users are not admin-approved
-    verificationCode: undefined,
-    verificationCodeExpires: undefined
   };
 
   db.users.push(user);
@@ -144,62 +141,4 @@ export async function hashPassword(password: string): Promise<string> {
 // Проверка пароля
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   return await bcrypt.compare(password, hashedPassword);
-}
-
-// 🔐 Функции для подтверждения email
-
-// Генерация кода подтверждения (6 цифр)
-export function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// Сохранение кода подтверждения
-export function setVerificationCode(userId: string, code: string): void {
-  const db = readDB();
-  const user = db.users.find(u => u.id === userId);
-  
-  if (user) {
-    user.verificationCode = code;
-    user.verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 часа
-    user.emailVerified = false; // Reset email verification status on new code
-    writeDB(db);
-  }
-}
-
-// Проверка кода подтверждения
-export function verifyEmailCode(email: string, code: string): boolean {
-  const db = readDB();
-  const user = db.users.find(u => u.email === email);
-  
-  if (user && user.verificationCode === code && user.verificationCodeExpires) {
-    const now = new Date();
-    const expires = new Date(user.verificationCodeExpires);
-    
-    if (now < expires) {
-      user.emailVerified = true; // Only set email verification to true
-      user.verificationCode = undefined;
-      user.verificationCodeExpires = undefined;
-      writeDB(db);
-      return true;
-    }
-  }
-  
-  return false;
-}
-
-// Отправка кода подтверждения повторно
-export function getVerificationCode(email: string): string | null {
-  const db = readDB();
-  const user = db.users.find(u => u.email === email);
-  
-  if (user && user.verificationCode && user.verificationCodeExpires) {
-    const now = new Date();
-    const expires = new Date(user.verificationCodeExpires);
-    
-    if (now < expires) {
-      return user.verificationCode;
-    }
-  }
-  
-  return null;
 }

@@ -24,14 +24,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Проверяем, подтвержден ли email
-    if (!user.emailVerified) {
-        return NextResponse.json(
-            { error: "Ваш email не подтвержден. Пожалуйста, проверьте почту и введите код." },
-            { status: 403 } // Forbidden
-        );
-    }
-    
     // Проверяем, одобрен ли аккаунт администратором
     if (!user.isVerified) {
         return NextResponse.json(

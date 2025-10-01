@@ -1,3 +1,4 @@
+
 {
   "users": [
     {
@@ -14,24 +15,6 @@
         "editPlayers": true
       },
       "isVerified": true
-    },
-    {
-      "id": "1759334701995",
-      "email": "texnuk7@gmail.com",
-      "login": "123123",
-      "password": "$2a$12$sIV.D1ZmhEnFnIla8vs.eu0rEGe2NI.T/dyf9IuXwHJ91u1Mdo1.y",
-      "ip": "127.0.0.1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
-      "createdAt": "2025-10-01T16:05:01.995Z",
-      "lastLogin": "2025-10-01T16:05:01.995Z",
-      "permissions": {
-        "viewConsole": false,
-        "editPlayers": false
-      },
-      "emailVerified": false,
-      "isVerified": false,
-      "verificationCode": "781581",
-      "verificationCodeExpires": "2025-10-02T16:05:01.996Z"
     }
   ]
 }
