@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { updateUser, findUserById, isEmailOrLoginTaken, hashPassword } from "@/lib/db";
+import { updateUser, findUserById, isEmailOrLoginTaken, hashPassword, deleteUser } from "@/lib/db";
 import type { User, UserPermission } from "@/lib/types";
 
 export async function PATCH(
@@ -37,7 +37,8 @@ export async function PATCH(
     }
 
     if (body.login && body.login !== user.login) {
-        if (isEmailOrLoginTaken(user.email, body.login)) {
+        // Check if the new login is taken by ANOTHER user
+        if (isEmailOrLoginTaken(undefined, body.login, userId)) {
             return NextResponse.json({ error: "Этот логин уже занят." }, { status: 400 });
         }
         dataToUpdate.login = body.login;
@@ -58,7 +59,9 @@ export async function PATCH(
        return NextResponse.json({ error: "Не удалось обновить пользователя." }, { status: 500 });
     }
 
-    return NextResponse.json(updatedUser);
+    // Don't send password back
+    const { password, ...userToReturn } = updatedUser;
+    return NextResponse.json(userToReturn);
 
   } catch (error) {
     console.error("Failed to update user:", error);

@@ -59,11 +59,18 @@ export function getAllUsers(): User[] {
 
 
 // Проверка существования email или login
-export function isEmailOrLoginTaken(email: string, login: string): boolean {
+export function isEmailOrLoginTaken(email?: string, login?: string, excludeUserId?: string): boolean {
   const db = readDB();
-  return db.users.some(user => 
-    user.email === email || user.login === login
-  );
+  return db.users.some(user => {
+    // If we're excluding a user, skip them
+    if (excludeUserId && user.id === excludeUserId) {
+      return false;
+    }
+    // Check if email or login matches
+    const emailMatch = email && user.email === email;
+    const loginMatch = login && user.login === login;
+    return !!(emailMatch || loginMatch);
+  });
 }
 
 // Создание пользователя
@@ -131,8 +138,8 @@ export function updateUser(userId: string, data: Partial<User>): User | null {
             ...data
         };
         writeDB(db);
-        const { password, ...updatedUser } = db.users[userIndex];
-        return updatedUser;
+        // Return the full user object, including the hashed password
+        return db.users[userIndex];
     }
     return null;
 }
