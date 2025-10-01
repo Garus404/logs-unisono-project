@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -14,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, User } from "lucide-react";
+import { Logo } from "@/components/icons/logo";
+import { Eye, EyeOff, Shield, Mail, User, AlertTriangle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 async function registerUser(userData: { email: string; login: string; password: string; }) {
@@ -43,7 +43,6 @@ async function loginUser(loginData: { login: string; password: string; }) {
   return result;
 }
 
-
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -51,7 +50,9 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("login");
-  
+  const [verificationSent, setVerificationSent] = React.useState(false);
+  const [pendingEmail, setPendingEmail] = React.useState("");
+
   React.useEffect(() => {
     setError('');
   }, [activeTab]);
@@ -75,11 +76,16 @@ export default function LoginPage() {
 
     try {
       const result = await registerUser({ email, login, password });
-      toast({
-        title: "Регистрация успешна",
-        description: result.message,
-      });
-      setActiveTab("login"); // Switch to login tab after successful registration
+      
+      if (result.verificationSent) {
+        setVerificationSent(true);
+        setPendingEmail(email);
+        toast({
+          title: "Письмо отправлено!",
+          description: "Код подтверждения отправлен на вашу почту. Проверьте Telegram для получения кода.",
+          variant: "default"
+        });
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -108,7 +114,87 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-  
+
+  const handleResendVerification = async () => {
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingEmail })
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Код отправлен повторно!",
+          description: "Новый код подтверждения отправлен в Telegram.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось отправить код",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (verificationSent) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <CheckCircle className="h-12 w-12 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl">Подтвердите почту</CardTitle>
+            <CardDescription>
+              Мы отправили код подтверждения на вашу почту
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 text-center">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Код подтверждения был отправлен в Telegram. 
+                Проверьте сообщения от бота и используйте код для активации аккаунта.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Email: <strong>{pendingEmail}</strong>
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <Button 
+                onClick={() => router.push('/verify-email')}
+                className="w-full"
+              >
+                Перейти к подтверждению
+              </Button>
+              
+              <Button 
+                onClick={handleResendVerification}
+                variant="outline"
+                className="w-full"
+              >
+                Отправить код повторно
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  setVerificationSent(false);
+                  setActiveTab("login");
+                }}
+                variant="ghost"
+                className="w-full"
+              >
+                Вернуться к входу
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
       
@@ -179,6 +265,16 @@ export default function LoginPage() {
                     {loading ? "⏳ Вход..." : "🔐 Войти"}
                   </Button>
                 </form>
+                
+                <div className="mt-4 text-center">
+                  <Button 
+                    variant="link" 
+                    className="text-sm"
+                    onClick={() => router.push('/verify-email')}
+                  >
+                    Подтвердить email?
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
