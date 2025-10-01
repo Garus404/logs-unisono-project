@@ -38,12 +38,12 @@
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-01T16:48:55.200Z",
-      "lastLogin": "2025-10-01T16:48:55.200Z",
+      "lastLogin": "2025-10-01T16:51:00.009Z",
       "permissions": {
         "viewConsole": false,
         "editPlayers": false
       },
-      "isVerified": false
+      "isVerified": true
     }
   ]
 }
