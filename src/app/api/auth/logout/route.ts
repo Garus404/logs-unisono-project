@@ -2,9 +2,26 @@
 import { NextResponse } from "next/server";
 import { findUser, recordLoginHistory } from "@/lib/db";
 
+async function getBody(request: Request) {
+    try {
+        // For sendBeacon, the content type is often text/plain
+        if (request.headers.get('content-type')?.includes('text/plain')) {
+             const text = await request.text();
+             return JSON.parse(text);
+        }
+        return await request.json();
+    } catch (error) {
+        // If JSON parsing fails (e.g., empty body), return null
+        return null;
+    }
+}
+
+
 export async function POST(request: Request) {
   try {
-    const { login } = await request.json();
+    const body = await getBody(request);
+    const login = body?.login;
+    
     const clientIP = request.headers.get('x-forwarded-for') || 
                     request.headers.get('x-real-ip') || 
                     'unknown';

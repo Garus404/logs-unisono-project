@@ -109,7 +109,8 @@ export default function PermissionsPage() {
 
     const fetchUsers = React.useCallback(async () => {
         try {
-            setLoading(true);
+            // Don't set loading to true on refetches
+            // setLoading(true);
             const response = await fetch("/api/users");
             if (!response.ok) {
                 throw new Error("Не удалось загрузить пользователей");
@@ -129,13 +130,9 @@ export default function PermissionsPage() {
 
     React.useEffect(() => {
         fetchUsers();
-    }, [fetchUsers]);
-    
-    // Periodically re-fetch to update online status
-    React.useEffect(() => {
-        const interval = setInterval(() => {
+         const interval = setInterval(() => {
             fetchUsers();
-        }, 60000); // every minute
+        }, 5000); // Poll every 5 seconds
         return () => clearInterval(interval);
     }, [fetchUsers]);
 
@@ -160,10 +157,7 @@ export default function PermissionsPage() {
             if (!response.ok) {
                 throw new Error("Не удалось обновить разрешения");
             }
-            toast({
-                title: "Успешно",
-                description: "Разрешения пользователя обновлены.",
-            });
+            // No toast on success for a smoother real-time experience
         } catch (error: any) {
              toast({
                 variant: "destructive",
@@ -192,10 +186,7 @@ export default function PermissionsPage() {
              if (!response.ok) {
                 throw new Error("Не удалось изменить статус верификации");
             }
-            toast({
-                title: "Успешно",
-                description: `Статус аккаунта изменен на ${value ? '"Одобрен"' : '"Ожидает"'}.`,
-            });
+             // No toast on success
         } catch (error: any) {
             toast({
                 variant: "destructive",
@@ -222,7 +213,7 @@ export default function PermissionsPage() {
                 title: "Успешно",
                 description: "Пользователь был удален.",
             });
-            fetchUsers(); // Refresh the list
+            fetchUsers(); // Refresh the list immediately after deletion
         } catch (error: any) {
              toast({
                 variant: "destructive",
@@ -246,12 +237,17 @@ export default function PermissionsPage() {
         </TableRow>
     )
 
-    const isOnline = (lastLogin: string) => {
-        if (!lastLogin) return false;
-        const lastLoginTime = new Date(lastLogin).getTime();
+    const isOnline = (user: UserForDisplay) => {
+        if (!user.lastLogin) return false;
+        // Check if last login was within the last 5 minutes
+        const lastLoginTime = new Date(user.lastLogin).getTime();
         const currentTime = new Date().getTime();
-        // 5 minutes threshold
-        return (currentTime - lastLoginTime) < 5 * 60 * 1000;
+        if ((currentTime - lastLoginTime) > 5 * 60 * 1000) {
+            return false;
+        }
+        // Check if the last log entry is not a 'logout'
+        const lastLog = user.loginHistory?.[0];
+        return lastLog?.type !== 'logout';
     }
 
     return (
@@ -288,14 +284,14 @@ export default function PermissionsPage() {
                                             Array.from({length: 3}).map((_, i) => <UserRowSkeleton key={i} />)
                                         ) : (
                                             users.map(user => (
-                                                <TableRow key={user.id}>
+                                                <TableRow key={user.id} className={cn(isOnline(user) && "bg-green-500/10")}>
                                                     <TableCell className="font-medium">{user.login}</TableCell>
                                                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                                     <TableCell className="text-muted-foreground font-mono tracking-wider">••••••••</TableCell>
                                                     <TableCell>{user.ip}</TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
-                                                           {isOnline(user.lastLogin) && user.login === currentUser ? 
+                                                           {isOnline(user) ? 
                                                              <><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span>В сети</span></> : 
                                                              <><div className="w-2 h-2 rounded-full bg-gray-500"></div><span className="text-muted-foreground">Не в сети</span></>
                                                            }

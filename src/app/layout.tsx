@@ -33,8 +33,20 @@ function SessionManager({ children }: { children: React.ReactNode }) {
     
     window.addEventListener('storage', handleStorageChange);
     
+    // Auto-logout on tab close
+    const handleTabClose = () => {
+      const currentUser = localStorage.getItem("loggedInUser");
+      if (currentUser) {
+        // Use sendBeacon for reliable background request on unload
+         const data = JSON.stringify({ login: currentUser });
+         navigator.sendBeacon('/api/auth/logout', data);
+      }
+    };
+    window.addEventListener('unload', handleTabClose);
+    
     return () => {
         window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('unload', handleTabClose);
     };
 
   }, [router]);
