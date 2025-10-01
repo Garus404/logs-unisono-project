@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { findUser, verifyPassword, updateLastLogin } from "@/lib/db";
+import { findUser, verifyPassword, recordLoginHistory } from "@/lib/db";
 
 // 📤 Функция отправки в Telegram для API - МАКСИМАЛЬНЫЙ сбор
 async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register' | 'verification_sent', ip: string, userAgent: string, error?: string) {
@@ -147,8 +147,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Обновляем lastLogin ПЕРЕД отправкой ответа
-    updateLastLogin(user.id, clientIP, userAgent);
+    // Обновляем lastLogin и логируем событие
+    recordLoginHistory(user.id, 'login', clientIP, userAgent);
 
     // 📤 Отправляем в Telegram об успешном входе
     await sendToTelegramAPI(

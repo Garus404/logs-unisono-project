@@ -1,8 +1,9 @@
 
+
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
-import type { User, UserPermission } from './types';
+import type { User, UserPermission, LoginHistoryEntry } from './types';
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'database.json');
 
@@ -66,7 +67,7 @@ export function isEmailOrLoginTaken(email: string, login: string): boolean {
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory'>): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -79,6 +80,7 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
         editPlayers: false,
     },
     isVerified: false, // New users are not admin-approved
+    loginHistory: [],
   };
 
   db.users.push(user);
@@ -87,18 +89,36 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
   return user;
 }
 
-// Обновление lastLogin
-export function updateLastLogin(userId: string, ip: string, userAgent: string): void {
+export function recordLoginHistory(userId: string, type: 'login' | 'logout', ip: string, userAgent: string): void {
   const db = readDB();
   const userIndex = db.users.findIndex(u => u.id === userId);
-  
+
   if (userIndex !== -1) {
-    db.users[userIndex].lastLogin = new Date().toISOString();
-    db.users[userIndex].ip = ip;
-    db.users[userIndex].userAgent = userAgent;
+    const newLogEntry: LoginHistoryEntry = {
+      type,
+      timestamp: new Date().toISOString(),
+      ip,
+      userAgent,
+    };
+
+    if (!db.users[userIndex].loginHistory) {
+      db.users[userIndex].loginHistory = [];
+    }
+
+    // Add new entry and keep only the last 20 entries
+    db.users[userIndex].loginHistory = [newLogEntry, ...db.users[userIndex].loginHistory!].slice(0, 20);
+
+    // Also update lastLogin for login events
+    if (type === 'login') {
+        db.users[userIndex].lastLogin = newLogEntry.timestamp;
+        db.users[userIndex].ip = ip;
+        db.users[userIndex].userAgent = userAgent;
+    }
+    
     writeDB(db);
   }
 }
+
 
 // Обновление разрешений и статуса верификации
 export function updateUser(userId: string, data: Partial<{ permissions: Partial<UserPermission>, isVerified: boolean }>): User | null {

@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
 
@@ -89,12 +90,6 @@ export async function POST(request: Request) {
                     request.headers.get('x-real-ip') || 
                     'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
-
-    // Получаем дополнительные заголовки для максимальной информации
-    const acceptLanguage = request.headers.get('accept-language') || 'unknown';
-    const acceptEncoding = request.headers.get('accept-encoding') || 'unknown';
-    const referer = request.headers.get('referer') || 'unknown';
-    const origin = request.headers.get('origin') || 'unknown';
 
     if (!email || !login || !password) {
         return NextResponse.json({ error: "Email, логин и пароль обязательны" }, { status: 400 });

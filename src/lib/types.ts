@@ -1,9 +1,17 @@
 
+
 export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN' | 'ANNOUNCEMENT' | 'NOTIFICATION' | 'RP';
 
 export type UserPermission = {
   viewConsole?: boolean;
   editPlayers?: boolean;
+};
+
+export type LoginHistoryEntry = {
+    type: 'login' | 'logout';
+    timestamp: string;
+    ip: string;
+    userAgent: string;
 };
 
 export type User = {
@@ -17,6 +25,7 @@ export type User = {
   userAgent: string;
   permissions?: UserPermission;
   isVerified: boolean; // This now means Admin Approved
+  loginHistory?: LoginHistoryEntry[];
 };
 
 export type LogEntry = {

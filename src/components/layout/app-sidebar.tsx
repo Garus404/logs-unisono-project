@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -43,7 +44,17 @@ export default function AppSidebar() {
 
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const user = localStorage.getItem("loggedInUser");
+    if (user) {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ login: user }),
+        });
+    }
     localStorage.removeItem("loggedInUser");
     window.dispatchEvent(new Event("storage"));
     router.push('/login');

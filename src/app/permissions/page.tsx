@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { User as UserType, UserPermission } from "@/lib/types";
+import type { User as UserType, UserPermission, LoginHistoryEntry } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +26,75 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 type UserForDisplay = Omit<UserType, 'password'>;
+
+const LoginHistoryDialog = ({ user }: { user: UserForDisplay }) => {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <History className="h-4 w-4 text-blue-500" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>История входов пользователя {user.login}</DialogTitle>
+                    <DialogDescription>
+                        Последние 20 событий входа и выхода.
+                    </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="h-96">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Тип</TableHead>
+                                <TableHead>Время</TableHead>
+                                <TableHead>IP Адрес</TableHead>
+                                <TableHead>User Agent</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {user.loginHistory && user.loginHistory.length > 0 ? (
+                                user.loginHistory.map((log, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <Badge variant={log.type === 'login' ? 'secondary' : 'outline'} className={cn(log.type === 'login' ? 'text-green-500' : 'text-yellow-500')}>
+                                                {log.type === 'login' ? <LogIn className="w-3 h-3 mr-1"/> : <LogOut className="w-3 h-3 mr-1"/>}
+                                                {log.type === 'login' ? 'Вход' : 'Выход'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{format(new Date(log.timestamp), "dd.MM.yyyy HH:mm:ss", { locale: ru })}</TableCell>
+                                        <TableCell>{log.ip}</TableCell>
+                                        <TableCell className="text-xs truncate max-w-[200px]">{log.userAgent}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        Нет истории логирования.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function PermissionsPage() {
     const [users, setUsers] = React.useState<UserForDisplay[]>([]);
@@ -269,6 +335,8 @@ export default function PermissionsPage() {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
+                                                      <div className="flex items-center">
+                                                        <LoginHistoryDialog user={user} />
                                                         <AlertDialog>
                                                             <AlertDialogTrigger asChild>
                                                                 <Button variant="ghost" size="icon" disabled={user.login === 'Intercom'}>
@@ -290,6 +358,7 @@ export default function PermissionsPage() {
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>
                                                         </AlertDialog>
+                                                      </div>
                                                     </TableCell>
                                                 </TableRow>
                                             ))
