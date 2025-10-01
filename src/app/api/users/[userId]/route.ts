@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { updateUser, findUserById, isEmailOrLoginTaken, hashPassword, deleteUser } from "@/lib/db";
+import { updateUser, findUserById, isEmailOrLoginTaken, hashPassword, deleteUser, recordLoginHistory } from "@/lib/db";
 import type { User, UserPermission } from "@/lib/types";
 
 export async function PATCH(
@@ -10,6 +10,8 @@ export async function PATCH(
   try {
     const userId = params.userId;
     const body: { permissions?: Partial<UserPermission>, isVerified?: boolean, login?: string, password?: string } = await request.json();
+    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // In a real app, you'd protect this endpoint
     const user = findUserById(userId);
@@ -34,6 +36,10 @@ export async function PATCH(
     
     if (body.isVerified !== undefined) {
         dataToUpdate.isVerified = body.isVerified;
+        // If access is revoked, log it as a logout event
+        if (body.isVerified === false) {
+             recordLoginHistory(user.id, 'logout', clientIP, `ACCESS_REVOKED_BY_ADMIN: ${userAgent}`);
+        }
     }
 
     if (body.login && body.login !== user.login) {
