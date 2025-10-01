@@ -118,7 +118,6 @@ export default function LoginPage() {
       <div className="flex flex-col items-center gap-6 w-full max-w-sm">
 
         <div className="flex items-center gap-2">
-          <Shield className="w-6 h-6 text-green-500" />
           <Logo className="w-16 h-16" />
         </div>
 
