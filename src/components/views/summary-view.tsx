@@ -29,6 +29,16 @@ const LiveConsole = () => {
     const [logs, setLogs] = React.useState<string[]>([]);
     const scrollAreaRef = React.useRef<HTMLDivElement>(null);
     const [isUserScrolling, setIsUserScrolling] = React.useState(false);
+    const [isAllowed, setIsAllowed] = React.useState(false);
+
+    React.useEffect(() => {
+        // This is a simulation of checking user permissions.
+        // In a real app, this would come from an auth context or a server check.
+        const user = localStorage.getItem('loggedInUser');
+        if (user === 'Intercom') {
+            setIsAllowed(true);
+        }
+    }, []);
 
     React.useEffect(() => {
         setLogs(consoleLogs.slice(0, 20).sort(() => 0.5 - Math.random()));
@@ -108,7 +118,7 @@ const LiveConsole = () => {
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <div className="bg-black/50 rounded-md font-mono text-xs blur-sm">
+            <div className={cn("bg-black/50 rounded-md font-mono text-xs", !isAllowed && "blur-sm")}>
               <ScrollArea
                 className="h-[300px] w-full p-4"
                 ref={scrollAreaRef}
@@ -133,13 +143,15 @@ const LiveConsole = () => {
                 />
               </div>
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md">
-                <Lock className="w-12 h-12 text-yellow-500/80" />
-                <p className="mt-4 text-center font-semibold text-white">
-                Нужны права Тех.Администратора
-                </p>
-                <p className="text-xs text-muted-foreground">Обратитесь к вышестоящему за доступом.</p>
-            </div>
+            {!isAllowed && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md">
+                  <Lock className="w-12 h-12 text-yellow-500/80" />
+                  <p className="mt-4 text-center font-semibold text-white">
+                  Нужны права Тех.Администратора
+                  </p>
+                  <p className="text-xs text-muted-foreground">Обратитесь к вышестоящему за доступом.</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

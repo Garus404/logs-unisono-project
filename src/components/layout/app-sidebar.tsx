@@ -9,6 +9,7 @@ import {
   LogOut,
   Users,
   UserCircle,
+  KeyRound,
 } from "lucide-react";
 import {
   SidebarHeader,
@@ -20,13 +21,23 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons/logo";
 import { Separator } from "../ui/separator";
+import React from 'react';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    // This is a simulation of getting the current user.
+    // In a real app, this would come from a context or a session store.
+    const user = localStorage.getItem('loggedInUser');
+    setCurrentUser(user);
+  }, []);
 
   const handleLogout = () => {
     // In a real app, you'd also clear the user's session/token here.
+    localStorage.removeItem('loggedInUser');
     router.push('/login');
   };
 
@@ -78,6 +89,19 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
+          {currentUser === 'Intercom' && (
+             <SidebarMenuItem>
+               <Link href="/permissions" className="w-full">
+                  <SidebarMenuButton
+                  isActive={pathname === '/permissions'}
+                  tooltip="Управление разрешениями"
+                  >
+                  <KeyRound />
+                  <span>Управление</span>
+                  </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">
@@ -86,7 +110,7 @@ export default function AppSidebar() {
             <SidebarMenuItem>
                 <SidebarMenuButton>
                     <UserCircle />
-                    <span>Админ</span>
+                    <span>{currentUser || 'Гость'}</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>

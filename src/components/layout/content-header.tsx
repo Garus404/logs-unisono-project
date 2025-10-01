@@ -9,6 +9,7 @@ const viewTitles: Record<string, string> = {
     "/dashboard": "Сводка сервера",
     "/players": "Игроки на сервере",
     "/logs": "Все логи",
+    "/permissions": "Управление разрешениями",
 }
 
 export default function ContentHeader() {

