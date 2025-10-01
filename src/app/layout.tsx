@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import React from "react";
 import { useRouter } from "next/navigation";
+import type { User } from "@/lib/types";
 
 const metadata: Metadata = {
   title: "Unisono Logs",
@@ -15,20 +16,20 @@ const metadata: Metadata = {
 // Custom component to handle session and redirection
 function SessionManager({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = React.useState<string | null>(null);
+  const [userLogin, setUserLogin] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
-    setUser(storedUser);
+    setUserLogin(storedUser);
     setLoading(false);
 
-     const handleStorageChange = () => {
-        const updatedUser = localStorage.getItem("loggedInUser");
-        setUser(updatedUser);
-        if (!updatedUser) {
-            router.push('/login');
-        }
+    const handleStorageChange = () => {
+      const updatedUser = localStorage.getItem("loggedInUser");
+      setUserLogin(updatedUser);
+      if (!updatedUser && window.location.pathname !== '/login') {
+        router.push('/login');
+      }
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -37,7 +38,6 @@ function SessionManager({ children }: { children: React.ReactNode }) {
     const handleTabClose = () => {
       const currentUser = localStorage.getItem("loggedInUser");
       if (currentUser) {
-        // Use sendBeacon for reliable background request on unload
          const data = JSON.stringify({ login: currentUser });
          navigator.sendBeacon('/api/auth/logout', data);
       }
@@ -52,10 +52,35 @@ function SessionManager({ children }: { children: React.ReactNode }) {
   }, [router]);
   
   React.useEffect(() => {
-    if (!loading && !user && window.location.pathname !== '/login') {
+    if (!loading && !userLogin && window.location.pathname !== '/login') {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [userLogin, loading, router]);
+  
+  // Real-time verification check
+  React.useEffect(() => {
+    if (!userLogin) return;
+
+    const interval = setInterval(async () => {
+        try {
+            const response = await fetch('/api/users');
+            if (!response.ok) return; // Don't logout on network error
+            
+            const users: User[] = await response.json();
+            const currentUser = users.find(u => u.login === userLogin);
+
+            if (currentUser && !currentUser.isVerified) {
+                // Admin has revoked access
+                localStorage.removeItem("loggedInUser");
+                window.dispatchEvent(new Event("storage")); // Trigger logout on all tabs
+            }
+        } catch (error) {
+            console.error("Failed to check user status:", error);
+        }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [userLogin]);
 
 
   if (loading) {
