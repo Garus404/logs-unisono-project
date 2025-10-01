@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { findUserById, updateUser, deleteUser } from "@/lib/db";
+import { updateUser, findUserById, isEmailOrLoginTaken, hashPassword } from "@/lib/db";
 import type { User, UserPermission } from "@/lib/types";
 
 export async function PATCH(
@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   try {
     const userId = params.userId;
-    const body: { permissions?: Partial<UserPermission>, isVerified?: boolean } = await request.json();
+    const body: { permissions?: Partial<UserPermission>, isVerified?: boolean, login?: string, password?: string } = await request.json();
 
     // In a real app, you'd protect this endpoint
     const user = findUserById(userId);
@@ -20,11 +20,11 @@ export async function PATCH(
       );
     }
     
-    const dataToUpdate: Partial<{ permissions: Partial<UserPermission>, isVerified: boolean }> = {};
+    const dataToUpdate: Partial<User> = {};
     const allowedPermissions: (keyof UserPermission)[] = ['viewConsole', 'editPlayers'];
 
     if (body.permissions) {
-        dataToUpdate.permissions = {};
+        dataToUpdate.permissions = user.permissions || {};
         for (const key in body.permissions) {
             if (allowedPermissions.includes(key as keyof UserPermission)) {
                 dataToUpdate.permissions[key as keyof UserPermission] = body.permissions[key as keyof UserPermission];
@@ -34,6 +34,17 @@ export async function PATCH(
     
     if (body.isVerified !== undefined) {
         dataToUpdate.isVerified = body.isVerified;
+    }
+
+    if (body.login && body.login !== user.login) {
+        if (isEmailOrLoginTaken(user.email, body.login)) {
+            return NextResponse.json({ error: "Этот логин уже занят." }, { status: 400 });
+        }
+        dataToUpdate.login = body.login;
+    }
+    
+    if (body.password) {
+        dataToUpdate.password = await hashPassword(body.password);
     }
 
 

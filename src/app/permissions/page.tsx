@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { User as UserType, UserPermission, LoginHistoryEntry } from "@/lib/types";
+import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,11 +33,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type UserForDisplay = Omit<UserType, 'password'>;
 
@@ -95,6 +99,117 @@ const LoginHistoryDialog = ({ user }: { user: UserForDisplay }) => {
         </Dialog>
     )
 }
+
+const EditUserDialog = ({ user, onUpdate }: { user: UserForDisplay; onUpdate: () => void }) => {
+    const { toast } = useToast();
+    const [login, setLogin] = React.useState(user.login);
+    const [password, setPassword] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    const handleSave = async () => {
+        setIsLoading(true);
+        const dataToUpdate: { login?: string, password?: string } = {};
+
+        if (login && login !== user.login) {
+            dataToUpdate.login = login;
+        }
+        if (password) {
+            dataToUpdate.password = password;
+        }
+
+        if (Object.keys(dataToUpdate).length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Нет изменений',
+                description: 'Вы не изменили ни логин, ни пароль.',
+            });
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${user.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToUpdate),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || 'Не удалось обновить данные');
+            }
+            toast({
+                title: 'Успешно',
+                description: 'Данные пользователя обновлены.',
+            });
+            setPassword(''); // Clear password field
+            onUpdate();
+            setIsOpen(false);
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Ошибка',
+                description: error.message,
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" disabled={user.login === 'Intercom'}>
+                    <Edit className="h-4 w-4 text-primary" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Редактировать пользователя</DialogTitle>
+                    <DialogDescription>
+                        Измените логин или пароль для <span className="font-bold">{user.login}</span>.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="login" className="text-right">
+                            Логин
+                        </Label>
+                        <Input
+                            id="login"
+                            value={login}
+                            onChange={(e) => setLogin(e.target.value)}
+                            className="col-span-3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="password" className="text-right">
+                            Новый пароль
+                        </Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Оставьте пустым, чтобы не менять"
+                            className="col-span-3"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                         <Button type="button" variant="secondary">
+                            Отмена
+                        </Button>
+                    </DialogClose>
+                    <Button onClick={handleSave} disabled={isLoading}>
+                        {isLoading ? 'Сохранение...' : 'Сохранить'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 export default function PermissionsPage() {
     const [users, setUsers] = React.useState<UserForDisplay[]>([]);
@@ -332,6 +447,7 @@ export default function PermissionsPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                       <div className="flex items-center">
+                                                        <EditUserDialog user={user} onUpdate={fetchUsers} />
                                                         <LoginHistoryDialog user={user} />
                                                         <AlertDialog>
                                                             <AlertDialogTrigger asChild>

@@ -120,27 +120,23 @@ export function recordLoginHistory(userId: string, type: 'login' | 'logout', ip:
 }
 
 
-// Обновление разрешений и статуса верификации
-export function updateUser(userId: string, data: Partial<{ permissions: Partial<UserPermission>, isVerified: boolean }>): User | null {
+// Обновление данных пользователя
+export function updateUser(userId: string, data: Partial<User>): User | null {
     const db = readDB();
     const userIndex = db.users.findIndex(u => u.id === userId);
 
     if (userIndex !== -1) {
-        if (data.permissions) {
-            db.users[userIndex].permissions = {
-                ...db.users[userIndex].permissions,
-                ...data.permissions
-            };
-        }
-        if (data.isVerified !== undefined) {
-             db.users[userIndex].isVerified = data.isVerified;
-        }
+        db.users[userIndex] = {
+            ...db.users[userIndex],
+            ...data
+        };
         writeDB(db);
         const { password, ...updatedUser } = db.users[userIndex];
         return updatedUser;
     }
     return null;
 }
+
 
 // Удаление пользователя
 export function deleteUser(userId: string): boolean {
