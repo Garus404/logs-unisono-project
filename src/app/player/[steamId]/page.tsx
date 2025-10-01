@@ -91,7 +91,7 @@ const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { pl
 
     return (
         <Card className="relative">
-            <div className={cn(!isAllowed && "blur-sm pointer-events-none")}>
+            <div className={cn(!isAllowed && "pointer-events-none opacity-50")}>
                 <CardHeader>
                     <CardTitle>Панель администратора</CardTitle>
                 </CardHeader>
@@ -165,7 +165,7 @@ const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { pl
                 </CardContent>
             </div>
              {(!isAllowed || isLoadingPermissions) && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md z-10" onClick={handleInteraction}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-md z-10" onClick={handleInteraction}>
                  {isLoadingPermissions ? (
                      <div className="flex items-center gap-2 text-white">
                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
@@ -575,3 +575,5 @@ export default function PlayerPage() {
         </div>
     );
 }
+
+    
