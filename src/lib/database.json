@@ -1,3 +1,14 @@
 {
-  "users": []
+  "users": [
+    {
+      "id": "1759328389402",
+      "email": "BLACKRUSSIAVIYBOT@GMAIL.COM",
+      "login": "pakemon1",
+      "password": "$2a$12$ydFFvH0iXugnc8kPwVr.euzY6abcDpXp2xsq/o5a5.Txx4AK8Atu6",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-01T14:19:49.402Z",
+      "lastLogin": "2025-10-01T14:22:53.228Z"
+    }
+  ]
 }

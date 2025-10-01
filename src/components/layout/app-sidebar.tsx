@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   BookCopy,
   LayoutDashboard,
@@ -23,6 +23,12 @@ import { Separator } from "../ui/separator";
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // In a real app, you'd also clear the user's session/token here.
+    router.push('/login');
+  };
 
   return (
     <>
@@ -84,7 +90,11 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton variant="outline" className="text-destructive-foreground/80 hover:bg-destructive/80 hover:text-destructive-foreground bg-destructive/90">
+                <SidebarMenuButton 
+                    variant="outline" 
+                    className="text-destructive-foreground/80 hover:bg-destructive/80 hover:text-destructive-foreground bg-destructive/90"
+                    onClick={handleLogout}
+                >
                     <LogOut />
                     <span>Выйти</span>
                 </SidebarMenuButton>
