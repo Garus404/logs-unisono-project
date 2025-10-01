@@ -9,11 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, ShieldOff, User, Globe, Pencil } from "lucide-react";
+import { ShieldCheck, ShieldOff, User, Globe, Pencil, UserCheck, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { User, UserPermission } from "@/lib/types";
+import type { User as UserType, UserPermission } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 
-type UserForDisplay = Omit<User, 'password'>;
+type UserForDisplay = Omit<UserType, 'password'>;
 
 export default function PermissionsPage() {
     const [users, setUsers] = React.useState<UserForDisplay[]>([]);
@@ -58,7 +59,7 @@ export default function PermissionsPage() {
             const response = await fetch(`/api/users/${userId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [permission]: value }),
+                body: JSON.stringify({ permissions: { [permission]: value } }),
             });
 
             if (!response.ok) {
@@ -78,11 +79,43 @@ export default function PermissionsPage() {
             fetchUsers();
         }
     };
+
+    const handleVerificationChange = async (userId: string, value: boolean) => {
+        setUsers(currentUsers =>
+            currentUsers.map(user =>
+                user.id === userId ? { ...user, isVerified: value } : user
+            )
+        );
+
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ isVerified: value }),
+            });
+
+             if (!response.ok) {
+                throw new Error("Не удалось изменить статус верификации");
+            }
+            toast({
+                title: "Успешно",
+                description: `Статус аккаунта изменен на ${value ? '"Подтвержден"' : '"Отклонен"'}.`,
+            });
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Ошибка",
+                description: error.message,
+            });
+            fetchUsers();
+        }
+    };
     
     const UserRowSkeleton = () => (
         <TableRow>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
         </TableRow>
@@ -99,8 +132,8 @@ export default function PermissionsPage() {
                     <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Управление разрешениями</CardTitle>
-                                <CardDescription>Настройте доступ пользователей к различным частям системы.</CardDescription>
+                                <CardTitle>Управление пользователями</CardTitle>
+                                <CardDescription>Настройте доступ и подтверждайте учетные записи.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Table>
@@ -108,6 +141,7 @@ export default function PermissionsPage() {
                                         <TableRow>
                                             <TableHead><User className="inline-block w-4 h-4 mr-2"/>Логин</TableHead>
                                             <TableHead><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
+                                            <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус аккаунта</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Доступ к консоли</TableHead>
                                             <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
                                         </TableRow>
@@ -120,6 +154,19 @@ export default function PermissionsPage() {
                                                 <TableRow key={user.id}>
                                                     <TableCell className="font-medium">{user.login}</TableCell>
                                                     <TableCell>{user.ip}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <Switch
+                                                                id={`verify-access-${user.id}`}
+                                                                checked={user.isVerified || false}
+                                                                onCheckedChange={(value) => handleVerificationChange(user.id, value)}
+                                                                disabled={user.login === 'Intercom'}
+                                                            />
+                                                             <Badge variant={user.isVerified ? 'secondary' : 'destructive'} className={user.isVerified ? "text-green-500" : ""}>
+                                                                {user.isVerified ? "Подтвержден" : "Ожидает"}
+                                                            </Badge>
+                                                        </div>
+                                                    </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                             <Switch

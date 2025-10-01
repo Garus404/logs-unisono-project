@@ -69,7 +69,8 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     permissions: {
         viewConsole: false,
         editPlayers: false,
-    }
+    },
+    isVerified: false, // New users are not verified by default
   };
 
   db.users.push(user);
@@ -91,22 +92,28 @@ export function updateLastLogin(userId: string, ip: string, userAgent: string): 
   }
 }
 
-// Обновление разрешений
-export function updateUserPermissions(userId: string, permissions: Partial<UserPermission>): User | null {
+// Обновление разрешений и статуса верификации
+export function updateUser(userId: string, data: Partial<{ permissions: Partial<UserPermission>, isVerified: boolean }>): User | null {
     const db = readDB();
     const userIndex = db.users.findIndex(u => u.id === userId);
 
     if (userIndex !== -1) {
-        db.users[userIndex].permissions = {
-            ...db.users[userIndex].permissions,
-            ...permissions
-        };
+        if (data.permissions) {
+            db.users[userIndex].permissions = {
+                ...db.users[userIndex].permissions,
+                ...data.permissions
+            };
+        }
+        if (data.isVerified !== undefined) {
+             db.users[userIndex].isVerified = data.isVerified;
+        }
         writeDB(db);
         const { password, ...updatedUser } = db.users[userIndex];
         return updatedUser;
     }
     return null;
 }
+
 
 // Хэширование пароля
 export async function hashPassword(password: string): Promise<string> {

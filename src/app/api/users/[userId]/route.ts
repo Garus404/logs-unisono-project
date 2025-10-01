@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server";
-import { findUserById, updateUserPermissions } from "@/lib/db";
-import type { UserPermission } from "@/lib/types";
+import { findUserById, updateUser } from "@/lib/db";
+import type { User, UserPermission } from "@/lib/types";
 
 export async function PATCH(
   request: Request,
@@ -9,9 +9,9 @@ export async function PATCH(
 ) {
   try {
     const userId = params.userId;
-    const body: Partial<UserPermission> = await request.json();
+    const body: { permissions?: Partial<UserPermission>, isVerified?: boolean } = await request.json();
 
-    // Again, you would protect this in a real app
+    // In a real app, you'd protect this endpoint
     const user = findUserById(userId);
     if (!user) {
       return NextResponse.json(
@@ -20,30 +20,37 @@ export async function PATCH(
       );
     }
     
-    // Allow only specific permissions to be updated
+    const dataToUpdate: Partial<{ permissions: Partial<UserPermission>, isVerified: boolean }> = {};
     const allowedPermissions: (keyof UserPermission)[] = ['viewConsole', 'editPlayers'];
-    const permissionsToUpdate: Partial<UserPermission> = {};
 
-    for (const key in body) {
-        if (allowedPermissions.includes(key as keyof UserPermission)) {
-            permissionsToUpdate[key as keyof UserPermission] = body[key as keyof UserPermission];
+    if (body.permissions) {
+        dataToUpdate.permissions = {};
+        for (const key in body.permissions) {
+            if (allowedPermissions.includes(key as keyof UserPermission)) {
+                dataToUpdate.permissions[key as keyof UserPermission] = body.permissions[key as keyof UserPermission];
+            }
         }
     }
-
-    if (Object.keys(permissionsToUpdate).length === 0) {
-        return NextResponse.json({ error: "Не указаны корректные разрешения для обновления." }, { status: 400 });
+    
+    if (body.isVerified !== undefined) {
+        dataToUpdate.isVerified = body.isVerified;
     }
 
-    const updatedUser = updateUserPermissions(userId, permissionsToUpdate);
+
+    if (Object.keys(dataToUpdate).length === 0) {
+        return NextResponse.json({ error: "Не указаны корректные данные для обновления." }, { status: 400 });
+    }
+
+    const updatedUser = updateUser(userId, dataToUpdate);
 
     if (!updatedUser) {
-       return NextResponse.json({ error: "Не удалось обновить разрешения." }, { status: 500 });
+       return NextResponse.json({ error: "Не удалось обновить пользователя." }, { status: 500 });
     }
 
     return NextResponse.json(updatedUser);
 
   } catch (error) {
-    console.error("Failed to update user permissions:", error);
+    console.error("Failed to update user:", error);
     return NextResponse.json(
       { error: "Внутренняя ошибка сервера." },
       { status: 500 }

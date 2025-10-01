@@ -16,6 +16,7 @@ export type User = {
   ip: string;
   userAgent: string;
   permissions?: UserPermission;
+  isVerified?: boolean;
 };
 
 export type LogEntry = {
