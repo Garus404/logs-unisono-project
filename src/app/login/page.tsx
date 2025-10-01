@@ -13,8 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
-import { Logo } from "@/components/icons/logo";
-import { Eye, EyeOff, Shield, Mail, User, AlertTriangle, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, User, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 async function registerUser(userData: { email: string; login: string; password: string; }) {
@@ -82,9 +81,17 @@ export default function LoginPage() {
         setPendingEmail(email);
         toast({
           title: "Письмо отправлено!",
-          description: "Код подтверждения отправлен на вашу почту. Проверьте Telegram для получения кода.",
+          description: "Код подтверждения отправлен на вашу почту.",
           variant: "default"
         });
+      } else {
+         toast({
+          title: "Аккаунт создан",
+          description: result.message,
+          variant: "default"
+        });
+        setVerificationSent(true);
+        setPendingEmail(email);
       }
     } catch (err: any) {
       setError(err.message);
@@ -122,17 +129,20 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: pendingEmail })
       });
+       const result = await response.json();
       
       if (response.ok) {
         toast({
           title: "Код отправлен повторно!",
-          description: "Новый код подтверждения отправлен в Telegram.",
+          description: result.message,
         });
+      } else {
+         throw new Error(result.error || "Не удалось отправить код");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Ошибка",
-        description: "Не удалось отправить код",
+        description: error.message,
         variant: "destructive"
       });
     }
@@ -154,8 +164,7 @@ export default function LoginPage() {
           <CardContent className="space-y-6 text-center">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Код подтверждения был отправлен в Telegram. 
-                Проверьте сообщения от бота и используйте код для активации аккаунта.
+                Используйте код из письма для активации аккаунта.
               </p>
               <p className="text-xs text-muted-foreground">
                 Email: <strong>{pendingEmail}</strong>

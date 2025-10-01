@@ -1,6 +1,6 @@
 // app/api/auth/verify-email/route.ts
 import { NextResponse } from "next/server";
-import { verifyEmailCode, findUserByEmail } from "@/lib/db";
+import { verifyEmailCode } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {

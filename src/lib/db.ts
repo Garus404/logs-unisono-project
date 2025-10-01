@@ -63,7 +63,7 @@ export function isEmailOrLoginTaken(email: string, login: string): boolean {
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'verificationCode' | 'verificationCodeExpires'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'verificationCode' | 'verificationCodeExpires' | 'isVerified'>): Promise<User> {
   const db = readDB();
   
   const user: User = {
