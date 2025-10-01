@@ -45,14 +45,14 @@ export default function LoginPage() {
               <CardHeader>
                 <CardTitle className="text-2xl">Вход в панель</CardTitle>
                 <CardDescription>
-                  Введите свой SteamID и пароль для доступа.
+                  Введите свой логин и пароль для доступа.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={onFormSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="steamid-login">SteamID</Label>
-                    <Input id="steamid-login" placeholder="STEAM_0:..." required />
+                    <Label htmlFor="login-login">Логин</Label>
+                    <Input id="login-login" placeholder="Ваш логин..." required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password-login">Пароль</Label>
@@ -78,8 +78,8 @@ export default function LoginPage() {
               <CardContent>
                 <form onSubmit={onFormSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="steamid-register">SteamID</Label>
-                    <Input id="steamid-register" placeholder="STEAM_0:..." required />
+                    <Label htmlFor="login-register">Логин</Label>
+                    <Input id="login-register" placeholder="Придумайте логин..." required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password-register">Пароль</Label>
