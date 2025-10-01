@@ -114,10 +114,6 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
       <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-        
-        <div className="flex items-center gap-2">
-          <Logo className="w-16 h-16" />
-        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
