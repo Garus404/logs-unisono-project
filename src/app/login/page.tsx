@@ -42,6 +42,20 @@ async function loginUser(loginData: { login: string; password: string; }) {
   return result;
 }
 
+async function verifyUserEmail(verificationData: { email: string; code: string; }) {
+    const response = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(verificationData)
+    });
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.error || 'Ошибка верификации');
+    }
+    return result;
+}
+
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -49,11 +63,17 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("login");
-  const [verificationSent, setVerificationSent] = React.useState(false);
+  
+  const [showVerification, setShowVerification] = React.useState(false);
   const [pendingEmail, setPendingEmail] = React.useState("");
+  const [verificationCode, setVerificationCode] = React.useState("");
+  const [verificationError, setVerificationError] = React.useState("");
+  const [verificationSuccess, setVerificationSuccess] = React.useState(false);
+
 
   React.useEffect(() => {
     setError('');
+    setVerificationError('');
   }, [activeTab]);
 
   async function handleRegister(event: React.FormEvent<HTMLFormElement>) {
@@ -77,7 +97,7 @@ export default function LoginPage() {
       const result = await registerUser({ email, login, password });
       
       if (result.verificationSent) {
-        setVerificationSent(true);
+        setShowVerification(true);
         setPendingEmail(email);
         toast({
           title: "Письмо отправлено!",
@@ -90,7 +110,7 @@ export default function LoginPage() {
           description: result.message,
           variant: "default"
         });
-        setVerificationSent(true);
+        setShowVerification(true);
         setPendingEmail(email);
       }
     } catch (err: any) {
@@ -116,11 +136,37 @@ export default function LoginPage() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message);
+      if (err.message.includes("подтвержден")) {
+         setError(err.message);
+         setPendingEmail(login); // Assuming login can be email
+         setShowVerification(true);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
   }
+  
+  async function handleVerification(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setVerificationError('');
+
+    try {
+        const result = await verifyUserEmail({ email: pendingEmail, code: verificationCode });
+        setVerificationSuccess(true);
+        toast({
+            title: "Успех!",
+            description: result.message,
+        });
+    } catch (err: any) {
+        setVerificationError(err.message);
+    } finally {
+        setLoading(false);
+    }
+  }
+
 
   const handleResendVerification = async () => {
     try {
@@ -147,38 +193,73 @@ export default function LoginPage() {
       });
     }
   };
+  
+    if (verificationSuccess) {
+         return (
+              <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
+                <Card className="w-full max-w-md">
+                  <CardHeader className="text-center">
+                    <div className="flex justify-center mb-4">
+                      <CheckCircle className="h-12 w-12 text-green-500" />
+                    </div>
+                    <CardTitle className="text-2xl">Email подтвержден!</CardTitle>
+                    <CardDescription>
+                      Теперь ваша учетная запись ожидает одобрения администратором.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6 text-center">
+                      <Button 
+                        onClick={() => {
+                            setVerificationSuccess(false);
+                            setShowVerification(false);
+                            setActiveTab("login");
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Вернуться на страницу входа
+                      </Button>
+                  </CardContent>
+                </Card>
+              </div>
+         )
+    }
 
-  if (verificationSent) {
+  if (showVerification) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <CheckCircle className="h-12 w-12 text-green-500" />
-            </div>
             <CardTitle className="text-2xl">Подтвердите почту</CardTitle>
             <CardDescription>
-              Мы отправили код подтверждения на вашу почту
+              Мы отправили код подтверждения на <strong>{pendingEmail}</strong>.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6 text-center">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Используйте код из письма для активации аккаунта.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Email: <strong>{pendingEmail}</strong>
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <Button 
-                onClick={() => router.push('/verify-email')}
-                className="w-full"
-              >
-                Перейти к подтверждению
-              </Button>
-              
+          <CardContent>
+             {verificationError && (
+                  <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-md mb-4 text-sm">
+                    {verificationError}
+                  </div>
+                )}
+            <form onSubmit={handleVerification} className="space-y-6">
+                <div className="space-y-2">
+                    <Label htmlFor="verification-code">Код подтверждения</Label>
+                    <Input
+                        id="verification-code"
+                        name="code"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder="_ _ _ _ _ _"
+                        required
+                        disabled={loading}
+                        className="text-center tracking-[0.5em] text-lg"
+                    />
+                </div>
+                 <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "⏳ Проверка..." : "Подтвердить"}
+                  </Button>
+            </form>
+            <div className="mt-4 space-y-2">
               <Button 
                 onClick={handleResendVerification}
                 variant="outline"
@@ -186,16 +267,15 @@ export default function LoginPage() {
               >
                 Отправить код повторно
               </Button>
-              
               <Button 
                 onClick={() => {
-                  setVerificationSent(false);
+                  setShowVerification(false);
                   setActiveTab("login");
                 }}
                 variant="ghost"
                 className="w-full"
               >
-                Вернуться к входу
+                Назад
               </Button>
             </div>
           </CardContent>
@@ -274,16 +354,6 @@ export default function LoginPage() {
                     {loading ? "⏳ Вход..." : "🔐 Войти"}
                   </Button>
                 </form>
-                
-                <div className="mt-4 text-center">
-                  <Button 
-                    variant="link" 
-                    className="text-sm"
-                    onClick={() => router.push('/verify-email')}
-                  >
-                    Подтвердить email?
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>

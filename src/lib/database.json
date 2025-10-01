@@ -16,38 +16,22 @@
       "isVerified": true
     },
     {
-      "id": "1759334025535",
+      "id": "1759334477582",
       "email": "texnuk7@gmail.com",
-      "login": "pakemon2",
-      "password": "$2a$12$uFRAHJ9H7WY2P/.AcIIsauSxaYV2mzOJkwtErwNeS0OWpAWN1fQp6",
+      "login": "pakemon22221",
+      "password": "$2a$12$W5QJON5NNuhLgY483U7Yvu4ylIbt/Dtik.x3HjOKHUkvoiEL89NGe",
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
-      "createdAt": "2025-10-01T15:53:45.535Z",
-      "lastLogin": "2025-10-01T15:53:45.535Z",
+      "createdAt": "2025-10-01T16:01:17.582Z",
+      "lastLogin": "2025-10-01T16:01:17.582Z",
       "permissions": {
         "viewConsole": false,
         "editPlayers": false
       },
+      "emailVerified": false,
       "isVerified": false,
-      "verificationCode": "643787",
-      "verificationCodeExpires": "2025-10-02T15:53:45.536Z"
-    },
-    {
-      "id": "1759334213185",
-      "email": "babaidedaTOP@gmail.com",
-      "login": "pakemon222",
-      "password": "$2a$12$c5TpioscRTDMUEE16b00ReE0EAlSB/iJG2EFQJpRrH4CZjR9MLfAS",
-      "ip": "127.0.0.1",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
-      "createdAt": "2025-10-01T15:56:53.185Z",
-      "lastLogin": "2025-10-01T15:56:53.185Z",
-      "permissions": {
-        "viewConsole": false,
-        "editPlayers": false
-      },
-      "isVerified": false,
-      "verificationCode": "825198",
-      "verificationCodeExpires": "2025-10-02T15:56:53.189Z"
+      "verificationCode": "991273",
+      "verificationCodeExpires": "2025-10-02T16:01:17.582Z"
     }
   ]
 }
