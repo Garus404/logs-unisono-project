@@ -320,10 +320,10 @@ export default function PlayerPage() {
     const params = useParams();
     const steamId = params.steamId as string;
     
-    const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+    const [currentUserLogin, setCurrentUserLogin] = React.useState<string | null>(null);
     React.useEffect(() => {
         const user = localStorage.getItem("loggedInUser");
-        setCurrentUser(user);
+        setCurrentUserLogin(user);
     }, []);
 
     const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
@@ -336,35 +336,40 @@ export default function PlayerPage() {
     const storageKey = `player_overrides_${steamId}`;
 
 
-     React.useEffect(() => {
-        const checkPermissions = async () => {
-            if (!currentUser) {
-                setIsAllowed(false);
-                setIsLoadingPermissions(false);
-                return;
+    const checkPermissions = React.useCallback(async () => {
+        if (!currentUserLogin) {
+            setIsAllowed(false);
+            setIsLoadingPermissions(false);
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/users');
+            if (!res.ok) {
+                 setIsAllowed(false);
+                 return;
             }
-            
-            try {
-                const res = await fetch('/api/users');
-                const users: User[] = await res.json();
-                const user = users.find(u => u.login === currentUser);
+            const users: User[] = await res.json();
+            const user = users.find(u => u.login === currentUserLogin);
 
-                if (user?.permissions?.editPlayers) {
-                    setIsAllowed(true);
-                } else {
-                    setIsAllowed(false);
-                }
-
-            } catch (error) {
-                console.error("Failed to check permissions", error);
+            if (user?.permissions?.editPlayers) {
+                setIsAllowed(true);
+            } else {
                 setIsAllowed(false);
-            } finally {
-                setIsLoadingPermissions(false);
             }
-        };
+        } catch (error) {
+            console.error("Failed to check permissions", error);
+            setIsAllowed(false);
+        } finally {
+            setIsLoadingPermissions(false);
+        }
+    }, [currentUserLogin]);
 
-        checkPermissions();
-    }, [currentUser]);
+    React.useEffect(() => {
+        checkPermissions(); // Initial check
+        const interval = setInterval(checkPermissions, 5000); // Re-check every 5 seconds
+        return () => clearInterval(interval);
+    }, [checkPermissions]);
 
     const fetchPlayerDetails = React.useCallback(async (isInitialLoad = false) => {
         if (!steamId) {

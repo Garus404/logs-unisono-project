@@ -31,14 +31,14 @@ const LiveConsole = () => {
     const [isUserScrolling, setIsUserScrolling] = React.useState(false);
     const [isAllowed, setIsAllowed] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
-    const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+    const [currentUserLogin, setCurrentUserLogin] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         const user = localStorage.getItem("loggedInUser");
-        setCurrentUser(user);
+        setCurrentUserLogin(user);
 
         const handleStorageChange = () => {
-            setCurrentUser(localStorage.getItem("loggedInUser"));
+            setCurrentUserLogin(localStorage.getItem("loggedInUser"));
         };
         window.addEventListener('storage', handleStorageChange);
 
@@ -47,43 +47,47 @@ const LiveConsole = () => {
         };
     }, []);
 
-    React.useEffect(() => {
-        const checkPermissions = async () => {
-            if (!currentUser) {
-                setIsAllowed(false);
-                setIsLoading(false);
-                return;
-            }
+    const checkPermissions = React.useCallback(async () => {
+        if (!currentUserLogin) {
+            setIsAllowed(false);
+            setIsLoading(false);
+            return;
+        }
 
-            if (currentUser === 'Intercom') {
+        if (currentUserLogin === 'Intercom') {
+            setIsAllowed(true);
+            setIsLoading(false);
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/users');
+            if (!res.ok) {
+                 setIsAllowed(false);
+                 return;
+            }
+            const users: User[] = await res.json();
+            const user = users.find(u => u.login === currentUserLogin);
+
+            if (user?.permissions?.viewConsole) {
                 setIsAllowed(true);
-                setIsLoading(false);
-                return;
-            }
-            
-            try {
-                // In a real app, you might get the full user object on login
-                // Here, we fetch all users and find the current one.
-                const res = await fetch('/api/users');
-                const users: User[] = await res.json();
-                const user = users.find(u => u.login === currentUser);
-
-                if (user?.permissions?.viewConsole) {
-                    setIsAllowed(true);
-                } else {
-                    setIsAllowed(false);
-                }
-
-            } catch (error) {
-                console.error("Failed to check permissions", error);
+            } else {
                 setIsAllowed(false);
-            } finally {
-                setIsLoading(false);
             }
-        };
+        } catch (error) {
+            console.error("Failed to check permissions", error);
+            setIsAllowed(false);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentUserLogin]);
 
-        checkPermissions();
-    }, [currentUser]);
+
+    React.useEffect(() => {
+        checkPermissions(); // Initial check
+        const interval = setInterval(checkPermissions, 5000); // Re-check every 5 seconds
+        return () => clearInterval(interval);
+    }, [checkPermissions]);
 
     React.useEffect(() => {
         if (!isAllowed || isLoading) return;
