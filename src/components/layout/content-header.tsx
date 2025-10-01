@@ -6,6 +6,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const viewTitles: Record<string, string> = {
     "/": "Сводка сервера",
+    "/dashboard": "Сводка сервера",
     "/players": "Игроки на сервере",
     "/logs": "Все логи",
 }

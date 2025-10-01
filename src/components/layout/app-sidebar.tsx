@@ -40,9 +40,9 @@ export default function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-             <Link href="/" className="w-full">
+             <Link href="/dashboard" className="w-full">
                 <SidebarMenuButton
-                isActive={pathname === '/'}
+                isActive={pathname === '/dashboard' || pathname === '/'}
                 tooltip="Сводка сервера"
                 >
                 <LayoutDashboard />
