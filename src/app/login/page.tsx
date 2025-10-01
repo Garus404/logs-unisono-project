@@ -3,63 +3,102 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
-import { GoogleIcon } from "@/components/icons/google-icon";
+import { Logo } from "@/components/icons/logo";
 
 export default function LoginPage() {
-    const router = useRouter();
+  const router = useRouter();
 
-    function onGoogleSignIn() {
-        console.log("Signing in with Google...");
-        // TODO: Implement actual Firebase Google Auth logic
-        // For now, just redirect to the dashboard on any submission
-        router.push('/dashboard');
-    }
+  // This function will be called on form submission.
+  // For now, it just redirects to the dashboard.
+  function onFormSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    console.log("Form submitted, redirecting...");
+    router.push('/dashboard');
+  }
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-background p-4 font-sans">
-            <div className="w-full max-w-sm mx-auto">
-                <div className="flex flex-col items-center justify-center p-8 border rounded-lg shadow-sm bg-card text-card-foreground">
-                    
-                    <GoogleIcon className="w-8 h-8 mb-4" />
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 font-sans">
+      <div className="flex flex-col items-center gap-6 w-full max-w-sm">
+        
+        <Logo className="w-16 h-16" />
 
-                    <h1 className="text-2xl font-semibold text-center text-foreground">Вход</h1>
-                    <p className="mt-2 text-sm text-center text-muted-foreground">Используйте аккаунт Unisono</p>
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Вход</TabsTrigger>
+            <TabsTrigger value="register">Регистрация</TabsTrigger>
+          </TabsList>
+          
+          {/* Login Tab */}
+          <TabsContent value="login">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Вход в панель</CardTitle>
+                <CardDescription>
+                  Введите свой SteamID и пароль для доступа.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={onFormSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="steamid-login">SteamID</Label>
+                    <Input id="steamid-login" placeholder="STEAM_0:..." required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-login">Пароль</Label>
+                    <Input id="password-login" type="password" required />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Войти
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    <div className="w-full mt-8 space-y-4">
-                        <Button 
-                            onClick={onGoogleSignIn} 
-                            variant="outline" 
-                            className="w-full h-12 text-base"
-                        >
-                            <GoogleIcon className="mr-3" />
-                            Войти через Google
-                        </Button>
-                    </div>
+          {/* Registration Tab */}
+          <TabsContent value="register">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Создать аккаунт</CardTitle>
+                <CardDescription>
+                  Заполните данные для создания нового аккаунта.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={onFormSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="steamid-register">SteamID</Label>
+                    <Input id="steamid-register" placeholder="STEAM_0:..." required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-register">Пароль</Label>
+                    <Input id="password-register" type="password" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-confirm">Подтвердите пароль</Label>
+                    <Input id="password-confirm" type="password" required />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Зарегистрироваться
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-                    <div className="mt-8 text-center">
-                        <a href="#" className="text-sm font-medium text-blue-500 hover:underline">
-                            Создать аккаунт
-                        </a>
-                    </div>
-                </div>
-
-                <div className="flex justify-between items-center mt-8 text-xs text-muted-foreground">
-                    <div className="relative">
-                        <select className="bg-transparent appearance-none pr-6 focus:outline-none">
-                            <option>Русский</option>
-                        </select>
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <path d="M12 16L6 10H18L12 16Z" fill="currentColor"></path>
-                        </svg>
-                    </div>
-                    <div className="flex gap-4">
-                        <a href="#" className="hover:underline">Справка</a>
-                        <a href="#" className="hover:underline">Конфиденциальность</a>
-                        <a href="#" className="hover:underline">Условия</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+      </div>
+    </div>
+  );
 }
