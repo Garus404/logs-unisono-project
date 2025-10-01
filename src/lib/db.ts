@@ -67,7 +67,8 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     createdAt: new Date().toISOString(),
     lastLogin: new Date().toISOString(),
     permissions: {
-        viewConsole: false
+        viewConsole: false,
+        editPlayers: false,
     }
   };
 
@@ -91,7 +92,7 @@ export function updateLastLogin(userId: string, ip: string, userAgent: string): 
 }
 
 // Обновление разрешений
-export function updateUserPermissions(userId: string, permissions: UserPermission): User | null {
+export function updateUserPermissions(userId: string, permissions: Partial<UserPermission>): User | null {
     const db = readDB();
     const userIndex = db.users.findIndex(u => u.id === userId);
 

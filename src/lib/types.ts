@@ -3,6 +3,7 @@ export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN' | 'ANN
 
 export type UserPermission = {
   viewConsole?: boolean;
+  editPlayers?: boolean;
 };
 
 export type User = {

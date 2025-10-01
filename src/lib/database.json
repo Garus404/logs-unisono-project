@@ -11,7 +11,8 @@
       "createdAt": "2025-10-01T14:19:49.402Z",
       "lastLogin": "2025-10-01T14:22:53.228Z",
       "permissions": {
-        "viewConsole": false
+        "viewConsole": false,
+        "editPlayers": false
       }
     },
     {
@@ -22,9 +23,10 @@
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-01T14:26:10.877Z",
-      "lastLogin": "2025-10-01T14:59:19.647Z",
+      "lastLogin": "2025-10-01T15:02:27.283Z",
       "permissions": {
-        "viewConsole": false
+        "viewConsole": false,
+        "editPlayers": false
       }
     },
     {
@@ -35,9 +37,10 @@
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-01T14:55:49.200Z",
-      "lastLogin": "2025-10-01T14:59:35.537Z",
+      "lastLogin": "2025-10-01T15:02:53.939Z",
       "permissions": {
-        "viewConsole": true
+        "viewConsole": true,
+        "editPlayers": true
       }
     }
   ]

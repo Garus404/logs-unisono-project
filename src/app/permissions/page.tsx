@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, ShieldOff, User, Globe } from "lucide-react";
+import { ShieldCheck, ShieldOff, User, Globe, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User, UserPermission } from "@/lib/types";
 
@@ -84,6 +84,7 @@ export default function PermissionsPage() {
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-12" /></TableCell>
         </TableRow>
     )
 
@@ -108,6 +109,7 @@ export default function PermissionsPage() {
                                             <TableHead><User className="inline-block w-4 h-4 mr-2"/>Логин</TableHead>
                                             <TableHead><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Доступ к консоли</TableHead>
+                                            <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -128,6 +130,19 @@ export default function PermissionsPage() {
                                                             />
                                                              <label htmlFor={`console-access-${user.id}`} className="text-sm text-muted-foreground">
                                                                 {user.permissions?.viewConsole ? "Включен" : "Выключен"}
+                                                            </label>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <Switch
+                                                                id={`edit-players-${user.id}`}
+                                                                checked={user.permissions?.editPlayers || false}
+                                                                onCheckedChange={(value) => handlePermissionChange(user.id, 'editPlayers', value)}
+                                                                disabled={user.login === 'Intercom'}
+                                                            />
+                                                             <label htmlFor={`edit-players-${user.id}`} className="text-sm text-muted-foreground">
+                                                                {user.permissions?.editPlayers ? "Включен" : "Выключен"}
                                                             </label>
                                                         </div>
                                                     </TableCell>

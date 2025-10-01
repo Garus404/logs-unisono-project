@@ -21,7 +21,7 @@ export async function PATCH(
     }
     
     // Allow only specific permissions to be updated
-    const allowedPermissions: (keyof UserPermission)[] = ['viewConsole'];
+    const allowedPermissions: (keyof UserPermission)[] = ['viewConsole', 'editPlayers'];
     const permissionsToUpdate: Partial<UserPermission> = {};
 
     for (const key in body) {

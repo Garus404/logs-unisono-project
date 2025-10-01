@@ -1,14 +1,15 @@
+
 "use client";
 
 import * as React from "react";
 import { useRouter, useParams } from 'next/navigation';
-import type { LogEntry, PlayerDetails } from "@/lib/types";
+import type { LogEntry, PlayerDetails, User } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, Fingerprint, RefreshCw, XCircle, PlusCircle } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, Fingerprint, RefreshCw, XCircle, PlusCircle, Lock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +19,8 @@ import { ru } from "date-fns/locale";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+
 
 const donatedProfessionsList = [
     'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор', 'Экзобоец', 
@@ -27,12 +30,29 @@ const donatedProfessionsList = [
 
 type PlayerOverrides = Partial<Pick<PlayerDetails, 'level' | 'money' | 'group' | 'primeLevel' | 'donatedProfessions'>>;
 
-const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: React.Dispatch<React.SetStateAction<PlayerDetails | null>> }) => {
+const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { player: PlayerDetails, setPlayer: React.Dispatch<React.SetStateAction<PlayerDetails | null>>, isAllowed: boolean, isLoadingPermissions: boolean }) => {
     const [levelInput, setLevelInput] = React.useState(player.level.toString());
     const [moneyInput, setMoneyInput] = React.useState(player.money.toString());
     const [selectedDonated, setSelectedDonated] = React.useState(donatedProfessionsList[0]);
+    const { toast } = useToast();
+
+    const handleInteraction = () => {
+        if (!isAllowed) {
+            toast({
+                variant: "destructive",
+                title: "Доступ запрещен",
+                description: "У вас нет прав для изменения профиля игрока.",
+            });
+        }
+    };
+    
+    React.useEffect(() => {
+        setLevelInput(player.level.toString());
+        setMoneyInput(player.money.toString());
+    }, [player.level, player.money]);
 
     const handleLevelChange = (value: string) => {
+        if (!isAllowed) return;
         const numValue = parseInt(value, 10);
         if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
             setPlayer(p => p ? { ...p, level: numValue } : null);
@@ -40,6 +60,7 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
     };
 
     const handleMoneyChange = (value: string) => {
+        if (!isAllowed) return;
         const numValue = parseInt(value, 10);
         if (!isNaN(numValue) && numValue >= 0) {
             setPlayer(p => p ? { ...p, money: numValue } : null);
@@ -47,95 +68,120 @@ const AdminPanel = ({ player, setPlayer }: { player: PlayerDetails, setPlayer: R
     };
     
     const handleAddDonated = () => {
+        if (!isAllowed) { handleInteraction(); return; }
         if (selectedDonated && !player.donatedProfessions.includes(selectedDonated)) {
             setPlayer(p => p ? { ...p, donatedProfessions: [...p.donatedProfessions, selectedDonated] } : null);
         }
     }
 
     const handleRemoveDonated = (profToRemove: string) => {
+        if (!isAllowed) { handleInteraction(); return; }
         setPlayer(p => p ? { ...p, donatedProfessions: p.donatedProfessions.filter(prof => prof !== profToRemove) } : null);
     }
     
     const handleGroupChange = (value: string) => {
+        if (!isAllowed) return;
         setPlayer(p => p ? { ...p, group: value } : null);
     }
     
     const handlePrimeLevelChange = (value: number[]) => {
+        if (!isAllowed) return;
         setPlayer(p => p ? { ...p, primeLevel: value[0] } : null);
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Панель администратора</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="space-y-2">
-                    <Label htmlFor="level-slider">Прайм уровень: {player.primeLevel}</Label>
-                    <Slider
-                        id="level-slider"
-                        min={0}
-                        max={5}
-                        step={1}
-                        value={[player.primeLevel]}
-                        onValueChange={handlePrimeLevelChange}
-                    />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <Card className="relative">
+            <div className={cn(!isAllowed && "blur-sm pointer-events-none")}>
+                <CardHeader>
+                    <CardTitle>Панель администратора</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="level-input">Уровень</Label>
-                        <Input id="level-input" type="number" value={levelInput} onChange={e => setLevelInput(e.target.value)} onBlur={e => handleLevelChange(e.target.value)} />
+                        <Label htmlFor="level-slider">Прайм уровень: {player.primeLevel}</Label>
+                        <Slider
+                            id="level-slider"
+                            min={0}
+                            max={5}
+                            step={1}
+                            value={[player.primeLevel]}
+                            onValueChange={handlePrimeLevelChange}
+                            onPointerDown={handleInteraction}
+                        />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="money-input">Деньги</Label>
-                        <Input id="money-input" type="number" value={moneyInput} onChange={e => setMoneyInput(e.target.value)} onBlur={e => handleMoneyChange(e.target.value)}/>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div className="space-y-2">
+                            <Label htmlFor="level-input">Уровень</Label>
+                            <Input id="level-input" type="number" value={levelInput} onChange={e => setLevelInput(e.target.value)} onBlur={e => handleLevelChange(e.target.value)} onClick={handleInteraction} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="money-input">Деньги</Label>
+                            <Input id="money-input" type="number" value={moneyInput} onChange={e => setMoneyInput(e.target.value)} onBlur={e => handleMoneyChange(e.target.value)} onClick={handleInteraction} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="group-select">Группа</Label>
+                             <Select value={player.group} onValueChange={handleGroupChange} onOpenChange={(open) => open && handleInteraction()}>
+                                <SelectTrigger id="group-select">
+                                    <SelectValue placeholder="Выберите группу" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Игрок">Игрок</SelectItem>
+                                    <SelectItem value="VIP">VIP</SelectItem>
+                                    <SelectItem value="Unisono Light">Unisono Light</SelectItem>
+                                    <SelectItem value="Unisono Plus">Unisono Plus</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="group-select">Группа</Label>
-                         <Select value={player.group} onValueChange={handleGroupChange}>
-                            <SelectTrigger id="group-select">
-                                <SelectValue placeholder="Выберите группу" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Игрок">Игрок</SelectItem>
-                                <SelectItem value="VIP">VIP</SelectItem>
-                                <SelectItem value="Unisono Light">Unisono Light</SelectItem>
-                                <SelectItem value="Unisono Plus">Unisono Plus</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Label>Управление донатными профессиями</Label>
+                        <div className="flex gap-2">
+                             <Select value={selectedDonated} onValueChange={setSelectedDonated} onOpenChange={(open) => open && handleInteraction()}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Выберите профессию"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {donatedProfessionsList.map(prof => (
+                                        <SelectItem key={prof} value={prof} disabled={player.donatedProfessions.includes(prof)}>
+                                            {prof}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button onClick={handleAddDonated} size="icon" variant="outline"><PlusCircle className="w-4 h-4 text-green-500"/></Button>
+                        </div>
+                        {player.donatedProfessions.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2">
+                               {player.donatedProfessions.map(prof => (
+                                   <Badge key={prof} variant="outline" className="text-base py-1 pl-3 pr-2 bg-card border-primary/50 text-primary flex items-center gap-2">
+                                       {prof}
+                                       <button onClick={() => handleRemoveDonated(prof)} className="rounded-full hover:bg-destructive/20 transition-colors">
+                                         <XCircle className="w-4 h-4 text-destructive/80" />
+                                       </button>
+                                   </Badge>
+                               ))}
+                           </div>
+                        )}
                     </div>
-                </div>
-                 <div className="space-y-2">
-                    <Label>Управление донатными профессиями</Label>
-                    <div className="flex gap-2">
-                         <Select value={selectedDonated} onValueChange={setSelectedDonated}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Выберите профессию"/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {donatedProfessionsList.map(prof => (
-                                    <SelectItem key={prof} value={prof} disabled={player.donatedProfessions.includes(prof)}>
-                                        {prof}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={handleAddDonated} size="icon" variant="outline"><PlusCircle className="w-4 h-4 text-green-500"/></Button>
-                    </div>
-                    {player.donatedProfessions.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-2">
-                           {player.donatedProfessions.map(prof => (
-                               <Badge key={prof} variant="outline" className="text-base py-1 pl-3 pr-2 bg-card border-primary/50 text-primary flex items-center gap-2">
-                                   {prof}
-                                   <button onClick={() => handleRemoveDonated(prof)} className="rounded-full hover:bg-destructive/20 transition-colors">
-                                     <XCircle className="w-4 h-4 text-destructive/80" />
-                                   </button>
-                               </Badge>
-                           ))}
-                       </div>
-                    )}
-                </div>
-            </CardContent>
+                </CardContent>
+            </div>
+             {(!isAllowed || isLoadingPermissions) && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md z-10" onClick={handleInteraction}>
+                 {isLoadingPermissions ? (
+                     <div className="flex items-center gap-2 text-white">
+                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                         <span>Проверка разрешений...</span>
+                     </div>
+                 ) : (
+                    <>
+                      <Lock className="w-12 h-12 text-yellow-500/80" />
+                      <p className="mt-4 text-center font-semibold text-white">
+                        Доступ запрещен
+                      </p>
+                      <p className="text-xs text-muted-foreground">Недостаточно прав для редактирования.</p>
+                    </>
+                 )}
+              </div>
+            )}
         </Card>
     );
 };
@@ -278,9 +324,42 @@ export default function PlayerPage() {
     const [loading, setLoading] = React.useState(true);
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [isAllowed, setIsAllowed] = React.useState(false);
+    const [isLoadingPermissions, setIsLoadingPermissions] = React.useState(true);
     
     const storageKey = `player_overrides_${steamId}`;
 
+
+     React.useEffect(() => {
+        const checkPermissions = async () => {
+            const loggedInUserLogin = localStorage.getItem('loggedInUser');
+            if (!loggedInUserLogin) {
+                setIsAllowed(false);
+                setIsLoadingPermissions(false);
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/users');
+                const users: User[] = await res.json();
+                const currentUser = users.find(u => u.login === loggedInUserLogin);
+
+                if (currentUser?.permissions?.editPlayers) {
+                    setIsAllowed(true);
+                } else {
+                    setIsAllowed(false);
+                }
+
+            } catch (error) {
+                console.error("Failed to check permissions", error);
+                setIsAllowed(false);
+            } finally {
+                setIsLoadingPermissions(false);
+            }
+        };
+
+        checkPermissions();
+    }, []);
 
     const fetchPlayerDetails = React.useCallback(async (isInitialLoad = false) => {
         if (!steamId) {
@@ -349,7 +428,7 @@ export default function PlayerPage() {
 
     // Save changes to localStorage
     React.useEffect(() => {
-        if (player && !loading) {
+        if (player && !loading && isAllowed) {
              const overrides: PlayerOverrides = {
                 level: player.level,
                 money: player.money,
@@ -359,7 +438,7 @@ export default function PlayerPage() {
             };
             localStorage.setItem(storageKey, JSON.stringify(overrides));
         }
-    }, [player, loading, storageKey]);
+    }, [player, loading, storageKey, isAllowed]);
 
 
     React.useEffect(() => {
@@ -435,7 +514,7 @@ export default function PlayerPage() {
                         <div className="grid grid-cols-2 gap-4 pt-4">
                             <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} isLoading={isUpdating} skeletonWidth="w-full"/>
                             <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} isLoading={isUpdating} />
-                            <InfoItem icon={User} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} isLoading={isUpdating} />
+                            <InfoItem icon={UserIcon} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} isLoading={isUpdating} />
                             <InfoItem icon={Briefcase} label="Профессия" value={player.profession} isLoading={isUpdating} />
                             <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} isLoading={isUpdating} skeletonWidth="w-1/2"/>
                             <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} isLoading={isUpdating} />
@@ -490,7 +569,7 @@ export default function PlayerPage() {
                         </CardContent>
                     </Card>
 
-                    <AdminPanel player={player} setPlayer={setPlayer} />
+                    <AdminPanel player={player} setPlayer={setPlayer} isAllowed={isAllowed} isLoadingPermissions={isLoadingPermissions} />
                 </div>
             </div>
         </div>
