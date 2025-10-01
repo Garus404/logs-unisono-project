@@ -1,14 +1,15 @@
 // lib/email.ts
 import { Resend } from 'resend';
 
+// Use the provided API key
 const resend = new Resend('re_CiwEifnn_L9Jpbv9SXjd1ZuRym39fQBrJ');
 
 export async function sendVerificationEmail(email: string, verificationCode: string): Promise<boolean> {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'onboarding@resend.dev', // Используем тестовый домен Resend
+      from: 'onboarding@resend.dev', // Use the resend test domain
       to: email,
-      subject: 'Подтверждение email - Ваш код подтверждения',
+      subject: 'Код подтверждения для Unisono Logs',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
           <h2 style="color: #333; text-align: center;">Подтверждение email</h2>

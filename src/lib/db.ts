@@ -1,3 +1,4 @@
+
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
@@ -63,7 +64,7 @@ export function isEmailOrLoginTaken(email: string, login: string): boolean {
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'verificationCode' | 'verificationCodeExpires' | 'isVerified'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'verificationCode' | 'verificationCodeExpires' | 'isVerified' | 'emailVerified'>): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -75,7 +76,8 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
         viewConsole: false,
         editPlayers: false,
     },
-    isVerified: false, // New users are not verified by default
+    emailVerified: false, // New users have not verified their email
+    isVerified: false, // New users are not admin-approved
     verificationCode: undefined,
     verificationCodeExpires: undefined
   };
@@ -159,7 +161,7 @@ export function setVerificationCode(userId: string, code: string): void {
   if (user) {
     user.verificationCode = code;
     user.verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 часа
-    user.isVerified = false;
+    user.emailVerified = false; // Reset email verification status on new code
     writeDB(db);
   }
 }
@@ -174,7 +176,7 @@ export function verifyEmailCode(email: string, code: string): boolean {
     const expires = new Date(user.verificationCodeExpires);
     
     if (now < expires) {
-      user.isVerified = true;
+      user.emailVerified = true; // Only set email verification to true
       user.verificationCode = undefined;
       user.verificationCodeExpires = undefined;
       writeDB(db);

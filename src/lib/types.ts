@@ -16,7 +16,8 @@ export type User = {
   ip: string;
   userAgent: string;
   permissions?: UserPermission;
-  isVerified: boolean;
+  emailVerified: boolean; // New field for email verification status
+  isVerified: boolean; // This now means Admin Approved
   verificationCode?: string;
   verificationCodeExpires?: string;
 };

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, AtSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -111,7 +111,7 @@ export default function PermissionsPage() {
             }
             toast({
                 title: "Успешно",
-                description: `Статус аккаунта изменен на ${value ? '"Подтвержден"' : '"Отклонен"'}.`,
+                description: `Статус аккаунта изменен на ${value ? '"Одобрен"' : '"Ожидает"'}.`,
             });
         } catch (error: any) {
             toast({
@@ -155,6 +155,7 @@ export default function PermissionsPage() {
             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
             <TableCell><Skeleton className="h-5 w-40" /></TableCell>
             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-8 w-8" /></TableCell>
@@ -182,6 +183,7 @@ export default function PermissionsPage() {
                                             <TableHead><User className="inline-block w-4 h-4 mr-2"/>Логин</TableHead>
                                             <TableHead><Mail className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
                                             <TableHead><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
+                                            <TableHead><AtSign className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
                                             <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Консоль</TableHead>
                                             <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
@@ -198,15 +200,20 @@ export default function PermissionsPage() {
                                                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                                     <TableCell>{user.ip}</TableCell>
                                                     <TableCell>
+                                                        <Badge variant={user.emailVerified ? 'secondary' : 'outline'} className={user.emailVerified ? "text-green-500 border-green-500/50" : "text-amber-500 border-amber-500/50"}>
+                                                            {user.emailVerified ? "Подтвержден" : "Не подтвержден"}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <div className="flex items-center gap-2">
                                                             <Switch
                                                                 id={`verify-access-${user.id}`}
                                                                 checked={user.isVerified || false}
                                                                 onCheckedChange={(value) => handleVerificationChange(user.id, value)}
-                                                                disabled={user.login === 'Intercom'}
+                                                                disabled={user.login === 'Intercom' || !user.emailVerified}
                                                             />
                                                              <Badge variant={user.isVerified ? 'secondary' : 'destructive'} className={user.isVerified ? "text-green-500" : ""}>
-                                                                {user.isVerified ? "Подтвержден" : "Ожидает"}
+                                                                {user.isVerified ? "Одобрен" : "Ожидает"}
                                                             </Badge>
                                                         </div>
                                                     </TableCell>
