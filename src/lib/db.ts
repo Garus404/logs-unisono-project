@@ -67,34 +67,8 @@ export function isEmailOrLoginTaken(email?: string, login?: string, excludeUserI
   });
 }
 
-// 🔥 ДОБАВЛЯЕМ: Функция для записи истории экспорта паролей
-export function recordPasswordExportHistory(userId: string, ip: string, userAgent: string, passwordCount: number): void {
-  const db = readDB();
-  const userIndex = db.users.findIndex(u => u.id === userId);
-
-  if (userIndex !== -1) {
-    const exportEntry = {
-      type: 'password_export' as const,
-      timestamp: new Date().toISOString(),
-      ip,
-      userAgent,
-      passwordCount,
-      status: 'success' as const
-    };
-
-    if (!db.users[userIndex].loginHistory) {
-      db.users[userIndex].loginHistory = [];
-    }
-
-    // Добавляем запись об экспорте в историю
-    db.users[userIndex].loginHistory = [exportEntry, ...db.users[userIndex].loginHistory!].slice(0, 20);
-    
-    writeDB(db);
-  }
-}
-
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' | 'passwordExported'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' >): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -109,7 +83,6 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     },
     isVerified: false,
     loginHistory: [],
-    passwordExported: false // 🔥 НОВОЕ ПОЛЕ: отслеживаем был ли экспорт
   };
 
   db.users.push(user);
@@ -160,17 +133,6 @@ export function updateUser(userId: string, data: Partial<User>): User | null {
         return db.users[userIndex];
     }
     return null;
-}
-
-// 🔥 ДОБАВЛЯЕМ: Функция для отметки что пароли были экспортированы
-export function markPasswordsExported(userId: string): void {
-  const db = readDB();
-  const userIndex = db.users.findIndex(u => u.id === userId);
-
-  if (userIndex !== -1) {
-    db.users[userIndex].passwordExported = true;
-    writeDB(db);
-  }
 }
 
 // Удаление пользователя

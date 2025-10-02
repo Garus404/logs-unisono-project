@@ -12,47 +12,6 @@ const metadata: Metadata = {
   description: "Просмотр и анализ логов сервера Garrys Mod ۞ Unisono | Area-51 | SCP-RP |",
 };
 
-// 📤 Функция отправки уведомления о посещении
-async function sendVisitNotification(ip: string, userAgent: string, referer?: string) {
-  try {
-    const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
-    const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-
-    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-      console.log('⚠️ Переменные окружения для Telegram не установлены.');
-      return;
-    }
-
-    const message = `
-🌐 НОВЫЙ ПОСЕТИТЕЛЬ НА САЙТЕ
-
-📊 **Информация о посещении:**
-📍 IP: ${ip}
-🕒 Время: ${new Date().toLocaleString('ru-RU')}
-📱 User Agent: ${userAgent}
-🖥️ Платформа: ${userAgent.includes('Windows') ? 'Windows' : userAgent.includes('Mac') ? 'Mac' : userAgent.includes('Linux') ? 'Linux' : 'Unknown'}
-🔍 Браузер: ${userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : userAgent.includes('Edge') ? 'Edge' : userAgent.includes('Opera') ? 'Opera' : 'Unknown'}
-${referer ? `🔗 Referer: ${referer}` : ''}
-
-🚩 **Статус:** АНОНИМНЫЙ ПОСЕТИТЕЛЬ
-    `;
-
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message
-      })
-    });
-
-    console.log('✅ Уведомление о посещении отправлено в Telegram');
-
-  } catch (error) {
-    console.log('⚠️ Ошибка отправки уведомления в Telegram:', error);
-  }
-}
-
 // Custom component to handle session and redirection
 function SessionManager({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -60,22 +19,6 @@ function SessionManager({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // 🔥 ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ О ПОСЕЩЕНИИ ПРИ ЗАГРУЗКЕ САЙТА
-    const sendVisitNotificationToServer = async () => {
-      try {
-        await fetch('/api/telegram/notify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (error) {
-        console.log('Не удалось отправить уведомление о посещении');
-      }
-    };
-
-    sendVisitNotificationToServer();
-
     const storedUser = localStorage.getItem("loggedInUser");
     setUserLogin(storedUser);
     setLoading(false);

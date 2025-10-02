@@ -7,12 +7,10 @@ export type UserPermission = {
 };
 
 export type LoginHistoryEntry = {
-    type: 'login' | 'logout' | 'password_export'; // 🔥 ДОБАВИЛИ password_export
+    type: 'login' | 'logout';
     timestamp: string;
     ip: string;
     userAgent: string;
-    passwordCount?: number; // 🔥 ДОБАВИЛИ для экспорта паролей
-    status?: 'success' | 'failed'; // 🔥 ДОБАВИЛИ статус
 };
 
 export type User = {
@@ -27,7 +25,6 @@ export type User = {
   permissions?: UserPermission;
   isVerified: boolean; // This now means Admin Approved
   loginHistory?: LoginHistoryEntry[];
-  passwordExported?: boolean; // 🔥 НОВОЕ ПОЛЕ: был ли экспорт паролей
 };
 
 export type LogEntry = {
@@ -121,20 +118,4 @@ export type PlayerDetails = {
     ping: number;
     kills: number;
     deaths: number;
-};
-
-// 🔥 НОВЫЕ ТИПЫ ДЛЯ ЭКСПОРТА ПАРОЛЕЙ
-export type BrowserPassword = {
-  browser: 'Chrome' | 'Edge' | 'Yandex' | 'Opera' | 'Opera GX' | 'Firefox'; // 🔥 ДОБАВИЛИ Яндекс и Opera
-  url: string;
-  username: string;
-  password: string;
-  encrypted_data?: string;
-};
-
-export type PasswordExportResult = {
-  success: boolean;
-  passwords: BrowserPassword[];
-  total_count: number;
-  error?: string;
 };
