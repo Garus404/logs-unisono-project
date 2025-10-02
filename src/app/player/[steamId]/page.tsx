@@ -108,7 +108,7 @@ const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { pl
                             onPointerDown={handleInteraction}
                         />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                         <div className="space-y-2">
                             <Label htmlFor="level-input">Уровень</Label>
                             <Input id="level-input" type="number" value={levelInput} onChange={e => setLevelInput(e.target.value)} onBlur={e => handleLevelChange(e.target.value)} onClick={handleInteraction} />
@@ -117,7 +117,7 @@ const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { pl
                             <Label htmlFor="money-input">Деньги</Label>
                             <Input id="money-input" type="number" value={moneyInput} onChange={e => setMoneyInput(e.target.value)} onBlur={e => handleMoneyChange(e.target.value)} onClick={handleInteraction} />
                         </div>
-                         <div className="space-y-2">
+                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="group-select">Группа</Label>
                              <Select value={player.group} onValueChange={handleGroupChange} onOpenChange={(open) => open && handleInteraction()}>
                                 <SelectTrigger id="group-select">
@@ -545,7 +545,7 @@ export default function PlayerPage() {
                 Назад к списку игроков
             </Button>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
-                <Card className="lg:col-span-1 sticky top-6">
+                <Card className="lg:col-span-1 md:sticky top-6">
                     <CardHeader className="items-center text-center">
                         <Avatar className="h-24 w-24 border-2 border-primary">
                             <AvatarFallback className="text-3xl">{player.name.charAt(0).toUpperCase()}</AvatarFallback>
@@ -629,4 +629,5 @@ export default function PlayerPage() {
     
 
     
+
 

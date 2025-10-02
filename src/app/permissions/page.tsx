@@ -341,9 +341,9 @@ export default function PermissionsPage() {
     const UserRowSkeleton = () => (
         <TableRow>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+            <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
+            <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
+            <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-40" /></TableCell>
             <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
@@ -385,14 +385,14 @@ export default function PermissionsPage() {
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead><User className="inline-block w-4 h-4 mr-2"/>Логин</TableHead>
-                                            <TableHead><Mail className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
-                                            <TableHead><KeySquare className="inline-block w-4 h-4 mr-2"/>Пароль</TableHead>
-                                            <TableHead><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
+                                            <TableHead className="hidden md:table-cell"><Mail className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
+                                            <TableHead className="hidden lg:table-cell"><KeySquare className="inline-block w-4 h-4 mr-2"/>Пароль</TableHead>
+                                            <TableHead className="hidden lg:table-cell"><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
                                             <TableHead><Wifi className="inline-block w-4 h-4 mr-2"/>Статус сети</TableHead>
                                             <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Консоль</TableHead>
-                                            <TableHead><Eye className="inline-block w-4 h-4 mr-2"/>Просмотр игроков</TableHead>
-                                            <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
+                                            <TableHead><Eye className="inline-block w-4 h-4 mr-2"/>Просмотр</TableHead>
+                                            <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт.</TableHead>
                                             <TableHead>Действия</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -403,9 +403,9 @@ export default function PermissionsPage() {
                                             users.map(user => (
                                                 <TableRow key={user.id} className={cn(isOnline(user) && "bg-green-500/10")}>
                                                     <TableCell className="font-medium">{user.login}</TableCell>
-                                                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                                                    <TableCell className="text-muted-foreground font-mono tracking-wider">••••••••</TableCell>
-                                                    <TableCell>{user.ip}</TableCell>
+                                                    <TableCell className="text-muted-foreground hidden md:table-cell">{user.email}</TableCell>
+                                                    <TableCell className="text-muted-foreground font-mono tracking-wider hidden lg:table-cell">••••••••</TableCell>
+                                                    <TableCell className="hidden lg:table-cell">{user.ip}</TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                            {isOnline(user) ? 
@@ -422,7 +422,7 @@ export default function PermissionsPage() {
                                                                 onCheckedChange={(value) => handleVerificationChange(user.id, value)}
                                                                 disabled={user.login === 'Intercom'}
                                                             />
-                                                             <Badge variant={user.isVerified ? 'secondary' : 'destructive'} className={user.isVerified ? "text-green-500" : ""}>
+                                                             <Badge variant={user.isVerified ? 'secondary' : 'destructive'} className={cn("hidden sm:inline-flex", user.isVerified ? "text-green-500" : "")}>
                                                                 {user.isVerified ? "Одобрен" : "Ожидает"}
                                                              </Badge>
                                                         </div>

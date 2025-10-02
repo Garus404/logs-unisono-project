@@ -159,6 +159,7 @@ export default function LoginPage() {
                       required 
                       disabled={loading}
                       autoComplete="username email"
+                      className="text-base"
                     />
                   </div>
                   <div className="space-y-2">
@@ -171,6 +172,7 @@ export default function LoginPage() {
                         required 
                         disabled={loading}
                         autoComplete="current-password"
+                         className="text-base"
                       />
                       <Button
                         type="button"
@@ -222,6 +224,7 @@ export default function LoginPage() {
                       placeholder="Ваш email..." 
                       required 
                       disabled={loading}
+                       className="text-base"
                     />
                   </div>
                   <div className="space-y-2">
@@ -235,6 +238,7 @@ export default function LoginPage() {
                       placeholder="Придумайте логин..." 
                       required 
                       disabled={loading}
+                       className="text-base"
                     />
                   </div>
                   <div className="space-y-2">
@@ -246,6 +250,7 @@ export default function LoginPage() {
                         type={showPassword ? "text" : "password"} 
                         required 
                         disabled={loading}
+                         className="text-base"
                       />
                       <Button
                         type="button"
@@ -266,6 +271,7 @@ export default function LoginPage() {
                       type="password" 
                       required 
                       disabled={loading}
+                       className="text-base"
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
