@@ -262,6 +262,24 @@
       "loginHistory": [
         {
           "type": "logout",
+          "timestamp": "2025-10-02T11:30:10.201Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:29:07.798Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:29:07.130Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
           "timestamp": "2025-10-02T11:26:49.975Z",
           "ip": "127.0.0.1",
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
@@ -285,6 +303,24 @@
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
         }
       ]
+    },
+    {
+      "id": "1759411613809",
+      "email": "dcimbler@gmail.com",
+      "login": "12321",
+      "password": "$2a$12$91bZLVDtlB3zBH4lh3t8q.SFjN9gNgFvHHvP/OOkR2217bzSrjV1u",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-02T13:26:53.809Z",
+      "lastLogin": "2025-10-02T13:26:53.809Z",
+      "permissions": {
+        "viewConsole": false,
+        "editPlayers": false,
+        "viewPlayers": false
+      },
+      "isVerified": false,
+      "loginHistory": [],
+      "passwordExported": false
     }
   ]
 }

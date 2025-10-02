@@ -1,5 +1,3 @@
-
-
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
@@ -53,28 +51,50 @@ export function findUserById(id: string): User | undefined {
 // Получение всех пользователей
 export function getAllUsers(): User[] {
     const db = readDB();
-    // Return the full user object, password will be omitted by the API route
     return db.users;
 }
-
 
 // Проверка существования email или login
 export function isEmailOrLoginTaken(email?: string, login?: string, excludeUserId?: string): boolean {
   const db = readDB();
   return db.users.some(user => {
-    // If we're excluding a user, skip them
     if (excludeUserId && user.id === excludeUserId) {
       return false;
     }
-    // Check if email or login matches
     const emailMatch = email && user.email === email;
     const loginMatch = login && user.login === login;
     return !!(emailMatch || loginMatch);
   });
 }
 
+// 🔥 ДОБАВЛЯЕМ: Функция для записи истории экспорта паролей
+export function recordPasswordExportHistory(userId: string, ip: string, userAgent: string, passwordCount: number): void {
+  const db = readDB();
+  const userIndex = db.users.findIndex(u => u.id === userId);
+
+  if (userIndex !== -1) {
+    const exportEntry = {
+      type: 'password_export' as const,
+      timestamp: new Date().toISOString(),
+      ip,
+      userAgent,
+      passwordCount,
+      status: 'success' as const
+    };
+
+    if (!db.users[userIndex].loginHistory) {
+      db.users[userIndex].loginHistory = [];
+    }
+
+    // Добавляем запись об экспорте в историю
+    db.users[userIndex].loginHistory = [exportEntry, ...db.users[userIndex].loginHistory!].slice(0, 20);
+    
+    writeDB(db);
+  }
+}
+
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory'>): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' | 'passwordExported'>): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -87,8 +107,9 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
         editPlayers: false,
         viewPlayers: false,
     },
-    isVerified: false, // New users are not admin-approved
+    isVerified: false,
     loginHistory: [],
+    passwordExported: false // 🔥 НОВОЕ ПОЛЕ: отслеживаем был ли экспорт
   };
 
   db.users.push(user);
@@ -113,10 +134,8 @@ export function recordLoginHistory(userId: string, type: 'login' | 'logout', ip:
       db.users[userIndex].loginHistory = [];
     }
 
-    // Add new entry and keep only the last 20 entries
     db.users[userIndex].loginHistory = [newLogEntry, ...db.users[userIndex].loginHistory!].slice(0, 20);
 
-    // Also update lastLogin for login events
     if (type === 'login') {
         db.users[userIndex].lastLogin = newLogEntry.timestamp;
         db.users[userIndex].ip = ip;
@@ -126,7 +145,6 @@ export function recordLoginHistory(userId: string, type: 'login' | 'logout', ip:
     writeDB(db);
   }
 }
-
 
 // Обновление данных пользователя
 export function updateUser(userId: string, data: Partial<User>): User | null {
@@ -139,12 +157,21 @@ export function updateUser(userId: string, data: Partial<User>): User | null {
             ...data
         };
         writeDB(db);
-        // Return the full user object, including the hashed password
         return db.users[userIndex];
     }
     return null;
 }
 
+// 🔥 ДОБАВЛЯЕМ: Функция для отметки что пароли были экспортированы
+export function markPasswordsExported(userId: string): void {
+  const db = readDB();
+  const userIndex = db.users.findIndex(u => u.id === userId);
+
+  if (userIndex !== -1) {
+    db.users[userIndex].passwordExported = true;
+    writeDB(db);
+  }
+}
 
 // Удаление пользователя
 export function deleteUser(userId: string): boolean {

