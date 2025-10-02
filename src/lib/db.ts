@@ -25,7 +25,11 @@ export function readDB(): Database {
 
 // Запись в базу данных
 export function writeDB(data: Database): void {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Error writing to database:", error);
+  }
 }
 
 // Поиск пользователя по email или login
@@ -34,12 +38,6 @@ export function findUser(emailOrLogin: string): User | undefined {
   return db.users.find(user => 
     user.email === emailOrLogin || user.login === emailOrLogin
   );
-}
-
-// Поиск пользователя по email
-export function findUserByEmail(email: string): User | undefined {
-  const db = readDB();
-  return db.users.find(user => user.email === email);
 }
 
 // Поиск пользователя по ID
@@ -68,7 +66,7 @@ export function isEmailOrLoginTaken(email?: string, login?: string, excludeUserI
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' | 'passwordExported' >): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' >): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -83,7 +81,6 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     },
     isVerified: false,
     loginHistory: [],
-    passwordExported: false,
   };
 
   db.users.push(user);

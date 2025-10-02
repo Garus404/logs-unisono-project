@@ -377,5 +377,3 @@ export async function GET(
         );
     }
 }
-
-    

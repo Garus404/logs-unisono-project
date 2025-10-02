@@ -43,6 +43,18 @@ function shuffleArray<T>(array: T[]): T[] {
     return array;
 }
 
+function generateRandomPing(): number {
+  return Math.floor(Math.random() * 88) + 27; // 27-114
+}
+
+function generateRealisticKills(score: number, playerIndex: number): number {
+  const baseKills = Math.max(0, Math.floor(score * (0.6 + Math.random() * 0.2)));
+  const positionBonus = Math.floor((100 - playerIndex) * 0.1);
+  const randomVariation = Math.floor(Math.random() * 10) - 5;
+  
+  return Math.max(0, baseKills + positionBonus + randomVariation);
+}
+
 export async function GET() {
   try {
     const { default: gamedig } = await import('gamedig');
@@ -54,14 +66,6 @@ export async function GET() {
       maxAttempts: 2,
       socketTimeout: 3000
     });
-
-    console.log("✅ Сервер ответил через API:");
-    console.log("Игроков онлайн:", state.players.length);
-
-    const averagePing = Math.floor(Math.random() * 31) + 50;
-    
-    const totalPlayTimeSeconds = state.players.reduce((sum, player) => sum + (player.raw?.time || player.time || 0), 0);
-    const totalKills = state.players.reduce((sum, player) => sum + generateRealisticKills(player.raw?.score || 0, state.players.indexOf(player)), 0);
 
     const players = state.players
       .map((player, index) => {
@@ -81,6 +85,15 @@ export async function GET() {
       .filter(player => player.name && player.name.trim() !== '');
 
     const shuffledPlayers = shuffleArray(players);
+
+    const averagePing = players.length > 0
+        ? Math.floor(players.reduce((sum, p) => sum + p.ping, 0) / players.length)
+        : Math.floor(Math.random() * 31) + 50;
+
+    const totalPlayTimeSeconds = players.reduce((sum, player) => sum + player.time, 0);
+    const totalKills = players.reduce((sum, player) => sum + player.kills, 0);
+    
+    const topPlayer = players.length > 0 ? [...players].sort((a, b) => b.time - a.time)[0] : null;
 
     const tags = state.raw?.tags && typeof state.raw.tags === 'string'
       ? state.raw.tags.trim().split(' ').filter(Boolean)
@@ -107,7 +120,7 @@ export async function GET() {
         totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds), // Use same formatter for total session time
         totalKills: totalKills,
         averagePing: averagePing,
-        topPlayer: players.length > 0 ? [...players].sort((a, b) => b.time - a.time)[0] : null
+        topPlayer: topPlayer
       },
       details: {
         version: state.raw?.version,
@@ -134,16 +147,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
-
-function generateRandomPing(): number {
-  return Math.floor(Math.random() * 88) + 27; // 27-114
-}
-
-function generateRealisticKills(score: number, playerIndex: number): number {
-  const baseKills = Math.max(0, Math.floor(score * (0.6 + Math.random() * 0.2)));
-  const positionBonus = Math.floor((100 - playerIndex) * 0.1);
-  const randomVariation = Math.floor(Math.random() * 10) - 5;
-  
-  return Math.max(0, baseKills + positionBonus + randomVariation);
 }

@@ -25,7 +25,6 @@ export type User = {
   permissions?: UserPermission;
   isVerified: boolean; // This now means Admin Approved
   loginHistory?: LoginHistoryEntry[];
-  passwordExported?: boolean;
 };
 
 export type LogEntry = {
