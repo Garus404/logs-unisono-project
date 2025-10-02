@@ -477,7 +477,12 @@ export default function PlayerPage() {
     }, [player, loading, storageKey, canEdit]);
 
 
-    React.useEffect(() => {
+     React.useEffect(() => {
+        if (isLoadingPermissions) {
+            // Wait for permissions to be loaded
+            return;
+        }
+
         if (canView) {
             fetchPlayerDetails(true);
             
@@ -486,8 +491,11 @@ export default function PlayerPage() {
             }, 300000); 
 
             return () => clearInterval(interval);
+        } else {
+            // If user can't view, stop loading and let the AccessDenied component render
+            setLoading(false);
         }
-    }, [fetchPlayerDetails, canView]);
+    }, [fetchPlayerDetails, canView, isLoadingPermissions]);
     
     if (loading || isLoadingPermissions) {
         return <PlayerDetailsSkeleton />;
@@ -621,3 +629,4 @@ export default function PlayerPage() {
     
 
     
+
