@@ -354,7 +354,8 @@ export default function PlayerPage() {
     const [loading, setLoading] = React.useState(true);
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-    const [isAllowed, setIsAllowed] = React.useState(false);
+    const [canView, setCanView] = React.useState(false);
+    const [canEdit, setCanEdit] = React.useState(false);
     const [isLoadingPermissions, setIsLoadingPermissions] = React.useState(true);
     
     const storageKey = `player_overrides_${steamId}`;
@@ -362,7 +363,8 @@ export default function PlayerPage() {
 
     const checkPermissions = React.useCallback(async () => {
         if (!currentUserLogin) {
-            setIsAllowed(false);
+            setCanView(false);
+            setCanEdit(false);
             setIsLoadingPermissions(false);
             return;
         }
@@ -370,20 +372,20 @@ export default function PlayerPage() {
         try {
             const res = await fetch('/api/users');
             if (!res.ok) {
-                 setIsAllowed(false);
+                 setCanView(false);
+                 setCanEdit(false);
                  return;
             }
             const users: User[] = await res.json();
             const user = users.find(u => u.login === currentUserLogin);
 
-            if (user?.permissions?.editPlayers) {
-                setIsAllowed(true);
-            } else {
-                setIsAllowed(false);
-            }
+            setCanView(user?.permissions?.viewPlayers || false);
+            setCanEdit(user?.permissions?.editPlayers || false);
+
         } catch (error) {
             console.error("Failed to check permissions", error);
-            setIsAllowed(false);
+            setCanView(false);
+            setCanEdit(false);
         } finally {
             setIsLoadingPermissions(false);
         }
@@ -462,7 +464,7 @@ export default function PlayerPage() {
 
     // Save changes to localStorage
     React.useEffect(() => {
-        if (player && !loading && isAllowed) {
+        if (player && !loading && canEdit) {
              const overrides: PlayerOverrides = {
                 level: player.level,
                 money: player.money,
@@ -472,24 +474,26 @@ export default function PlayerPage() {
             };
             localStorage.setItem(storageKey, JSON.stringify(overrides));
         }
-    }, [player, loading, storageKey, isAllowed]);
+    }, [player, loading, storageKey, canEdit]);
 
 
     React.useEffect(() => {
-        fetchPlayerDetails(true);
-        
-        const interval = setInterval(() => {
-            fetchPlayerDetails(false);
-        }, 300000); 
+        if (canView) {
+            fetchPlayerDetails(true);
+            
+            const interval = setInterval(() => {
+                fetchPlayerDetails(false);
+            }, 300000); 
 
-        return () => clearInterval(interval);
-    }, [fetchPlayerDetails]);
+            return () => clearInterval(interval);
+        }
+    }, [fetchPlayerDetails, canView]);
     
     if (loading || isLoadingPermissions) {
         return <PlayerDetailsSkeleton />;
     }
 
-    if (!isAllowed) {
+    if (!canView) {
         return <AccessDenied />;
     }
     
@@ -607,7 +611,7 @@ export default function PlayerPage() {
                         </CardContent>
                     </Card>
 
-                    <AdminPanel player={player} setPlayer={setPlayer} isAllowed={isAllowed} isLoadingPermissions={isLoadingPermissions} />
+                    <AdminPanel player={player} setPlayer={setPlayer} isAllowed={canEdit} isLoadingPermissions={isLoadingPermissions} />
                 </div>
             </div>
         </div>

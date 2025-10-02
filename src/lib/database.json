@@ -16,6 +16,12 @@
       "isVerified": true,
       "loginHistory": [
         {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:23:03.885Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
           "type": "login",
           "timestamp": "2025-10-02T11:21:40.483Z",
           "ip": "127.0.0.1",
@@ -126,12 +132,6 @@
         {
           "type": "logout",
           "timestamp": "2025-10-01T17:12:33.962Z",
-          "ip": "127.0.0.1",
-          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
-        },
-        {
-          "type": "logout",
-          "timestamp": "2025-10-01T17:12:04.056Z",
           "ip": "127.0.0.1",
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
         }
@@ -248,17 +248,24 @@
       "id": "1759391375197",
       "email": "BLACKRUSSIAVIPLATYBOT@GMAIL.COM",
       "login": "12312",
-      "password": "$2a$12$Z3xjeVsAFWUpzPWQGq8izuifoh.7wSc/977Hkx.YDtx7jRSZW8Nl6",
+      "password": "$2a$12$7JnYIV6ibyst6QBPxNxlnu3aeAyqEbZbBaL/6V8Usm5AtmWKUujh6",
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
       "createdAt": "2025-10-02T07:49:35.197Z",
-      "lastLogin": "2025-10-02T07:49:35.198Z",
+      "lastLogin": "2025-10-02T11:25:42.331Z",
       "permissions": {
         "viewConsole": false,
         "editPlayers": false
       },
-      "isVerified": false,
-      "loginHistory": []
+      "isVerified": true,
+      "loginHistory": [
+        {
+          "type": "login",
+          "timestamp": "2025-10-02T11:25:42.331Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        }
+      ]
     }
   ]
 }

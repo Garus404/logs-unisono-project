@@ -23,7 +23,7 @@ export async function PATCH(
     }
     
     const dataToUpdate: Partial<User> = {};
-    const allowedPermissions: (keyof UserPermission)[] = ['viewConsole', 'editPlayers'];
+    const allowedPermissions: (keyof UserPermission)[] = ['viewConsole', 'editPlayers', 'viewPlayers'];
 
     if (body.permissions) {
         dataToUpdate.permissions = user.permissions || {};

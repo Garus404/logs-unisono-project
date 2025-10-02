@@ -85,6 +85,7 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     permissions: {
         viewConsole: false,
         editPlayers: false,
+        viewPlayers: false,
     },
     isVerified: false, // New users are not admin-approved
     loginHistory: [],

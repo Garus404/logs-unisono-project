@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -348,6 +348,7 @@ export default function PermissionsPage() {
             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-12" /></TableCell>
             <TableCell><Skeleton className="h-8 w-8" /></TableCell>
         </TableRow>
     )
@@ -390,6 +391,7 @@ export default function PermissionsPage() {
                                             <TableHead><Wifi className="inline-block w-4 h-4 mr-2"/>Статус сети</TableHead>
                                             <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Консоль</TableHead>
+                                            <TableHead><Eye className="inline-block w-4 h-4 mr-2"/>Просмотр игроков</TableHead>
                                             <TableHead><Pencil className="inline-block w-4 h-4 mr-2"/>Редакт. игроков</TableHead>
                                             <TableHead>Действия</TableHead>
                                         </TableRow>
@@ -422,7 +424,7 @@ export default function PermissionsPage() {
                                                             />
                                                              <Badge variant={user.isVerified ? 'secondary' : 'destructive'} className={user.isVerified ? "text-green-500" : ""}>
                                                                 {user.isVerified ? "Одобрен" : "Ожидает"}
-                                                            </Badge>
+                                                             </Badge>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
@@ -431,6 +433,16 @@ export default function PermissionsPage() {
                                                                 id={`console-access-${user.id}`}
                                                                 checked={user.permissions?.viewConsole || false}
                                                                 onCheckedChange={(value) => handlePermissionChange(user.id, 'viewConsole', value)}
+                                                                disabled={user.login === 'Intercom'}
+                                                            />
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center">
+                                                            <Switch
+                                                                id={`view-players-${user.id}`}
+                                                                checked={user.permissions?.viewPlayers || false}
+                                                                onCheckedChange={(value) => handlePermissionChange(user.id, 'viewPlayers', value)}
                                                                 disabled={user.login === 'Intercom'}
                                                             />
                                                         </div>
