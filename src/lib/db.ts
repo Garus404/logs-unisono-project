@@ -68,7 +68,7 @@ export function isEmailOrLoginTaken(email?: string, login?: string, excludeUserI
 }
 
 // Создание пользователя
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' >): Promise<User> {
+export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'lastLogin' | 'isVerified' | 'permissions' | 'loginHistory' | 'passwordExported' >): Promise<User> {
   const db = readDB();
   
   const user: User = {
@@ -83,6 +83,7 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'last
     },
     isVerified: false,
     loginHistory: [],
+    passwordExported: false,
   };
 
   db.users.push(user);
