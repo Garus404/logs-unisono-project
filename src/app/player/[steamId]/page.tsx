@@ -315,6 +315,30 @@ const ActivityLog = ({ logs, isLoading }: { logs: LogEntry[], isLoading: boolean
     );
 }
 
+const AccessDenied = () => (
+    <div className="flex flex-col items-center justify-center min-h-screen text-center p-8">
+        <Card className="max-w-md w-full">
+            <CardHeader>
+                <CardTitle className="text-destructive flex items-center justify-center gap-2">
+                    <Lock className="w-6 h-6"/>
+                    Доступ запрещен
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground mt-2">
+                    У вас нет прав для просмотра профиля этого игрока.
+                    Обратитесь к администратору.
+                </p>
+                <Button onClick={() => window.history.back()} className="mt-6 w-full">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Назад
+                </Button>
+            </CardContent>
+        </Card>
+    </div>
+);
+
+
 export default function PlayerPage() {
     const router = useRouter();
     const params = useParams();
@@ -461,10 +485,14 @@ export default function PlayerPage() {
         return () => clearInterval(interval);
     }, [fetchPlayerDetails]);
     
-    if (loading) {
+    if (loading || isLoadingPermissions) {
         return <PlayerDetailsSkeleton />;
     }
 
+    if (!isAllowed) {
+        return <AccessDenied />;
+    }
+    
     if (error && !player) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen text-center p-8">
@@ -585,5 +613,7 @@ export default function PlayerPage() {
         </div>
     );
 }
+
+    
 
     
