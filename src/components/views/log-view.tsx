@@ -175,9 +175,11 @@ export default function LogView({ filterType }: LogViewProps) {
                 <span className="text-muted-foreground tabular-nums text-xs md:w-[120px]">
                     {format(log.timestamp, "dd MMM, HH:mm:ss", { locale: ru })}
                 </span>
-                <Badge variant={sourceName === '[Система]' ? 'secondary' : 'outline'} className="truncate font-medium md:w-[160px]">
-                    {sourceName}
-                </Badge>
+                 <div className="md:w-[160px] flex-shrink-0">
+                    <Badge variant={sourceName === '[Система]' ? 'secondary' : 'outline'} className="truncate font-medium">
+                        {sourceName}
+                    </Badge>
+                </div>
             </div>
             <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words pl-7 md:pl-0">
                 {log.details}
