@@ -148,18 +148,24 @@ export default function LogView({ filterType }: LogViewProps) {
   const LogItem = ({log}: {log: LogEntry}) => {
     const config = logTypeConfig[log.type] || { icon: Bell, color: "text-gray-500" };
     let Icon = config.icon;
-    let sourceName = log.user ? `${log.user.name}` : '[Система]';
+    let sourceName = log.user?.name || '[Система]';
 
     if (log.type === 'CONNECTION' && log.details.toLowerCase().includes('отключился')) {
         Icon = LogOut;
     }
-     if (log.type === 'KILL' && log.details.toLowerCase().includes('убит падением')) {
+    if (log.type === 'KILL' && log.details.toLowerCase().includes('убит падением')) {
         sourceName = log.user?.name || '[Система]';
     } else if (log.type === 'KILL') {
         sourceName = log.user?.name || '[Система]';
     } else if(log.type === 'DAMAGE') {
-        // For damage, the user is the one receiving damage.
-        sourceName = log.recipient?.name || '[Система]'
+        // For damage, the user is the one receiving damage, not the source.
+        // We find the source from the details string.
+        const match = log.details.match(/от (.+)\.$/);
+        if (match && match[1]) {
+             sourceName = match[1];
+        } else {
+            sourceName = '[Система]'; // Fallback
+        }
     }
 
     return (
