@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit, Eye } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit, Eye, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -384,7 +384,7 @@ export default function PermissionsPage() {
                         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto flex items-center justify-center">
                             <Card className="w-full max-w-md">
                                 <CardHeader>
-                                    <CardTitle>Доступ запрещен</CardTitle>
+                                    <CardTitle className="flex items-center justify-center gap-2 text-destructive"><Lock className="w-5 h-5"/>Доступ запрещен</CardTitle>
                                     <CardDescription>У вас нет прав для просмотра этой страницы.</CardDescription>
                                 </CardHeader>
                             </Card>
@@ -526,5 +526,7 @@ export default function PermissionsPage() {
         </SidebarProvider>
     );
 }
+
+    
 
     
