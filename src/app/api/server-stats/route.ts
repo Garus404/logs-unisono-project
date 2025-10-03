@@ -1,3 +1,8 @@
+export async function GET() {
+  // 🚀 REAL SERVER DATA - UPDATED
+  try {
+    // Получаем реальные данные с сервера
+    const state = await GameDig.query({
 // src/app/api/server-stats/route.ts
 import { NextResponse } from "next/server";
 import { GameDig } from "gamedig";
