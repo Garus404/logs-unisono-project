@@ -40,10 +40,7 @@ const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
         // These modules are not used in server-side rendering and can be ignored
-        config.externals.push({
-            'gamedig': 'commonjs gamedig',
-            'keyv': 'commonjs keyv'
-        });
+        config.externals.push('gamedig', 'keyv');
     }
 
     return config;

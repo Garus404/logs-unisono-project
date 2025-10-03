@@ -1,4 +1,4 @@
-// src/app/api/server-stats/route.ts
+
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,6 @@ function generateDeterministicSteamId(name: string): string {
     return `STEAM_0:${hashPart1}:${hashPart2}`;
 }
 
-// This function now formats session time (shorter durations)
 function formatSessionPlayTime(seconds: number): string {
     if (!seconds || seconds <= 0) return '0м';
 
@@ -57,9 +56,9 @@ function generateRealisticKills(score: number, playerIndex: number): number {
 
 export async function GET() {
   try {
-    const { default: gamedig } = await import('gamedig');
+    const Gamedig = (await import('gamedig')).default;
     
-    const state = await gamedig.query({
+    const state = await Gamedig.query({
       type: 'garrysmod',
       host: '46.174.53.106',
       port: 27015,
@@ -67,9 +66,9 @@ export async function GET() {
       socketTimeout: 3000
     });
 
-    const players = state.players
+    const players = (state.players || [])
       .map((player, index) => {
-          const sessionTimeInSeconds = player.raw?.time || player.time || (Math.random() * (300 * 60 - 10 * 60) + 10 * 60); // Random time if not provided
+          const sessionTimeInSeconds = player.raw?.time || player.time || (Math.random() * (300 * 60 - 10 * 60) + 10 * 60);
           return {
             name: player.name || 'Неизвестный игрок',
             score: player.raw?.score || player.score || 0,
@@ -117,7 +116,7 @@ export async function GET() {
       players: shuffledPlayers,
       statistics: {
         totalPlayers: players.length,
-        totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds), // Use same formatter for total session time
+        totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds),
         totalKills: totalKills,
         averagePing: averagePing,
         topPlayer: topPlayer
