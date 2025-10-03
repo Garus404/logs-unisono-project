@@ -2,7 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverExternalPackages: ['gamedig', 'keyv'],
+  serverExternalPackages: ['gamedig'],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -36,14 +36,6 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
-  },
-   webpack: (config, { isServer }) => {
-    if (isServer) {
-        // These modules are not used in server-side rendering and can be ignored
-        config.externals.push('gamedig', 'keyv');
-    }
-
-    return config;
   },
 };
 

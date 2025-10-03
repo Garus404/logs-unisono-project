@@ -123,9 +123,9 @@ export default function LogView({ filterType }: LogViewProps) {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
         !searchTerm ||
+        (log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
         log.details.toLowerCase().includes(lowerCaseSearch) ||
-        log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
-        log.user?.steamId?.toLowerCase().includes(lowerCaseSearch);
+        log.user?.steamId?.toLowerCase().includes(lowerCaseSearch));
 
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
       
