@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -38,8 +39,8 @@ const nextConfig: NextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-        // Эти пакеты требуются gamedig, но не всегда доступны в бессерверной среде.
-        // Мы указываем webpack не включать их в сборку, а рассматривать как внешние модули.
+        // These packages are required by gamedig but are not always available in a serverless environment.
+        // We instruct webpack to not bundle them and instead treat them as external modules.
         config.externals.push('gamedig', 'keyv');
     }
     return config;
