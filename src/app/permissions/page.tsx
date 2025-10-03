@@ -244,12 +244,18 @@ export default function PermissionsPage() {
     }, [toast]);
 
     React.useEffect(() => {
+        if (currentUser !== 'Intercom') {
+            // If not admin, no need to fetch users.
+            // In a real app you might redirect or show an error.
+            setLoading(false);
+            return;
+        }
         fetchUsers();
          const interval = setInterval(() => {
             fetchUsers();
         }, 5000); // Poll every 5 seconds
         return () => clearInterval(interval);
-    }, [fetchUsers]);
+    }, [fetchUsers, currentUser]);
 
 
     const handlePermissionChange = async (userId: string, permission: keyof UserPermission, value: boolean) => {
@@ -364,6 +370,29 @@ export default function PermissionsPage() {
         // Check if the last log entry is not a 'logout'
         const lastLog = user.loginHistory?.[0];
         return lastLog?.type !== 'logout';
+    }
+
+    if (currentUser !== 'Intercom') {
+        return (
+             <SidebarProvider defaultOpen={true}>
+                <Sidebar>
+                    <AppSidebar />
+                </Sidebar>
+                <SidebarInset>
+                    <div className="flex flex-1 flex-col">
+                        <ContentHeader />
+                        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto flex items-center justify-center">
+                            <Card className="w-full max-w-md">
+                                <CardHeader>
+                                    <CardTitle>Доступ запрещен</CardTitle>
+                                    <CardDescription>У вас нет прав для просмотра этой страницы.</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        </main>
+                    </div>
+                </SidebarInset>
+            </SidebarProvider>
+        )
     }
 
     return (
@@ -497,3 +526,5 @@ export default function PermissionsPage() {
         </SidebarProvider>
     );
 }
+
+    

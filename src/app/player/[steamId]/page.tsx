@@ -368,6 +368,13 @@ export default function PlayerPage() {
             setIsLoadingPermissions(false);
             return;
         }
+
+        if (currentUserLogin === 'Intercom') {
+            setCanView(true);
+            setCanEdit(true);
+            setIsLoadingPermissions(false);
+            return;
+        }
         
         try {
             const res = await fetch('/api/users');
@@ -631,3 +638,6 @@ export default function PlayerPage() {
     
 
 
+
+
+    
