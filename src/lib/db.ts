@@ -3,7 +3,7 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import type { User, UserPermission, LoginHistoryEntry } from './types';
 
-const dbPath = path.join(process.cwd(), 'src', 'lib', 'database.json');
+const dbPath = path.join(process.cwd(), 'database.json');
 
 interface Database {
   users: User[];
