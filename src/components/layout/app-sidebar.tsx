@@ -84,7 +84,7 @@ export default function AppSidebar() {
                 tooltip="Сводка сервера"
                 >
                 <LayoutDashboard />
-                <span>Сводка</span>
+                <span>Ссводка</span>
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
