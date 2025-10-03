@@ -2,7 +2,6 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverExternalPackages: ['gamedig', 'keyv'],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -39,10 +38,8 @@ const nextConfig: NextConfig = {
   },
    webpack: (config, { isServer }) => {
     if (isServer) {
-      // Игнорируем динамические require в gamedig и keyv, чтобы избежать ошибок сборки
-      config.externals.push(
-        /^@keyv\//,
-      );
+      // These packages are problematic with Next.js's bundler, so we exclude them.
+      config.externals.push('gamedig', /^@keyv\//);
     }
     return config;
   },
