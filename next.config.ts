@@ -36,13 +36,6 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-   webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Эти пакеты вызывают проблемы со сборщиком Next.js, поэтому мы их исключаем.
-      config.externals.push('gamedig', /^@keyv\//);
-    }
-    return config;
-  },
 };
 
 export default nextConfig;
