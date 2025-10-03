@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
   },
    webpack: (config, { isServer }) => {
     if (isServer) {
-      // These packages are problematic with Next.js's bundler, so we exclude them.
+      // Эти пакеты вызывают проблемы со сборщиком Next.js, поэтому мы их исключаем.
       config.externals.push('gamedig', /^@keyv\//);
     }
     return config;
