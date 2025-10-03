@@ -3,11 +3,10 @@
 
 import * as React from "react";
 import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Area, AreaChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
@@ -166,10 +165,11 @@ const LiveConsole = () => {
       <Card>
         <CardHeader>
           <CardTitle>Консоль сервера</CardTitle>
+          <CardDescription>Прямая трансляция системных событий и безопасности.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative">
-             <div className={cn("bg-black/50 rounded-md font-mono text-xs", !isAllowed && !isLoading && "blur-sm")}>
+             <div className={cn("bg-black/50 rounded-md font-code text-xs border", !isAllowed && !isLoading && "blur-sm")}>
               <ScrollArea
                 className="h-[300px] w-full p-4"
                 ref={scrollAreaRef}
@@ -186,16 +186,17 @@ const LiveConsole = () => {
                 ))}
               </ScrollArea>
               <div className="relative p-2 border-t border-border">
+                 <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                 <input
                   type="text"
                   placeholder={isAllowed ? "Введите команду..." : "Нужны права для доступа к консоли."}
                   disabled={!isAllowed}
-                  className="w-full bg-transparent pl-8 pr-2 py-1 text-xs text-muted-foreground placeholder:text-yellow-500/60 focus:outline-none focus:ring-0 border-none"
+                  className="w-full bg-transparent pl-8 pr-2 py-1 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0 border-none"
                 />
               </div>
             </div>
             {(!isAllowed || isLoading) && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-md z-10">
                  {isLoading ? (
                      <div className="flex items-center gap-2 text-white">
                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
@@ -230,7 +231,7 @@ export default function SummaryView() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        if (loading === false) setLoading(true);
         // Fetch both data points in parallel
         const [serverRes, activityRes] = await Promise.all([
           fetch('/api/server-stats'),
@@ -273,7 +274,7 @@ export default function SummaryView() {
     
     const updateMoscowTime = () => {
       // Using client-side Date object which is fine for display purposes
-      const moscowTime = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Singapore' });
+      const moscowTime = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setCurrentTime(moscowTime);
     };
 
@@ -307,7 +308,11 @@ export default function SummaryView() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-24" /> :
-              <div className={`text-2xl font-bold ${!serverState || !serverState.server ? 'text-destructive' : 'text-green-400'}`}>
+              <div className={`text-2xl font-bold flex items-center gap-2 ${!serverState || !serverState.server ? 'text-destructive' : 'text-green-400'}`}>
+                 <span className={`relative flex h-3 w-3">
+                    <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", !serverState || !serverState.server ? 'bg-destructive' : 'bg-green-400')}></span>
+                    <span className={cn("relative inline-flex rounded-full h-3 w-3", !serverState || !serverState.server ? 'bg-destructive' : 'bg-green-500')}></span>
+                </span>
                 {!serverState || !serverState.server ? 'Оффлайн' : 'Онлайн'}
               </div>
             }
@@ -338,10 +343,10 @@ export default function SummaryView() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums">
+            <div className="text-2xl font-bold font-code tabular-nums">
               {currentTime || <Skeleton className="h-8 w-28" />}
             </div>
-            <p className="text-xs text-muted-foreground">UTC+8</p>
+            <p className="text-xs text-muted-foreground">UTC+8 (Asia/Singapore)</p>
           </CardContent>
         </Card>
       </div>
@@ -349,7 +354,8 @@ export default function SummaryView() {
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
+            <CardTitle>Активность игроков</CardTitle>
+            <CardDescription>Динамика онлайна за последние 48 часов</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             {loading ? (
@@ -357,72 +363,48 @@ export default function SummaryView() {
                 <Skeleton className="h-full w-full" />
               </div>
             ) : chartData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                <AreaChart
-                  accessibilityLayer
-                  data={chartData}
-                  margin={{
-                    left: 12,
-                    right: 12,
-                  }}
-                >
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted-foreground/20" />
-                  <XAxis
-                    dataKey="time"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value, index) => {
-                       // Show label every 4 ticks to prevent overlap
-                      return index % 4 === 0 ? value : "";
-                    }}
-                  />
-                   <Tooltip
-                    cursor={false}
-                    content={
-                      <ChartTooltipContent
-                        indicator="dot"
-                        labelFormatter={(label, payload) => {
-                          if (payload && payload.length > 0) {
-                              const data = payload[0];
-                              return (
-                                <div>
-                                  <p className="font-bold">{data.value} игроков</p>
-                                  <p className="text-xs text-muted-foreground">в {data.payload.time}</p>
+                <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={chartData}>
+                        <defs>
+                            <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <XAxis
+                            dataKey="time"
+                            stroke="hsl(var(--border))"
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tickFormatter={(value, index) => {
+                                // Show label every 4 ticks to prevent overlap
+                                return index % 4 === 0 ? value : "";
+                            }}
+                        />
+                        <Tooltip
+                            content={({ active, payload, label }) =>
+                            active && payload && payload.length ? (
+                                <div className="rounded-lg border bg-background/80 backdrop-blur-sm p-2 shadow-sm">
+                                <div className="grid grid-cols-1 gap-1">
+                                    <div className="flex flex-col">
+                                        <span className="text-[0.70rem] uppercase text-muted-foreground">Время</span>
+                                        <span className="font-bold text-foreground">{label}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[0.70rem] uppercase text-muted-foreground">Игроки</span>
+                                        <span className="font-bold text-primary">{payload[0].value}</span>
+                                    </div>
                                 </div>
-                              );
-                          }
-                          return null;
-                        }}
-                        hideLabel={true}
-                      />
-                    }
-                  />
-                  <defs>
-                    <linearGradient id="fillPlayers" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="var(--color-players)"
-                        stopOpacity={0.8}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="var(--color-players)"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <Area
-                    dataKey="players"
-                    type="natural"
-                    fill="url(#fillPlayers)"
-                    stroke="var(--color-players)"
-                    strokeWidth={2}
-                    stackId="a"
-                    dot={false}
-                  />
-                </AreaChart>
-              </ChartContainer>
+                                </div>
+                            ) : null
+                            }
+                        />
+                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted-foreground/20" />
+                        <Area type="monotone" dataKey="players" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#fillPlayers)" />
+                    </AreaChart>
+                </ResponsiveContainer>
             ) : (
               <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
                 <p>Не удалось загрузить данные об активности.</p>

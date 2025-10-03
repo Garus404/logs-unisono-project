@@ -10,9 +10,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['"Space Grotesk"', 'sans-serif'],
         body: ['"Space Grotesk"', 'sans-serif'],
         headline: ['"Space Grotesk"', 'sans-serif'],
-        code: ['monospace'],
+        code: ['"Fira Code"', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -67,9 +68,10 @@ export default {
         },
       },
       borderRadius: {
+        xl: `calc(var(--radius) + 4px)`,
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 8px)',
       },
       keyframes: {
         'accordion-down': {

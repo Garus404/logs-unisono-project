@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import Link from 'next/link';
@@ -19,15 +17,18 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons/logo";
 import { Separator } from "../ui/separator";
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [currentUser, setCurrentUser] = React.useState<string | null>(null);
+  const { state } = useSidebar();
   
   React.useEffect(() => {
     const user = localStorage.getItem("loggedInUser");
@@ -64,10 +65,16 @@ export default function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <Logo className="size-8 text-primary" />
-          <div className="flex flex-col">
+      <SidebarHeader className='p-4'>
+        <div className="flex items-center gap-3">
+          <Logo className={cn(
+              "size-9 text-primary transition-all duration-300",
+              state === 'collapsed' && 'size-8'
+          )} />
+          <div className={cn(
+              "flex flex-col transition-opacity duration-200",
+               state === 'collapsed' && 'opacity-0 pointer-events-none'
+            )}>
             <h2 className="text-lg font-semibold tracking-tighter">
               Unisono Logs
             </h2>
@@ -129,7 +136,7 @@ export default function AppSidebar() {
         <Separator className="my-2" />
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton>
+                 <SidebarMenuButton variant="ghost">
                     <UserCircle />
                     <span>{currentUser || 'Гость'}</span>
                 </SidebarMenuButton>
@@ -137,7 +144,7 @@ export default function AppSidebar() {
             <SidebarMenuItem>
                 <SidebarMenuButton 
                     variant="outline" 
-                    className="text-destructive-foreground/80 hover:bg-destructive/80 hover:text-destructive-foreground bg-destructive/90"
+                    className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     onClick={handleLogout}
                 >
                     <LogOut />

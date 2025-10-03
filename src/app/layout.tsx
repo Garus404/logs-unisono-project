@@ -29,18 +29,23 @@ function SessionManager({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [userLogin, setUserLogin] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const isInitialVisit = React.useRef(true);
+
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
     setUserLogin(storedUser);
     setLoading(false);
     
-    const visitMessage = `
-    👤 <b>Новое посещение сайта!</b>
-    <b>User-Agent:</b> ${navigator.userAgent}
-    <b>Время:</b> ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}
-    `;
-    notifyTelegram(visitMessage);
+    if (isInitialVisit.current) {
+        const visitMessage = `
+        👤 <b>Новое посещение сайта!</b>
+        <b>User-Agent:</b> ${navigator.userAgent}
+        <b>Время:</b> ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}
+        `;
+        notifyTelegram(visitMessage);
+        isInitialVisit.current = false;
+    }
 
 
     const handleStorageChange = () => {
@@ -104,7 +109,14 @@ function SessionManager({ children }: { children: React.ReactNode }) {
 
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Загрузка...</div>;
+     return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Logo className="size-16 animate-spin-slow" />
+          <div className="text-muted-foreground">Загрузка интерфейса...</div>
+        </div>
+      </div>
+    );
   }
   
   return <>{children}</>;
@@ -126,8 +138,9 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
           rel="stylesheet"
         />
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body bg-background text-foreground antialiased">
+      <body className="font-sans bg-background text-foreground antialiased">
         <SessionManager>
             {children}
         </SessionManager>
