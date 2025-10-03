@@ -37,6 +37,15 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+   webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Игнорируем динамические require в gamedig и keyv, чтобы избежать ошибок сборки
+      config.externals.push(
+        /^@keyv\//,
+      );
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
