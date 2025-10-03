@@ -2,7 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverExternalPackages: ['gamedig'],
+  serverExternalPackages: ['gamedig', 'keyv'],
   typescript: {
     ignoreBuildErrors: true,
   },
