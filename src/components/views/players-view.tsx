@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import Link from 'next/link';
-import type { ServerStateResponse } from "@/lib/types";
+import type { ServerStateResponse, Player } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,8 +62,20 @@ function PlayerListSkeleton() {
     )
 }
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+
 export default function PlayersView() {
   const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
+  const [shuffledPlayers, setShuffledPlayers] = React.useState<Player[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -92,6 +104,21 @@ export default function PlayersView() {
 
     return () => clearInterval(interval);
   }, []);
+  
+  React.useEffect(() => {
+    if (serverState?.players) {
+        // Initial shuffle
+        setShuffledPlayers(shuffleArray(serverState.players));
+
+        // Shuffle every 2 minutes
+        const shuffleInterval = setInterval(() => {
+            setShuffledPlayers(prevPlayers => shuffleArray(prevPlayers));
+        }, 120000); // 120000 ms = 2 minutes
+
+        return () => clearInterval(shuffleInterval);
+    }
+  }, [serverState?.players]);
+
 
   const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => (
     <div className="flex items-start gap-3">
@@ -108,7 +135,7 @@ export default function PlayersView() {
       <div className="lg:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle>Список игроков ({serverState?.players?.length ?? 0})</CardTitle>
+            <CardTitle>Список игроков ({shuffledPlayers.length ?? 0})</CardTitle>
             <CardDescription>Игроки на сервере в данный момент. Нажмите на игрока, чтобы увидеть детали.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -122,7 +149,7 @@ export default function PlayersView() {
                 </div>
               </div>
             )}
-            {serverState && serverState.players.length > 0 && (
+            {shuffledPlayers.length > 0 && (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -135,7 +162,7 @@ export default function PlayersView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {serverState.players.map((player, index) => (
+                  {shuffledPlayers.map((player, index) => (
                       <TableRow key={player.steamId || `${player.name}-${index}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -281,3 +308,5 @@ export default function PlayersView() {
     </div>
   );
 }
+
+    
