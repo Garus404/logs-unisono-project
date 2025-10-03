@@ -127,9 +127,9 @@ export default function PlayersView() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Игрок</TableHead>
-                    <TableHead className="text-right">Убийства</TableHead>
-                    <TableHead className="text-right">Счет</TableHead>
-                    <TableHead className="text-right">Пинг</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Убийства</TableHead>
+                    <TableHead className="text-right hidden md:table-cell">Счет</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Пинг</TableHead>
                     <TableHead className="text-right">Время в игре</TableHead>
                     <TableHead className="text-right">Действия</TableHead>
                   </TableRow>
@@ -145,19 +145,19 @@ export default function PlayersView() {
                             <span className="font-medium">{player.name}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="text-right tabular-nums hidden sm:table-cell">
                           <div className="flex items-center justify-end gap-2">
                             <Skull className="w-4 h-4 text-red-400" />
                             {player.kills || 0}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="text-right tabular-nums hidden md:table-cell">
                           <div className="flex items-center justify-end gap-2">
                             <Trophy className="w-4 h-4 text-amber-400" />
                             {player.score}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="text-right tabular-nums hidden sm:table-cell">
                             <div className="flex items-center justify-end gap-2">
                                 <Signal className="w-4 h-4 text-sky-400"/>
                                 {player.ping}

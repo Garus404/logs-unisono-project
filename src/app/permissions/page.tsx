@@ -343,7 +343,7 @@ export default function PermissionsPage() {
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
             <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
-            <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-40" /></TableCell>
+            <TableCell className="hidden xl:table-cell"><Skeleton className="h-5 w-40" /></TableCell>
             <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
             <TableCell><Skeleton className="h-6 w-12" /></TableCell>
@@ -387,7 +387,7 @@ export default function PermissionsPage() {
                                             <TableHead><User className="inline-block w-4 h-4 mr-2"/>Логин</TableHead>
                                             <TableHead className="hidden md:table-cell"><Mail className="inline-block w-4 h-4 mr-2"/>Email</TableHead>
                                             <TableHead className="hidden lg:table-cell"><KeySquare className="inline-block w-4 h-4 mr-2"/>Пароль</TableHead>
-                                            <TableHead className="hidden lg:table-cell"><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
+                                            <TableHead className="hidden xl:table-cell"><Globe className="inline-block w-4 h-4 mr-2"/>IP адрес</TableHead>
                                             <TableHead><Wifi className="inline-block w-4 h-4 mr-2"/>Статус сети</TableHead>
                                             <TableHead><UserCheck className="inline-block w-4 h-4 mr-2"/>Статус</TableHead>
                                             <TableHead><ShieldCheck className="inline-block w-4 h-4 mr-2"/>Консоль</TableHead>
@@ -405,7 +405,7 @@ export default function PermissionsPage() {
                                                     <TableCell className="font-medium">{user.login}</TableCell>
                                                     <TableCell className="text-muted-foreground hidden md:table-cell">{user.email}</TableCell>
                                                     <TableCell className="text-muted-foreground font-mono tracking-wider hidden lg:table-cell">••••••••</TableCell>
-                                                    <TableCell className="hidden lg:table-cell">{user.ip}</TableCell>
+                                                    <TableCell className="hidden xl:table-cell">{user.ip}</TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                            {isOnline(user) ? 
