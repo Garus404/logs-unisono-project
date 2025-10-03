@@ -4,7 +4,7 @@
 import * as React from "react";
 import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -225,6 +225,7 @@ export default function SummaryView() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [currentTime, setCurrentTime] = React.useState<string>("");
+  const [chartData, setChartData] = React.useState<PlayerActivity[]>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -247,13 +248,13 @@ export default function SummaryView() {
            throw new Error('Ошибка при получении активности игроков');
         }
         const activityData: PlayerActivity[] = await activityRes.json();
-        setActivity(activityData);
+        setChartData(activityData);
 
         setError(null);
       } catch (e: any) {
         setError(e.message);
         setServerState(null);
-        setActivity([]);
+        setChartData([]);
       } finally {
         setLoading(false);
       }
@@ -306,8 +307,8 @@ export default function SummaryView() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-24" /> :
-              <div className={`text-2xl font-bold ${!serverState ? 'text-destructive' : 'text-green-400'}`}>
-                {!serverState ? 'Оффлайн' : 'Онлайн'}
+              <div className={`text-2xl font-bold ${!serverState || !serverState.server ? 'text-destructive' : 'text-green-400'}`}>
+                {!serverState || !serverState.server ? 'Оффлайн' : 'Онлайн'}
               </div>
             }
             <div className="text-xs text-muted-foreground">
@@ -323,7 +324,7 @@ export default function SummaryView() {
           <CardContent>
              {loading ? <Skeleton className="h-8 w-20" /> :
                 <div className="text-2xl font-bold">
-                    {serverState ? `${serverState.server.online} / ${serverState.server.maxplayers}` : '0 / 0'}
+                    {serverState?.server ? `${serverState.server.online} / ${serverState.server.maxplayers}` : '0 / 0'}
                 </div>
              }
             <div className="text-xs text-muted-foreground">
@@ -351,16 +352,15 @@ export default function SummaryView() {
             <CardTitle>Активность игроков (Последние 48 часов)</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            {loading && (
+            {loading ? (
               <div className="h-[300px] w-full flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
               </div>
-            )}
-            {!loading && activity.length > 0 && (
+            ) : chartData.length > 0 ? (
               <ChartContainer config={chartConfig} className="h-[300px] w-full">
                 <AreaChart
                   accessibilityLayer
-                  data={activity}
+                  data={chartData}
                   margin={{
                     left: 12,
                     right: 12,
@@ -372,15 +372,26 @@ export default function SummaryView() {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 5)}
+                    tickFormatter={(value, index) => {
+                       // Show label every 4 ticks to prevent overlap
+                      return index % 4 === 0 ? value : "";
+                    }}
                   />
-                  <ChartTooltip
+                   <Tooltip
                     cursor={true}
                     content={
                       <ChartTooltipContent
                         indicator="line"
-                        labelFormatter={(label, payload) => {
-                          return `${payload[0]?.payload.time}`;
+                        labelFormatter={(_, payload) => {
+                          if (payload && payload.length > 0) {
+                              const data = payload[0].payload;
+                              return (
+                                <div>
+                                  <p>{data.time}</p>
+                                </div>
+                              );
+                          }
+                          return null;
                         }}
                       />
                     }
@@ -409,8 +420,7 @@ export default function SummaryView() {
                   />
                 </AreaChart>
               </ChartContainer>
-            )}
-            {!loading && activity.length === 0 && !error && (
+            ) : (
               <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
                 <p>Не удалось загрузить данные об активности.</p>
               </div>

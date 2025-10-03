@@ -463,7 +463,7 @@ const hardcodedLogs: Partial<LogEntry>[] = [
   { timestamp: new Date('2024-07-25T17:38:00'), type: 'CHAT', user: findUser('Егор Кидалов'), details: '[OOC] нет' },
   { timestamp: new Date('2024-07-25T17:38:00'), type: 'RP', user: findUser('Алекс Тролген'), details: '[СКО] [VIP] Образец Хищник ломает ворота к.с Хищника 4/5' },
   { timestamp: new Date('2024-07-25T17:38:00'), type: 'CHAT', user: findUser('Галим Вискарь'), details: '[OOC] надо еще доказать что бинд есть' },
-  { timestamp: new Date('2024-07-25T17:37:00'), type: 'ANNOUNCEMENT', user: findUser('Валера Святославович'), details: '[CO] О.Маска желает заключить контракт с КМ но не может вылезти норма' },
+  { timestamp: new Date('2024-07-25T17:37:00'), type: 'ANNOUNCEMENT', user: findUser('Валера Святославович'), details: '[CO] О.Маска желает заключить контракт с КМ' },
   { timestamp: new Date('2024-07-25T17:37:00'), type: 'CHAT', user: findUser('Каэдэ Чан'), details: '[OOC] какой тебе бинд МАЛЬЧИК' },
   { timestamp: new Date('2024-07-25T17:37:00'), type: 'CHAT', user: findUser('Rin Hanasaku'), details: '[OOC] это наказуемо' },
   { timestamp: new Date('2024-07-25T17:37:00'), type: 'CHAT', user: findUser('Rin Hanasaku'), details: '[OOC] Нельзя использовать бинды на взятие ролей' },
@@ -895,10 +895,10 @@ export const historicalLogs: LogEntry[] = generateHistoricalLogs(new Date('2024-
 
 
 // Mock data for player activity chart
-export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 24 }, (_, i) => {
+export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 48 }, (_, i) => {
     const d = new Date();
-    // Go back in 2-hour increments over 48 hours
-    d.setHours(new Date().getHours() - (i * 2));
+    // Go back in 1-hour increments over 48 hours
+    d.setHours(new Date().getHours() - i);
     d.setMinutes(0);
     d.setSeconds(0);
     d.setMilliseconds(0);
@@ -907,12 +907,12 @@ export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 24 }, (
     let players;
 
     // Simulate day/night cycle
-    if (hour > 1 && hour < 8) { // Deep night
+    if (hour > 2 && hour < 9) { // Deep night (Asia/Singapore UTC+8 is +5 from Moscow)
         players = Math.floor(Math.random() * 10) + 5; // 5-14 players
-    } else if (hour >= 8 && hour < 15) { // Morning/Day
-        players = Math.floor(Math.random() * 20) + 15; // 15-34 players
+    } else if (hour >= 9 && hour < 16) { // Morning/Day
+        players = Math.floor(Math.random() * 20) + 20; // 20-39 players
     } else { // Peak hours (evening)
-        players = Math.floor(Math.random() * 25) + 30; // 30-54 players
+        players = Math.floor(Math.random() * 25) + 35; // 35-59 players
     }
     
     return {
@@ -983,4 +983,3 @@ export const consoleLogs: string[] = [
     "AUTH: Multiple failed RCON login attempts from 77.88.55.22.",
     "FIREWALL: IP 77.88.55.22 has been permanently banned from RCON access.",
 ];
-
