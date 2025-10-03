@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -48,7 +47,6 @@ const logTypeConfig: Record<LogType, { label: string; icon: React.ElementType, c
   RP: { label: "Действие", icon: Fingerprint, color: "text-lime-400" },
 };
 
-
 interface LogViewProps {
   filterType?: LogType;
 }
@@ -62,10 +60,8 @@ export default function LogView({ filterType }: LogViewProps) {
   const [players, setPlayers] = React.useState<Player[]>([]);
 
   React.useEffect(() => {
-    // Simulate fetching historical data and players
     setIsLoading(true);
     
-    // In a real app, you'd fetch players. Here we'll use a subset from the logs.
     const uniquePlayers = Array.from(new Set(historicalLogs.map(l => l.user?.name).filter(Boolean)))
       .map(name => ({
         name: name as string,
@@ -79,7 +75,6 @@ export default function LogView({ filterType }: LogViewProps) {
       }));
     setPlayers(uniquePlayers);
     
-    // Sort logs once on load
     const sortedLogs = [...historicalLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     setLogs(sortedLogs);
     setIsLoading(false);
@@ -88,7 +83,6 @@ export default function LogView({ filterType }: LogViewProps) {
   React.useEffect(() => {
     if (isLoading || players.length === 0) return;
 
-    // Only add new logs in real-time if the user is viewing today's logs
     if (date && !isSameDay(date, new Date())) {
         return;
     }
@@ -106,11 +100,10 @@ export default function LogView({ filterType }: LogViewProps) {
         }
         addLogs(newLog);
 
-    }, 3000 + Math.random() * 4000); // Add a new log every 3-7 seconds
+    }, 3000 + Math.random() * 4000);
 
     return () => clearInterval(interval);
   }, [isLoading, players, date]);
-
 
   React.useEffect(() => {
     setTypeFilter(filterType || "all");
@@ -123,9 +116,9 @@ export default function LogView({ filterType }: LogViewProps) {
       const lowerCaseSearch = searchTerm.toLowerCase();
       const searchMatch =
         !searchTerm ||
-        (log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
+        log.user?.name.toLowerCase().includes(lowerCaseSearch) ||
         log.details.toLowerCase().includes(lowerCaseSearch) ||
-        log.user?.steamId?.toLowerCase().includes(lowerCaseSearch)) ?? log.details.toLowerCase().includes(lowerCaseSearch);
+        log.user?.steamId?.toLowerCase().includes(lowerCaseSearch);
 
       const typeMatch = typeFilter === "all" || log.type === typeFilter;
       
@@ -158,7 +151,6 @@ export default function LogView({ filterType }: LogViewProps) {
     } else if (log.type === 'KILL') {
         sourceName = log.user?.name || '[Система]';
     } else if(log.type === 'DAMAGE') {
-        // For damage, the user is the one receiving damage.
         sourceName = log.recipient?.name || '[Система]'
     }
 
@@ -271,5 +263,3 @@ export default function LogView({ filterType }: LogViewProps) {
     </div>
   );
 }
-
-    
