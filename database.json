@@ -17,6 +17,12 @@
       "loginHistory": [
         {
           "type": "logout",
+          "timestamp": "2025-10-03T20:13:59.565Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
           "timestamp": "2025-10-03T19:21:04.459Z",
           "ip": "127.0.0.1",
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
@@ -126,12 +132,6 @@
         {
           "type": "login",
           "timestamp": "2025-10-03T18:26:35.662Z",
-          "ip": "127.0.0.1",
-          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
-        },
-        {
-          "type": "logout",
-          "timestamp": "2025-10-03T18:06:16.551Z",
           "ip": "127.0.0.1",
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
         }

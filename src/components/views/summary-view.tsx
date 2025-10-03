@@ -366,7 +366,7 @@ export default function SummaryView() {
                     right: 12,
                   }}
                 >
-                  <CartesianGrid vertical={false} />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted-foreground/20" />
                   <XAxis
                     dataKey="time"
                     tickLine={false}
@@ -378,21 +378,23 @@ export default function SummaryView() {
                     }}
                   />
                    <Tooltip
-                    cursor={true}
+                    cursor={false}
                     content={
                       <ChartTooltipContent
-                        indicator="line"
-                        labelFormatter={(_, payload) => {
+                        indicator="dot"
+                        labelFormatter={(label, payload) => {
                           if (payload && payload.length > 0) {
-                              const data = payload[0].payload;
+                              const data = payload[0];
                               return (
                                 <div>
-                                  <p>{data.time}</p>
+                                  <p className="font-bold">{data.value} игроков</p>
+                                  <p className="text-xs text-muted-foreground">в {data.payload.time}</p>
                                 </div>
                               );
                           }
                           return null;
                         }}
+                        hideLabel={true}
                       />
                     }
                   />
@@ -414,9 +416,10 @@ export default function SummaryView() {
                     dataKey="players"
                     type="natural"
                     fill="url(#fillPlayers)"
-                    fillOpacity={0.4}
                     stroke="var(--color-players)"
+                    strokeWidth={2}
                     stackId="a"
+                    dot={false}
                   />
                 </AreaChart>
               </ChartContainer>
