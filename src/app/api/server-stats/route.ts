@@ -1,6 +1,5 @@
-// src/app/api/server-stats/route.ts
+
 import { NextResponse } from "next/server";
-import { GameDig } from "gamedig";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +15,7 @@ function simpleHash(str: string): number {
 }
 
 function generateDeterministicSteamId(name: string): string {
-    const hashPart1 = simpleHash(name + 'salt1') % 2;
+    const hashPart1 = simpleHash(name + 'salt1') % 2; // 0 or 1
     const hashPart2 = simpleHash(name + 'salt2') % 100000000;
     return `STEAM_0:${hashPart1}:${hashPart2}`;
 }
@@ -44,7 +43,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 function generateRandomPing(): number {
-  return Math.floor(Math.random() * 88) + 27;
+  return Math.floor(Math.random() * 88) + 27; // 27-114
 }
 
 function generateRealisticKills(score: number, playerIndex: number): number {
@@ -57,64 +56,76 @@ function generateRealisticKills(score: number, playerIndex: number): number {
 
 export async function GET() {
   try {
-    // ФИКСИМ GAMEDIG НАХУЙ
-    const state = await GameDig.query({
+    const Gamedig = (await import('gamedig')).default;
+    
+    const state = await Gamedig.query({
       type: 'garrysmod',
       host: '46.174.53.106',
       port: 27015,
-      timeout: 15000
+      maxAttempts: 2,
+      socketTimeout: 3000
     });
 
-    // БЕРЁМ РЕАЛЬНЫЕ ДАННЫЕ С СЕРВЕРА
-    const players = state.players.map((player, index) => {
-      const sessionTimeInSeconds = Math.random() * (300 * 60 - 10 * 60) + 10 * 60;
-      const score = Math.floor(Math.random() * 200);
-      
-      return {
-        name: player.name || `Player${index + 1}`,
-        score: score,
-        kills: generateRealisticKills(score, index),
-        time: sessionTimeInSeconds,
-        timeFormatted: formatSessionPlayTime(sessionTimeInSeconds),
-        ping: player.ping || generateRandomPing(),
-        timeHours: Math.round((sessionTimeInSeconds / 3600) * 10) / 10,
-        steamId: generateDeterministicSteamId(player.name || `Player${index + 1}`),
-      };
-    });
+    const players = (state.players || [])
+      .map((player, index) => {
+          const sessionTimeInSeconds = player.raw?.time || player.time || (Math.random() * (300 * 60 - 10 * 60) + 10 * 60);
+          return {
+            name: player.name || 'Неизвестный игрок',
+            score: player.raw?.score || player.score || 0,
+            kills: generateRealisticKills(player.raw?.score || 0, index),
+            time: sessionTimeInSeconds, 
+            timeFormatted: formatSessionPlayTime(sessionTimeInSeconds),
+            ping: generateRandomPing(),
+            timeHours: Math.round((sessionTimeInSeconds / 3600) * 10) / 10,
+            steamId: player.raw?.steamid || generateDeterministicSteamId(player.name || `player_${index}`),
+            raw: player.raw,
+        }
+      })
+      .filter(player => player.name && player.name.trim() !== '');
 
-    const shuffledPlayers = shuffleArray([...players]);
+    const shuffledPlayers = shuffleArray(players);
+
+    const averagePing = players.length > 0
+        ? Math.floor(players.reduce((sum, p) => sum + p.ping, 0) / players.length)
+        : Math.floor(Math.random() * 31) + 50;
+
     const totalPlayTimeSeconds = players.reduce((sum, player) => sum + player.time, 0);
     const totalKills = players.reduce((sum, player) => sum + player.kills, 0);
-    const averagePing = Math.floor(players.reduce((sum, player) => sum + player.ping, 0) / players.length);
+    
+    const topPlayer = players.length > 0 ? [...players].sort((a, b) => b.time - a.time)[0] : null;
+
+    const tags = state.raw?.tags && typeof state.raw.tags === 'string'
+      ? state.raw.tags.trim().split(' ').filter(Boolean)
+      : [];
 
     return NextResponse.json({
       server: {
         name: state.name,
         map: state.map,
-        game: 'Garry\'s Mod',
+        game: state.raw?.game || 'Garry\'s Mod',
         maxplayers: state.maxplayers,
-        online: state.players.length,
-        serverPing: 55
+        online: players.length,
+        serverPing: state.ping || 0
       },
       connection: {
-        ip: '46.174.53.106',
+        ip: state.connect,
         port: 27015,
-        protocol: 17,
-        secure: true
+        protocol: state.raw?.protocol,
+        secure: state.raw?.secure === 1
       },
       players: shuffledPlayers,
       statistics: {
-        totalPlayers: state.players.length,
+        totalPlayers: players.length,
         totalPlayTime: formatSessionPlayTime(totalPlayTimeSeconds),
         totalKills: totalKills,
         averagePing: averagePing,
-        topPlayer: players.length > 0 ? [...players].sort((a, b) => b.time - a.time)[0] : null
+        topPlayer: topPlayer
       },
       details: {
-        version: '2025.03.26',
-        environment: 'Linux',
-        tags: ['gm:darkrp', 'gmws:248302805', 'gmc:rp', 'loc:ru', 'ver:250723'],
-        steamId: '85568392923430335'
+        version: state.raw?.version,
+        environment: state.raw?.environment === 'l' ? 'Linux' : 'Windows',
+        tags: tags,
+        steamId: state.raw?.steamid
       },
       timestamp: new Date().toISOString(),
       cache: {
@@ -123,13 +134,14 @@ export async function GET() {
       }
     });
 
-  } catch (error) {
-    console.error("❌ GAMEDIG ERROR:", error);
-    // ЕСЛИ GAMEDIG ПАДАЕТ - ВОЗВРАЩАЕМ ОШИБКУ ЧТОБЫ ФРОНТ ВИДЕЛ
+  } catch (err: any) {
+    console.error("❌ Ошибка API:", err);
     return NextResponse.json(
       { 
-        error: "Сервер недоступен",
-        message: error.message 
+        error: "Сервер не отвечает",
+        details: err.message,
+        timestamp: new Date().toISOString(),
+        suggestion: "Попробуйте обновить страницу через 30 секунд"
       },
       { status: 500 }
     );
