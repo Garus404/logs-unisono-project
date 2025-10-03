@@ -12,6 +12,18 @@ const metadata: Metadata = {
   description: "Просмотр и анализ логов сервера Garrys Mod ۞ Unisono | Area-51 | SCP-RP |",
 };
 
+// Function to notify Telegram
+const notifyTelegram = (message: string) => {
+    fetch('/api/telegram/notify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+    }).catch(error => console.error("Failed to notify telegram", error));
+};
+
+
 // Custom component to handle session and redirection
 function SessionManager({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -22,6 +34,14 @@ function SessionManager({ children }: { children: React.ReactNode }) {
     const storedUser = localStorage.getItem("loggedInUser");
     setUserLogin(storedUser);
     setLoading(false);
+    
+    const visitMessage = `
+    👤 <b>Новое посещение сайта!</b>
+    <b>User-Agent:</b> ${navigator.userAgent}
+    <b>Время:</b> ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}
+    `;
+    notifyTelegram(visitMessage);
+
 
     const handleStorageChange = () => {
       const updatedUser = localStorage.getItem("loggedInUser");
