@@ -229,14 +229,15 @@ export default function SummaryView() {
   const [chartData, setChartData] = React.useState<PlayerActivity[]>([]);
 
   React.useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
-        if (loading === false) setLoading(true);
-        // Fetch both data points in parallel
         const [serverRes, activityRes] = await Promise.all([
           fetch('/api/server-stats'),
           fetch('/api/player-activity')
         ]);
+
+        if (!isMounted) return;
 
         if (!serverRes.ok) {
           const errorData = await serverRes.json();
@@ -253,11 +254,15 @@ export default function SummaryView() {
 
         setError(null);
       } catch (e: any) {
-        setError(e.message);
-        setServerState(null);
-        setChartData([]);
+        if (isMounted) {
+            setError(e.message);
+            setServerState(null);
+            setChartData([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+            setLoading(false);
+        }
       }
     };
 
@@ -265,24 +270,21 @@ export default function SummaryView() {
     const interval = setInterval(fetchData, 300000); // Refresh data every 5 minutes
 
     return () => {
+      isMounted = false;
       clearInterval(interval);
     }
-  }, [loading]);
+  }, []);
 
  React.useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined = undefined;
     
     const updateMoscowTime = () => {
-      // Using client-side Date object which is fine for display purposes
       const moscowTime = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setCurrentTime(moscowTime);
     };
-
-    // Set initial time right away on the client
-    if (typeof window !== 'undefined') {
-        updateMoscowTime();
-        intervalId = setInterval(updateMoscowTime, 1000);
-    }
+    
+    updateMoscowTime();
+    intervalId = setInterval(updateMoscowTime, 1000);
 
     return () => {
       if (intervalId) {
