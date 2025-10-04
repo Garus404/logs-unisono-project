@@ -1,6 +1,6 @@
+
 import fs from 'fs';
 import path from 'path';
-import bcrypt from 'bcryptjs';
 import type { User, UserPermission, LoginHistoryEntry } from './types';
 
 const dbPath = path.join(process.cwd(), 'database.json');
@@ -147,12 +147,12 @@ export function deleteUser(userId: string): boolean {
     return false;
 }
 
-// Хэширование пароля
+// Хэширование пароля - теперь просто возвращает строку
 export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 12);
+  return Promise.resolve(password);
 }
 
-// Проверка пароля
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return await bcrypt.compare(password, hashedPassword);
+// Проверка пароля - теперь простое сравнение строк
+export async function verifyPassword(password: string, plainTextPassword: string): Promise<boolean> {
+  return Promise.resolve(password === plainTextPassword);
 }

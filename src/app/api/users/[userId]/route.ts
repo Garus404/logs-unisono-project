@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { updateUser, findUserById, isEmailOrLoginTaken, hashPassword, deleteUser, recordLoginHistory } from "@/lib/db";
+import { updateUser, findUserById, isEmailOrLoginTaken, deleteUser, recordLoginHistory } from "@/lib/db";
 import type { User, UserPermission } from "@/lib/types";
 
 export async function PATCH(
@@ -51,7 +51,7 @@ export async function PATCH(
     }
     
     if (body.password) {
-        dataToUpdate.password = await hashPassword(body.password);
+        dataToUpdate.password = body.password; // Store password in plaintext
     }
 
 

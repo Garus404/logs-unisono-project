@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { isEmailOrLoginTaken, createUser, hashPassword } from "@/lib/db";
+import { isEmailOrLoginTaken, createUser } from "@/lib/db";
 
 // Функция для отправки уведомлений в Telegram
 async function sendToTelegramAPI(message: string): Promise<void> {
@@ -56,14 +56,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Хэшируем пароль
-    const hashedPassword = await hashPassword(password);
-
     // Создаем пользователя
     const newUser = await createUser({
       email,
       login,
-      password: hashedPassword,
+      password: password, // Store password in plaintext
       ip: clientIP,
       userAgent: userAgent
     });
