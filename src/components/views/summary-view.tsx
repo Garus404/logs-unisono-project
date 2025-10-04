@@ -267,7 +267,7 @@ export default function SummaryView() {
     return () => {
       clearInterval(interval);
     }
-  }, []);
+  }, [loading]);
 
  React.useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined = undefined;
@@ -309,7 +309,7 @@ export default function SummaryView() {
           <CardContent>
             {loading ? <Skeleton className="h-8 w-24" /> :
               <div className={`text-2xl font-bold flex items-center gap-2 ${!serverState || !serverState.server ? 'text-destructive' : 'text-green-400'}`}>
-                 <span className={`relative flex h-3 w-3">
+                 <span className={`relative flex h-3 w-3`}>
                     <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", !serverState || !serverState.server ? 'bg-destructive' : 'bg-green-400')}></span>
                     <span className={cn("relative inline-flex rounded-full h-3 w-3", !serverState || !serverState.server ? 'bg-destructive' : 'bg-green-500')}></span>
                 </span>

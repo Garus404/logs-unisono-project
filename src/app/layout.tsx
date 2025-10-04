@@ -6,6 +6,7 @@ import "./globals.css";
 import React from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@/lib/types";
+import { Logo } from "@/components/icons/logo";
 
 const metadata: Metadata = {
   title: "Unisono Logs",
