@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit, Eye, EyeOff, Lock } from "lucide-react";
+import { ShieldCheck, User, Globe, Pencil, UserCheck, Trash2, Mail, KeySquare, Wifi, History, LogIn, LogOut, Edit, Eye, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserType, UserPermission } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +43,7 @@ import { ru } from 'date-fns/locale';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-type UserForDisplay = UserType;
+type UserForDisplay = Omit<UserType, 'password'>;
 
 const LoginHistoryDialog = ({ user }: { user: UserForDisplay }) => {
     return (
@@ -216,8 +216,6 @@ export default function PermissionsPage() {
     const [loading, setLoading] = React.useState(true);
     const { toast } = useToast();
     const [currentUser, setCurrentUser] = React.useState<string | null>(null);
-    const [visiblePasswordId, setVisiblePasswordId] = React.useState<string | null>(null);
-
 
     React.useEffect(() => {
         const user = localStorage.getItem("loggedInUser");
@@ -345,10 +343,6 @@ export default function PermissionsPage() {
             });
         }
     };
-    
-    const togglePasswordVisibility = (userId: string) => {
-        setVisiblePasswordId(prevId => (prevId === userId ? null : userId));
-    };
 
     const UserRowSkeleton = () => (
         <TableRow>
@@ -440,14 +434,7 @@ export default function PermissionsPage() {
                                                     <TableCell className="font-medium">{user.login}</TableCell>
                                                     <TableCell className="text-muted-foreground hidden md:table-cell">{user.email}</TableCell>
                                                     <TableCell className="text-muted-foreground font-mono tracking-wider hidden lg:table-cell">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="truncate max-w-[120px]">
-                                                                {visiblePasswordId === user.id ? user.password : '••••••••••••••••'}
-                                                            </span>
-                                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => togglePasswordVisibility(user.id)}>
-                                                                {visiblePasswordId === user.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                            </Button>
-                                                        </div>
+                                                        ••••••••••••••••
                                                     </TableCell>
                                                     <TableCell className="hidden xl:table-cell">{user.ip}</TableCell>
                                                     <TableCell>
@@ -541,7 +528,3 @@ export default function PermissionsPage() {
         </SidebarProvider>
     );
 }
-
-    
-
-    
