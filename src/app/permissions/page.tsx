@@ -434,7 +434,7 @@ export default function PermissionsPage() {
                                                     <TableCell className="font-medium">{user.login}</TableCell>
                                                     <TableCell className="text-muted-foreground hidden md:table-cell">{user.email}</TableCell>
                                                     <TableCell className="text-muted-foreground font-mono tracking-wider hidden lg:table-cell">
-                                                        ••••••••••••••••
+                                                        ••••••••
                                                     </TableCell>
                                                     <TableCell className="hidden xl:table-cell">{user.ip}</TableCell>
                                                     <TableCell>
