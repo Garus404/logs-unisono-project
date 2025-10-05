@@ -233,7 +233,8 @@ export default function PlayersView() {
         </Card>
       </div>
 
-      <div className="lg:col-span-1 space-y-6 lg:sticky top-6">
+      <div className="lg:col-span-1">
+        <div className="space-y-6 lg:sticky lg:top-6">
           {loading && !serverState && (
               <>
                   <InfoCardSkeleton />
@@ -308,13 +309,8 @@ export default function PlayersView() {
               </Card>
             </>
           )}
+        </div>
       </div>
     </div>
   );
 }
-
-    
-
-    
-
-    
