@@ -40,7 +40,11 @@ function PlayerListSkeleton() {
         <Card>
             <CardHeader>
                 <CardTitle><Skeleton className="h-6 w-1/2" /></CardTitle>
-                <CardDescription><Skeleton className="h-4 w-3/4" /></CardDescription>
+                <CardDescription>
+                    <div className="text-sm text-muted-foreground">
+                        <Skeleton className="h-4 w-3/4" />
+                    </div>
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-2">
@@ -230,7 +234,7 @@ export default function PlayersView() {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="sticky top-6 space-y-6">
+        <div className="space-y-6">
             {loading && !serverState && (
                 <>
                     <InfoCardSkeleton />
@@ -310,3 +314,5 @@ export default function PlayersView() {
     </div>
   );
 }
+
+    
