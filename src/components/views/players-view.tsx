@@ -131,7 +131,7 @@ export default function PlayersView() {
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
       <div className="lg:col-span-2">
         <Card>
           <CardHeader>
@@ -229,84 +229,84 @@ export default function PlayersView() {
         </Card>
       </div>
 
-      <div className="lg:col-span-1 space-y-6">
-        {loading && !serverState && (
-            <>
-                <InfoCardSkeleton />
-                <InfoCardSkeleton />
-                <InfoCardSkeleton />
-            </>
-        )}
-        {error && !loading && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Ошибка</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Alert variant="destructive">
-                <ServerCrash className="h-4 w-4" />
-                <AlertTitle>Сервер не отвечает</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
-        {serverState && (
-          <>
-            <Card>
+      <div className="lg:col-span-1">
+        <div className="sticky top-6 space-y-6">
+            {loading && !serverState && (
+                <>
+                    <InfoCardSkeleton />
+                    <InfoCardSkeleton />
+                    <InfoCardSkeleton />
+                </>
+            )}
+            {error && !loading && (
+              <Card>
                 <CardHeader>
-                    <CardTitle>Информация о сервере</CardTitle>
+                  <CardTitle>Ошибка</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <InfoItem icon={ServerIcon} label="Название" value={serverState.server.name} />
-                    <InfoItem icon={Map} label="Карта" value={serverState.server.map} />
-                    <InfoItem icon={Gamepad2} label="Игра" value={serverState.server.game} />
-                    <InfoItem icon={Users} label="Игроки" value={`${serverState.server.online} / ${serverState.server.maxplayers}`} />
-                    <InfoItem icon={Signal} label="Пинг сервера" value={`${serverState.server.serverPing} мс`} />
+                <CardContent>
+                  <Alert variant="destructive">
+                    <ServerCrash className="h-4 w-4" />
+                    <AlertTitle>Сервер не отвечает</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 </CardContent>
-            </Card>
+              </Card>
+            )}
+            {serverState && (
+              <>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Информация о сервере</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <InfoItem icon={ServerIcon} label="Название" value={serverState.server.name} />
+                        <InfoItem icon={Map} label="Карта" value={serverState.server.map} />
+                        <InfoItem icon={Gamepad2} label="Игра" value={serverState.server.game} />
+                        <InfoItem icon={Users} label="Игроки" value={`${serverState.server.online} / ${serverState.server.maxplayers}`} />
+                        <InfoItem icon={Signal} label="Пинг сервера" value={`${serverState.server.serverPing} мс`} />
+                    </CardContent>
+                </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Статистика сессии</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <InfoItem icon={Clock} label="Общее время игры" value={serverState.statistics.totalPlayTime} />
-                    <InfoItem icon={Skull} label="Всего убийств" value={serverState.statistics.totalKills || 0} />
-                    <InfoItem icon={Signal} label="Средний пинг игроков" value={`${serverState.statistics.averagePing} мс`} />
-                    {serverState.statistics.topPlayer && (
-                        <InfoItem 
-                            icon={Star} 
-                            label="Лучший игрок (по времени)" 
-                            value={
-                                <div>
-                                    {serverState.statistics.topPlayer.name}
-                                    <span className="text-muted-foreground text-xs ml-2">({serverState.statistics.topPlayer.timeFormatted})</span>
-                                </div>
-                            }
-                        />
-                    )}
-                </CardContent>
-            </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Статистика сессии</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <InfoItem icon={Clock} label="Общее время игры" value={serverState.statistics.totalPlayTime} />
+                        <InfoItem icon={Skull} label="Всего убийств" value={serverState.statistics.totalKills || 0} />
+                        <InfoItem icon={Signal} label="Средний пинг игроков" value={`${serverState.statistics.averagePing} мс`} />
+                        {serverState.statistics.topPlayer && (
+                            <InfoItem 
+                                icon={Star} 
+                                label="Лучший игрок (по времени)" 
+                                value={
+                                    <div>
+                                        {serverState.statistics.topPlayer.name}
+                                        <span className="text-muted-foreground text-xs ml-2">({serverState.statistics.topPlayer.timeFormatted})</span>
+                                    </div>
+                                }
+                            />
+                        )}
+                    </CardContent>
+                </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Детали подключения</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <InfoItem icon={Network} label="IP:Port" value={serverState.connection.ip} />
-                    <InfoItem icon={GitBranch} label="Версия" value={serverState.details.version} />
-                    <InfoItem icon={Shield} label="Защита" value={serverState.connection.secure ? <Badge variant="secondary" className="text-green-400">Secure (VAC)</Badge> : <Badge variant="destructive">Insecure</Badge>} />
-                    {serverState.details.tags.length > 0 && 
-                      <InfoItem icon={Tag} label="Теги" value={<div className="flex flex-wrap gap-1">{serverState.details.tags.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>} />
-                    }
-                </CardContent>
-            </Card>
-          </>
-        )}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Детали подключения</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <InfoItem icon={Network} label="IP:Port" value={serverState.connection.ip} />
+                        <InfoItem icon={GitBranch} label="Версия" value={serverState.details.version} />
+                        <InfoItem icon={Shield} label="Защита" value={serverState.connection.secure ? <Badge variant="secondary" className="text-green-400">Secure (VAC)</Badge> : <Badge variant="destructive">Insecure</Badge>} />
+                        {serverState.details.tags.length > 0 && 
+                          <InfoItem icon={Tag} label="Теги" value={<div className="flex flex-wrap gap-1">{serverState.details.tags.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>} />
+                        }
+                    </CardContent>
+                </Card>
+              </>
+            )}
+        </div>
       </div>
     </div>
   );
 }
-
-    
