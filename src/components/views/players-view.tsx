@@ -135,7 +135,7 @@ export default function PlayersView() {
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+    <div className="grid gap-6 lg:grid lg:grid-cols-3 lg:items-start">
       <div className="lg:col-span-2">
         <Card>
           <CardHeader>
@@ -234,7 +234,7 @@ export default function PlayersView() {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="space-y-6 sticky top-0 h-fit">
+        <div className="space-y-6">
           {loading && !serverState && (
               <>
                   <InfoCardSkeleton />
