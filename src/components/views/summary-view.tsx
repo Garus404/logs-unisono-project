@@ -222,21 +222,17 @@ const LiveConsole = () => {
 
 export default function SummaryView() {
   const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
-  const [activity, setActivity] = React.useState<PlayerActivity[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [currentTime, setCurrentTime] = React.useState<string>("");
   const [chartData, setChartData] = React.useState<PlayerActivity[]>([]);
 
+  // Fetch server stats (less frequently)
   React.useEffect(() => {
     let isMounted = true;
-    const fetchData = async () => {
+    const fetchServerState = async () => {
       try {
-        const [serverRes, activityRes] = await Promise.all([
-          fetch('/api/server-stats'),
-          fetch('/api/player-activity')
-        ]);
-
+        const serverRes = await fetch('/api/server-stats');
         if (!isMounted) return;
 
         if (!serverRes.ok) {
@@ -245,33 +241,57 @@ export default function SummaryView() {
         }
         const serverData: ServerStateResponse = await serverRes.json();
         setServerState(serverData);
-        
-        if (!activityRes.ok) {
-           throw new Error('Ошибка при получении активности игроков');
-        }
-        const activityData: PlayerActivity[] = await activityRes.json();
-        setChartData(activityData);
-
         setError(null);
       } catch (e: any) {
         if (isMounted) {
-            setError(e.message);
-            setServerState(null);
-            setChartData([]);
+          setError(e.message);
+          setServerState(null);
         }
       } finally {
         if (isMounted) {
-            setLoading(false);
+          setLoading(false);
         }
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 300000); // Refresh data every 5 minutes
+    fetchServerState();
+    const interval = setInterval(fetchServerState, 300000); // Refresh server data every 5 minutes
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+    }
+  }, []);
+  
+  // Fetch activity chart data (more frequently)
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchActivity = async () => {
+        try {
+            const activityRes = await fetch('/api/player-activity');
+            if (!isMounted) return;
+
+            if (!activityRes.ok) {
+                // Don't throw a blocking error, just log it
+                console.error('Ошибка при получении активности игроков');
+                return;
+            }
+            const activityData: PlayerActivity[] = await activityRes.json();
+            setChartData(activityData);
+
+        } catch (e) {
+            if (isMounted) {
+                 console.error(e);
+            }
+        }
+    }
+
+    fetchActivity(); // Initial fetch
+    const activityInterval = setInterval(fetchActivity, 60000); // Refresh chart every 1 minute
+
+    return () => {
+        isMounted = false;
+        clearInterval(activityInterval);
     }
   }, []);
 
@@ -360,7 +380,7 @@ export default function SummaryView() {
             <CardDescription>Динамика онлайна за последние 48 часов</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-            {loading ? (
+            {loading && chartData.length === 0 ? (
               <div className="h-[300px] w-full flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
               </div>
