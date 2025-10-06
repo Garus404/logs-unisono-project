@@ -118,7 +118,7 @@ export default function LoginPage() {
                     <Input 
                         id="login" 
                         type="text" 
-                        placeholder="Логин steam" 
+                        placeholder="Login Steam" 
                         required 
                         value={login}
                         onChange={e => setLogin(e.target.value)}
