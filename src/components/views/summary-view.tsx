@@ -28,7 +28,7 @@ const LiveConsole = () => {
     const [logs, setLogs] = React.useState<string[]>([]);
     const [inputValue, setInputValue] = React.useState('');
     const scrollAreaRef = React.useRef<HTMLDivElement>(null);
-    const [isUserScrolling, setIsUserScrolling] = React.useState(false);
+    const [isAtBottom, setIsAtBottom] = React.useState(true);
     const [isAllowed, setIsAllowed] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
     const [currentUserLogin, setCurrentUserLogin] = React.useState<string | null>(null);
@@ -139,7 +139,7 @@ const LiveConsole = () => {
                 addLog([
                     "Network Statistics:",
                     `  Inbound: ${(Math.random() * 5 + 1).toFixed(2)} MB/s`,
-                    `  Outbound: ${(Math.random() * 2 + 0.5).toFixed(2)} MB/s`,
+                    `  Outbound: ${(Math.random() * 2 + 0.5).toFixed(2)}%`,
                     `  Packet loss: 0.0${Math.floor(Math.random() * 5)}%`,
                 ]);
             }
@@ -204,21 +204,16 @@ const LiveConsole = () => {
     }, [isAllowed, isLoading, addLog]);
 
     React.useEffect(() => {
-        if (!isUserScrolling && scrollAreaRef.current) {
-            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-            if (viewport) {
-                viewport.scrollTop = viewport.scrollHeight;
-            }
-        }
-    }, [logs, isUserScrolling]);
-    
-    // Detect if user is scrolling up
-    const handleScroll = () => {
         const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            const isAtBottom = viewport.scrollHeight - viewport.scrollTop <= viewport.clientHeight + 1; // +1 for pixel perfection
-            setIsUserScrolling(!isAtBottom);
+        if (viewport && isAtBottom) {
+            viewport.scrollTop = viewport.scrollHeight;
         }
+    }, [logs, isAtBottom]);
+    
+    const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+        const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+        const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
+        setIsAtBottom(isScrolledToBottom);
     };
 
 
@@ -281,19 +276,20 @@ const LiveConsole = () => {
           <div className="relative">
              <div className={cn("bg-black/50 rounded-md font-code text-xs border", !isAllowed && !isLoading && "blur-sm")}>
               <ScrollArea
-                className="h-[300px] w-full p-4"
+                className="h-[300px] w-full"
                 ref={scrollAreaRef}
-                onScroll={handleScroll}
               >
-                {isAllowed && logs.map((log, index) => (
-                  <div
-                    key={index}
-                    className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}
-                  >
-                    <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
-                    <span className="flex-1 break-all whitespace-pre-wrap">{log}</span>
-                  </div>
-                ))}
+                 <div className="p-4" onScroll={handleScroll}>
+                    {isAllowed && logs.map((log, index) => (
+                    <div
+                        key={index}
+                        className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}
+                    >
+                        <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
+                        <span className="flex-1 break-all whitespace-pre-wrap">{log}</span>
+                    </div>
+                    ))}
+                 </div>
               </ScrollArea>
               <div className="relative p-2 border-t border-border">
                  <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
@@ -556,5 +552,3 @@ export default function SummaryView() {
     </div>
   );
 }
-
-    
