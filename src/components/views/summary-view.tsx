@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock } from "lucide-react";
+import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock, ChevronsRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -26,6 +26,7 @@ const chartConfig = {
 
 const LiveConsole = () => {
     const [logs, setLogs] = React.useState<string[]>([]);
+    const [inputValue, setInputValue] = React.useState('');
     const scrollAreaRef = React.useRef<HTMLDivElement>(null);
     const [isUserScrolling, setIsUserScrolling] = React.useState(false);
     const [isAllowed, setIsAllowed] = React.useState(false);
@@ -88,6 +89,77 @@ const LiveConsole = () => {
         return () => clearInterval(interval);
     }, [checkPermissions]);
 
+    const addLog = React.useCallback((newLog: string | string[]) => {
+      setLogs(prevLogs => {
+        const logsToAdd = Array.isArray(newLog) ? newLog : [newLog];
+        const updatedLogs = [...prevLogs, ...logsToAdd];
+        return updatedLogs.length > 150 ? updatedLogs.slice(updatedLogs.length - 150) : updatedLogs;
+      });
+    }, []);
+
+    const commands: { [key: string]: { description: string; execute: (args: string[]) => void } } = {
+        help: {
+            description: "Показывает список доступных команд.",
+            execute: () => {
+                addLog([
+                    "Доступные команды:",
+                    ...Object.entries(commands).map(([name, { description }]) => `  ${name} - ${description}`)
+                ]);
+            }
+        },
+        clear: {
+            description: "Очищает консоль.",
+            execute: () => setLogs([])
+        },
+        status: {
+            description: "Показывает текущий статус сервера.",
+            execute: () => {
+                addLog([
+                    "Server Status:",
+                    `  CPU Load: ${(Math.random() * 50 + 20).toFixed(2)}%`,
+                    `  Memory Usage: ${(Math.random() * 40 + 50).toFixed(2)}%`,
+                    `  Uptime: ${Math.floor(Math.random() * 10) + 1} days, ${Math.floor(Math.random() * 24)} hours`,
+                ]);
+            }
+        },
+        players: {
+            description: "Показывает список игроков онлайн.",
+             execute: () => {
+                const players = serverState?.players.slice(0, 5).map(p => p.name) || ['Игрок_1', 'Игрок_2', 'Игрок_3'];
+                addLog(["Online Players:", ...players.map(p => `  - ${p}`)]);
+            }
+        },
+        kick: {
+            description: "Кикает игрока с сервера. Использование: kick <имя> <причина>",
+            execute: (args) => {
+                const [playerName, ...reasonParts] = args;
+                const reason = reasonParts.join(' ');
+                if (!playerName) {
+                    addLog("Ошибка: Не указано имя игрока. Использование: kick <имя> <причина>");
+                    return;
+                }
+                addLog(`SYSTEM: Игрок '${playerName}' был кикнут. Причина: ${reason || 'Без причины'}.`);
+            }
+        }
+    };
+
+
+    const handleCommand = (command: string) => {
+      if (!isAllowed) return;
+      const userCommand = `> ${command}`;
+      addLog(userCommand);
+
+      const [commandName, ...args] = command.trim().split(/\s+/);
+
+      if (commandName in commands) {
+          commands[commandName].execute(args);
+      } else {
+          addLog(`Ошибка: Команда '${commandName}' не найдена. Введите 'help' для списка команд.`);
+      }
+
+      setInputValue('');
+    }
+
     React.useEffect(() => {
         if (!isAllowed || isLoading) return;
 
@@ -95,14 +167,11 @@ const LiveConsole = () => {
         
         const interval = setInterval(() => {
             const newLog = consoleLogs[Math.floor(Math.random() * consoleLogs.length)];
-            setLogs(prevLogs => {
-                const newLogs = [...prevLogs, newLog];
-                return newLogs.length > 150 ? newLogs.slice(newLogs.length - 150) : newLogs;
-            });
+            addLog(newLog);
         }, Math.random() * 1000 + 1000); // every 1-2 seconds
 
         return () => clearInterval(interval);
-    }, [isAllowed, isLoading]);
+    }, [isAllowed, isLoading, addLog]);
 
     React.useEffect(() => {
         if (!isUserScrolling && scrollAreaRef.current) {
@@ -129,6 +198,9 @@ const LiveConsole = () => {
 
     const getLogStyle = (log: string) => {
         const lowerLog = log.toLowerCase();
+        if (log.startsWith("> ")) {
+          return "text-green-400";
+        }
         if (lowerLog.startsWith("success") || lowerLog.includes(" successfully") || lowerLog.includes(" passed")) {
             return "text-green-400";
         }
@@ -148,6 +220,9 @@ const LiveConsole = () => {
     }
     
     const getIcon = (log: string) => {
+      if (log.startsWith("> ")) {
+          return <ChevronsRight className="w-3.5 h-3.5 text-green-400/80" />;
+      }
         const lowerLog = log.toLowerCase();
         if (lowerLog.startsWith("threat_intelligence") || lowerLog.includes("updating")) {
             return <DownloadCloud className="w-3.5 h-3.5 text-blue-500/80" />;
@@ -160,6 +235,18 @@ const LiveConsole = () => {
         }
         return <Terminal className="w-3.5 h-3.5 text-slate-500" />;
     }
+
+    const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
+    React.useEffect(() => {
+        const fetchServerState = async () => {
+            const response = await fetch('/api/server-stats');
+            if (response.ok) {
+                const data = await response.json();
+                setServerState(data);
+            }
+        };
+        fetchServerState();
+    }, []);
 
     return (
       <Card>
@@ -181,7 +268,7 @@ const LiveConsole = () => {
                     className={cn("flex items-start gap-2 mb-1", getLogStyle(log))}
                   >
                     <span className="mt-0.5 flex-shrink-0">{getIcon(log)}</span>
-                    <span className="flex-1 break-all">{log}</span>
+                    <span className="flex-1 break-all whitespace-pre-wrap">{log}</span>
                   </div>
                 ))}
               </ScrollArea>
@@ -189,8 +276,15 @@ const LiveConsole = () => {
                  <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                 <input
                   type="text"
-                  placeholder={isAllowed ? "Введите команду..." : "Нужны права для доступа к консоли."}
+                  placeholder={isAllowed ? "Введите команду... (напр. 'help')" : "Нужны права для доступа к консоли."}
                   disabled={!isAllowed}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && inputValue) {
+                      handleCommand(inputValue);
+                    }
+                  }}
                   className="w-full bg-transparent pl-8 pr-2 py-1 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0 border-none"
                 />
               </div>
