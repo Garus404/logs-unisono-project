@@ -15,25 +15,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/icons/logo";
-import { Shield, KeyRound } from "lucide-react";
+import { Shield, KeyRound, Gamepad2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GoogleIcon } from "@/components/icons/google-icon"; // Assuming you have a Steam icon component or we can use a generic one
-
-const SteamIcon = () => (
-  <svg
-    className="w-5 h-5"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.16c5.429 0 9.84 4.411 9.84 9.84s-4.411 9.84-9.84 9.84S2.16 17.429 2.16 12 6.571 2.16 12 2.16zM8.475 7.003l-1.33 1.486 4.382 1.69-1.83 2.946-3.23-.422.565 2.825 3.29.412 1.83-2.943 3.655 4.341 3.525-3.08-4.32-5.111-4.22-1.623-1.017-2.81zM16.94 13.06a1.91 1.91 0 01-1.285.467c-.559 0-1.07-.22-1.455-.586a1.94 1.94 0 01-.61-1.442c0-.55.23-1.054.61-1.443.385-.365.9-.585 1.455-.585s1.07.22 1.455.585a1.94 1.94 0 01.61 1.443c0 .55-.23 1.053-.61 1.442z"
-      fillRule="evenodd"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
 
 export default function LoginPage() {
   const { toast } = useToast();
@@ -149,7 +132,7 @@ export default function LoginPage() {
                 </CardHeader>
                 <CardContent>
                    <Button onClick={handleSteamLogin} className="w-full" variant="outline">
-                       <SteamIcon />
+                       <Gamepad2 className="w-5 h-5 mr-2" />
                        Войти через Steam
                    </Button>
                 </CardContent>
