@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock, ChevronsRight } from "lucide-react";
+import { Clock, Users, Server, AlertTriangle, Terminal, DownloadCloud, AlertCircle, Ban, Lock, ChevronsRight, Network, Shield, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -122,11 +122,32 @@ const LiveConsole = () => {
                 ]);
             }
         },
-        players: {
-            description: "Показывает список игроков онлайн.",
+        'firewall status': {
+             description: "Показывает статус файрвола.",
              execute: () => {
-                const players = serverState?.players.slice(0, 5).map(p => p.name) || ['Игрок_1', 'Игрок_2', 'Игрок_3'];
-                addLog(["Online Players:", ...players.map(p => `  - ${p}`)]);
+                 addLog([
+                    "Firewall Status: Active",
+                    "  Rules loaded: 254",
+                    "  Blocked IPs (last 24h): 89",
+                    "  Active connections: 112",
+                 ]);
+             }
+        },
+        'network stats': {
+            description: "Отображает сетевую статистику.",
+            execute: () => {
+                addLog([
+                    "Network Statistics:",
+                    `  Inbound: ${(Math.random() * 5 + 1).toFixed(2)} MB/s`,
+                    `  Outbound: ${(Math.random() * 2 + 0.5).toFixed(2)} MB/s`,
+                    `  Packet loss: 0.0${Math.floor(Math.random() * 5)}%`,
+                ]);
+            }
+        },
+        'cache flush': {
+            description: "Очищает кэш сервера.",
+            execute: () => {
+                addLog("SYSTEM: Server cache flushed successfully. Performance may be slightly degraded temporarily.");
             }
         },
         kick: {
@@ -144,16 +165,25 @@ const LiveConsole = () => {
     };
 
 
-    const handleCommand = (command: string) => {
+    const handleCommand = (commandStr: string) => {
       if (!isAllowed) return;
-      const userCommand = `> ${command}`;
+      const userCommand = `> ${commandStr}`;
       addLog(userCommand);
 
-      const [commandName, ...args] = command.trim().split(/\s+/);
+      const commandKeys = Object.keys(commands).sort((a,b) => b.length - a.length);
+      let executed = false;
 
-      if (commandName in commands) {
-          commands[commandName].execute(args);
-      } else {
+      for (const key of commandKeys) {
+          if (commandStr.startsWith(key)) {
+              const args = commandStr.substring(key.length).trim().split(/\s+/).filter(Boolean);
+              commands[key].execute(args);
+              executed = true;
+              break;
+          }
+      }
+
+      if (!executed) {
+          const [commandName] = commandStr.trim().split(/\s+/);
           addLog(`Ошибка: Команда '${commandName}' не найдена. Введите 'help' для списка команд.`);
       }
 
@@ -168,7 +198,7 @@ const LiveConsole = () => {
         const interval = setInterval(() => {
             const newLog = consoleLogs[Math.floor(Math.random() * consoleLogs.length)];
             addLog(newLog);
-        }, Math.random() * 1000 + 1000); // every 1-2 seconds
+        }, Math.random() * 2000 + 3000); // every 3-5 seconds
 
         return () => clearInterval(interval);
     }, [isAllowed, isLoading, addLog]);
@@ -187,11 +217,7 @@ const LiveConsole = () => {
         const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
         if (viewport) {
             const isAtBottom = viewport.scrollHeight - viewport.scrollTop <= viewport.clientHeight + 1; // +1 for pixel perfection
-            if (isAtBottom) {
-                setIsUserScrolling(false);
-            } else {
-                setIsUserScrolling(true);
-            }
+            setIsUserScrolling(!isAtBottom);
         }
     };
 
@@ -230,23 +256,20 @@ const LiveConsole = () => {
         if (lowerLog.includes("blocked") || lowerLog.includes("banned")) {
              return <Ban className="w-3.5 h-3.5 text-red-500/80" />;
         }
+        if (lowerLog.includes("firewall")) {
+             return <Shield className="w-3.5 h-3.5 text-orange-400/80" />;
+        }
+        if (lowerLog.includes("network")) {
+             return <Network className="w-3.5 h-3.5 text-sky-400/80" />;
+        }
+        if (lowerLog.includes("cache")) {
+             return <RotateCw className="w-3.5 h-3.5 text-indigo-400/80" />;
+        }
         if (lowerLog.includes("error") || lowerLog.includes("failed") || lowerLog.includes("alert")) {
             return <AlertCircle className="w-3.5 h-3.5 text-red-500/80" />;
         }
         return <Terminal className="w-3.5 h-3.5 text-slate-500" />;
     }
-
-    const [serverState, setServerState] = React.useState<ServerStateResponse | null>(null);
-    React.useEffect(() => {
-        const fetchServerState = async () => {
-            const response = await fetch('/api/server-stats');
-            if (response.ok) {
-                const data = await response.json();
-                setServerState(data);
-            }
-        };
-        fetchServerState();
-    }, []);
 
     return (
       <Card>
@@ -533,3 +556,5 @@ export default function SummaryView() {
     </div>
   );
 }
+
+    

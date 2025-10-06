@@ -16,6 +16,12 @@
       "isVerified": true,
       "loginHistory": [
         {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:57:21.090Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
           "type": "login",
           "timestamp": "2025-10-06T18:51:39.264Z",
           "ip": "127.0.0.1",
@@ -126,12 +132,6 @@
         {
           "type": "logout",
           "timestamp": "2025-10-05T19:20:13.443Z",
-          "ip": "127.0.0.1",
-          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
-        },
-        {
-          "type": "logout",
-          "timestamp": "2025-10-05T19:16:44.774Z",
           "ip": "127.0.0.1",
           "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
         }
