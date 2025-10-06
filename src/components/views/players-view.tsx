@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -135,8 +134,9 @@ export default function PlayersView() {
   );
 
   return (
-    <div className="grid gap-6 lg:grid lg:grid-cols-3 lg:items-start">
-      <div className="lg:col-span-2">
+    <div className="relative">
+      {/* Основной контент - список игроков */}
+      <div className="lg:mr-[400px]">
         <Card>
           <CardHeader>
             <CardTitle>Список игроков ({shuffledPlayers.length ?? 0})</CardTitle>
@@ -233,8 +233,9 @@ export default function PlayersView() {
         </Card>
       </div>
 
-      <div className="lg:col-span-1">
-        <div className="space-y-6">
+      {/* Боковая панель с карточками - ТОЛЬКО НА ДЕСКТОПЕ */}
+      <div className="hidden lg:block">
+        <div className="fixed top-24 right-6 w-[380px] max-h-[calc(100vh-3rem)] overflow-y-auto space-y-6">
           {loading && !serverState && (
               <>
                   <InfoCardSkeleton />
@@ -310,6 +311,63 @@ export default function PlayersView() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Мобильная версия карточек */}
+      <div className="lg:hidden mt-6 space-y-6">
+        {serverState && (
+          <>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Информация о сервере</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <InfoItem icon={ServerIcon} label="Название" value={serverState.server.name} />
+                    <InfoItem icon={Map} label="Карта" value={serverState.server.map} />
+                    <InfoItem icon={Gamepad2} label="Игра" value={serverState.server.game} />
+                    <InfoItem icon={Users} label="Игроки" value={`${serverState.server.online} / ${serverState.server.maxplayers}`} />
+                    <InfoItem icon={Signal} label="Пинг сервера" value={`${serverState.server.serverPing} мс`} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Статистика сессии</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <InfoItem icon={Clock} label="Общее время игры" value={serverState.statistics.totalPlayTime} />
+                    <InfoItem icon={Skull} label="Всего убийств" value={serverState.statistics.totalKills || 0} />
+                    <InfoItem icon={Signal} label="Средний пинг игроков" value={`${serverState.statistics.averagePing} мс`} />
+                    {serverState.statistics.topPlayer && (
+                        <InfoItem 
+                            icon={Star} 
+                            label="Лучший игрок (по времени)" 
+                            value={
+                                <div>
+                                    {serverState.statistics.topPlayer.name}
+                                    <span className="text-muted-foreground text-xs ml-2">({serverState.statistics.topPlayer.timeFormatted})</span>
+                                </div>
+                            }
+                        />
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Детали подключения</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <InfoItem icon={Network} label="IP:Port" value={serverState.connection.ip} />
+                    <InfoItem icon={GitBranch} label="Версия" value={serverState.details.version} />
+                    <InfoItem icon={Shield} label="Защита" value={serverState.connection.secure ? <Badge variant="secondary" className="text-green-400">Secure (VAC)</Badge> : <Badge variant="destructive">Insecure</Badge>} />
+                    {serverState.details.tags.length > 0 && 
+                      <InfoItem icon={Tag} label="Теги" value={<div className="flex flex-wrap gap-1">{serverState.details.tags.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>} />
+                    }
+                </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );

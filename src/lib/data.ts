@@ -903,20 +903,28 @@ export const mockPlayerActivity: PlayerActivity[] = Array.from({ length: 48 }, (
     d.setSeconds(0);
     d.setMilliseconds(0);
 
-    const hour = d.getHours();
+    const serverHour = d.getHours();
+    
+    // Moscow time is UTC+3. Server time (Asia/Singapore) is UTC+8. Difference is 5 hours.
+    // moscowHour = serverHour - 5
+    let moscowHour = serverHour - 5;
+    if (moscowHour < 0) {
+        moscowHour += 24;
+    }
+
     let players;
 
-    // Simulate day/night cycle
-    if (hour > 2 && hour < 9) { // Deep night (Asia/Singapore UTC+8 is +5 from Moscow)
-        players = Math.floor(Math.random() * 10) + 5; // 5-14 players
-    } else if (hour >= 9 && hour < 16) { // Morning/Day
-        players = Math.floor(Math.random() * 20) + 20; // 20-39 players
-    } else { // Peak hours (evening)
-        players = Math.floor(Math.random() * 25) + 35; // 35-59 players
+    // Simulate day/night cycle based on Moscow time
+    if (moscowHour >= 18 && moscowHour < 23) { // Peak hours (18:00 - 23:00 MSK)
+        players = Math.floor(Math.random() * 31) + 80; // 80-110 players
+    } else if (moscowHour >= 9 && moscowHour < 18) { // Day time
+        players = Math.floor(Math.random() * 40) + 40; // 40-79 players
+    } else { // Night/Early morning
+        players = Math.floor(Math.random() * 30) + 15; // 15-44 players
     }
     
     return {
-        time: `${String(hour).padStart(2, '0')}:00`,
+        time: `${String(serverHour).padStart(2, '0')}:00`,
         players: players,
     };
 }).reverse();
