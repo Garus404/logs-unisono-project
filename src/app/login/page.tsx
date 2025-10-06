@@ -118,7 +118,7 @@ export default function LoginPage() {
                     <Input 
                         id="login" 
                         type="text" 
-                        placeholder="Intercom" 
+                        placeholder="Логин steam" 
                         required 
                         value={login}
                         onChange={e => setLogin(e.target.value)}
@@ -160,4 +160,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
