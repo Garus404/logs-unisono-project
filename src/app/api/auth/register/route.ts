@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { createUser, isEmailOrLoginTaken } from "@/lib/db";
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'https://adoptpets.shop',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -10,7 +24,7 @@ export async function POST(request: Request) {
     if (isEmailOrLoginTaken(email, username)) {
       return NextResponse.json(
         { error: "Пользователь с таким логином или email уже существует" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -31,14 +45,14 @@ export async function POST(request: Request) {
         user: userWithoutPassword,
         message: "Пользователь добавлен в очередь подтверждения" 
       },
-      { status: 201 }
+      { status: 201, headers: corsHeaders }
     );
 
   } catch (error) {
     console.error("Steam register error:", error);
     return NextResponse.json(
       { error: "Ошибка при регистрации через Steam" },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
