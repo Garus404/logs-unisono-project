@@ -3,7 +3,7 @@ import { createUser, isEmailOrLoginTaken } from "@/lib/db";
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://adoptpets.shop',
+  'Access-Control-Allow-Origin': 'https://steamcommunity.gamer.gd',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };

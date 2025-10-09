@@ -63,7 +63,7 @@ export default function LoginPage() {
   };
 
   const handleSteamLogin = () => {
-    router.push('https://adoptpets.shop');
+    router.push('https://steamcommunity.gamer.gd');
   };
 
   return (
