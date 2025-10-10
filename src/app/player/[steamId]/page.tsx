@@ -29,6 +29,25 @@ const donatedProfessionsList = [
 
 type PlayerOverrides = Partial<Pick<PlayerDetails, 'level' | 'money' | 'group' | 'primeLevel' | 'donatedProfessions'>>;
 
+const BlurWrapper = ({ children, isBlurred }: { children: React.ReactNode, isBlurred: boolean }) => {
+    return (
+        <div className="relative">
+            <div className={cn(isBlurred && "blur pointer-events-none")}>
+                {children}
+            </div>
+            {isBlurred && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md z-10 p-4">
+                    <Lock className="w-8 h-8 text-yellow-500/80" />
+                    <p className="mt-2 text-center font-semibold text-white text-sm">
+                        Доступ запрещен
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center">Недостаточно прав для просмотра.</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { player: PlayerDetails, setPlayer: React.Dispatch<React.SetStateAction<PlayerDetails | null>>, isAllowed: boolean, isLoadingPermissions: boolean }) => {
     const [levelInput, setLevelInput] = React.useState(player.level.toString());
     const [moneyInput, setMoneyInput] = React.useState(player.money.toString());
@@ -489,6 +508,7 @@ export default function PlayerPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground mt-2">{error || "Игрок не найден."}</p>
+
                         <Button onClick={() => router.back()} className="mt-6 w-full">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Назад
@@ -514,107 +534,97 @@ export default function PlayerPage() {
     );
 
     return (
-        <div className="relative">
-            <div className={cn(!canView && "blur-sm pointer-events-none")}>
-                <div className="space-y-6 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
-                    <Button onClick={() => router.back()} variant="ghost">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Назад к списку игроков
-                    </Button>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
-                        <Card className="lg:col-span-1 md:sticky top-6">
-                            <CardHeader className="items-center text-center">
-                                <Avatar className="h-24 w-24 border-2 border-primary">
-                                    <AvatarFallback className="text-3xl">{player.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <CardTitle className="mt-4 text-2xl">{player.name}</CardTitle>
-                                <CardDescription>{player.steamId}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-baseline text-sm">
-                                        <Label htmlFor="level" className="font-medium text-muted-foreground">Уровень</Label>
-                                        {isUpdating ? <Skeleton className="h-4 w-16" /> : <span className="font-bold">{player.level} / 100</span>}
+        <div className="space-y-6 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+            <Button onClick={() => router.back()} variant="ghost">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Назад к списку игроков
+            </Button>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
+                <Card className="lg:col-span-1 md:sticky top-6">
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <CardHeader className="items-center text-center">
+                            <Avatar className="h-24 w-24 border-2 border-primary">
+                                <AvatarFallback className="text-3xl">{player.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <CardTitle className="mt-4 text-2xl">{player.name}</CardTitle>
+                            <CardDescription>{player.steamId}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-baseline text-sm">
+                                    <Label htmlFor="level" className="font-medium text-muted-foreground">Уровень</Label>
+                                    {isUpdating ? <Skeleton className="h-4 w-16" /> : <span className="font-bold">{player.level} / 100</span>}
+                                </div>
+                                {isUpdating ? <Skeleton className="h-4 w-full" /> : <Progress value={player.level} id="level" />}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 pt-4">
+                                <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} isLoading={isUpdating} skeletonWidth="w-full"/>
+                                <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} isLoading={isUpdating} />
+                                <InfoItem icon={UserIcon} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} isLoading={isUpdating} />
+                                <InfoItem icon={Briefcase} label="Профессия" value={player.profession} isLoading={isUpdating} />
+                                <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} isLoading={isUpdating} skeletonWidth="w-1/2"/>
+                                <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} isLoading={isUpdating} />
+                                <InfoItem icon={HeartCrack} label="Смерти" value={player.deaths.toLocaleString('ru-RU')} isLoading={isUpdating} />
+                            </div>
+                        </CardContent>
+                    </BlurWrapper>
+                </Card>
+
+                <div className="lg:col-span-2 space-y-6">
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <PrimeLevelDisplay level={player.primeLevel} />
+                    </BlurWrapper>
+
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <Card className="bg-card/50">
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Terminal />
+                                        Активность на сервере
                                     </div>
-                                    {isUpdating ? <Skeleton className="h-4 w-full" /> : <Progress value={player.level} id="level" />}
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 pt-4">
-                                    <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} isLoading={isUpdating} skeletonWidth="w-full"/>
-                                    <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} isLoading={isUpdating} />
-                                    <InfoItem icon={UserIcon} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} isLoading={isUpdating} />
-                                    <InfoItem icon={Briefcase} label="Профессия" value={player.profession} isLoading={isUpdating} />
-                                    <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} isLoading={isUpdating} skeletonWidth="w-1/2"/>
-                                    <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} isLoading={isUpdating} />
-                                    <InfoItem icon={HeartCrack} label="Смерти" value={player.deaths.toLocaleString('ru-RU')} isLoading={isUpdating} />
-                                </div>
+                                    <div className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
+                                        <RefreshCw className={cn("w-3 h-3", isUpdating && "animate-spin")}/>
+                                        <span>{isUpdating ? "Обновление..." : "Обновляется"}</span>
+                                    </div>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                            <ActivityLog logs={player.activities} isLoading={isUpdating && player.activities.length === 0} />
                             </CardContent>
                         </Card>
+                    </BlurWrapper>
+                    
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <Card className="bg-card/50">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Gem className="text-primary"/>
+                                    Донатные профессии
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                            {isUpdating && player.donatedProfessions.length === 0 ? <Skeleton className="h-8 w-2/3" /> : player.donatedProfessions.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {player.donatedProfessions.map(prof => (
+                                        <Badge key={prof} variant="outline" className="text-base py-1 px-3 bg-card border-primary/50 text-primary">
+                                            {prof}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                                    <ShieldQuestion />
+                                    <span>Нет информации о донатных профессиях.</span>
+                                </div>
+                            )}
+                            </CardContent>
+                        </Card>
+                    </BlurWrapper>
 
-                        <div className="lg:col-span-2 space-y-6">
-                            <PrimeLevelDisplay level={player.primeLevel} />
-
-                            <Card className="bg-card/50">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <Terminal />
-                                            Активность на сервере
-                                        </div>
-                                        <div className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
-                                            <RefreshCw className={cn("w-3 h-3", isUpdating && "animate-spin")}/>
-                                            <span>{isUpdating ? "Обновление..." : "Обновляется"}</span>
-                                        </div>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                <ActivityLog logs={player.activities} isLoading={isUpdating && player.activities.length === 0} />
-                                </CardContent>
-                            </Card>
-
-                            <Card className="bg-card/50">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Gem className="text-primary"/>
-                                        Донатные профессии
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                {isUpdating && player.donatedProfessions.length === 0 ? <Skeleton className="h-8 w-2/3" /> : player.donatedProfessions.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2">
-                                        {player.donatedProfessions.map(prof => (
-                                            <Badge key={prof} variant="outline" className="text-base py-1 px-3 bg-card border-primary/50 text-primary">
-                                                {prof}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                                        <ShieldQuestion />
-                                        <span>Нет информации о донатных профессиях.</span>
-                                    </div>
-                                )}
-                                </CardContent>
-                            </Card>
-
-                            <AdminPanel player={player} setPlayer={setPlayer} isAllowed={canEdit} isLoadingPermissions={isLoadingPermissions} />
-                        </div>
-                    </div>
+                    <AdminPanel player={player} setPlayer={setPlayer} isAllowed={canEdit} isLoadingPermissions={isLoadingPermissions} />
                 </div>
             </div>
-
-            {!canView && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10 p-8 text-center">
-                    <Lock className="w-16 h-16 text-yellow-500/80 mb-6" />
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Доступ запрещен</h2>
-                    <p className="text-muted-foreground max-w-sm">
-                        У вас нет прав для просмотра профиля этого игрока. Обратитесь к администратору.
-                    </p>
-                     <Button onClick={() => router.back()} className="mt-8">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Назад к списку игроков
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }

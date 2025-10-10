@@ -3,7 +3,7 @@ import Image from 'next/image';
 export function Logo(props: { className?: string }) {
   return (
     <Image
-      src="https://files.catbox.moe/yjhmz7.png"
+      src="https://ltdfoto.ru/images/2025/10/10/IZOBRAZENIE_2025-10-10_170907615-removebg-preview.png"
       alt="Unisono Logs Logo"
       width={32}
       height={32}
