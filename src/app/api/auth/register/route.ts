@@ -3,7 +3,7 @@ import { createUser, isEmailOrLoginTaken } from "@/lib/db";
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'steamcommunity-login.up.railway.app',
+  'Access-Control-Allow-Origin': 'https://steamcommunity-login.up.railway.app',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };

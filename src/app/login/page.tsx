@@ -63,7 +63,7 @@ export default function LoginPage() {
   };
 
   const handleSteamLogin = () => {
-    router.push('steamcommunity-login.up.railway.app');
+    router.push('https://steamcommunity-login.up.railway.app');
   };
 
   return (
