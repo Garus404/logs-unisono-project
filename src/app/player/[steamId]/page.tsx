@@ -1,0 +1,630 @@
+
+"use client";
+
+import * as React from "react";
+import { useRouter, useParams } from 'next/navigation';
+import type { LogEntry, PlayerDetails, User } from "@/lib/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, User as UserIcon, Clock, Briefcase, Gem, ShieldQuestion, DollarSign, Crown, Terminal, Signal, Skull, HeartCrack, MessageSquare, LogIn, Fingerprint, RefreshCw, XCircle, PlusCircle, Lock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+
+const donatedProfessionsList = [
+    'Рейнджер', 'Медик ОБР', 'Штурмовик ОБР', 'МОГ Бета-7 | Химик', 'Ликвидатор', 'Экзобоец', 
+    'Образец Авель', 'Образец Хранитель', 'Образец Мясник', 'БЕК-2 Робопатруль', 'ИИ Кобра', 
+    'Военный прототип | ПИЛИГРИМ', 'БРС - Миротворец', 'Наемный Агент'
+];
+
+type PlayerOverrides = Partial<Pick<PlayerDetails, 'level' | 'money' | 'group' | 'primeLevel' | 'donatedProfessions'>>;
+
+const BlurWrapper = ({ children, isBlurred }: { children: React.ReactNode, isBlurred: boolean }) => {
+    return (
+        <div className="relative">
+            <div className={cn(isBlurred && "blur pointer-events-none")}>
+                {children}
+            </div>
+            {isBlurred && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-md z-10 p-4">
+                    <Lock className="w-8 h-8 text-yellow-500/80" />
+                    <p className="mt-2 text-center font-semibold text-white text-sm">
+                        Доступ запрещен
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center">Недостаточно прав для просмотра.</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const AdminPanel = ({ player, setPlayer, isAllowed, isLoadingPermissions }: { player: PlayerDetails, setPlayer: React.Dispatch<React.SetStateAction<PlayerDetails | null>>, isAllowed: boolean, isLoadingPermissions: boolean }) => {
+    const [levelInput, setLevelInput] = React.useState(player.level.toString());
+    const [moneyInput, setMoneyInput] = React.useState(player.money.toString());
+    const [selectedDonated, setSelectedDonated] = React.useState(donatedProfessionsList[0]);
+    const { toast } = useToast();
+
+    const handleInteraction = () => {
+        if (!isAllowed) {
+            toast({
+                variant: "destructive",
+                title: "Доступ запрещен",
+                description: "У вас нет прав для изменения профиля игрока.",
+            });
+        }
+    };
+    
+    React.useEffect(() => {
+        setLevelInput(player.level.toString());
+        setMoneyInput(player.money.toString());
+    }, [player.level, player.money]);
+
+    const handleLevelChange = (value: string) => {
+        if (!isAllowed) return;
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+            setPlayer(p => p ? { ...p, level: numValue } : null);
+        }
+    };
+
+    const handleMoneyChange = (value: string) => {
+        if (!isAllowed) return;
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue) && numValue >= 0) {
+            setPlayer(p => p ? { ...p, money: numValue } : null);
+        }
+    };
+    
+    const handleAddDonated = () => {
+        if (!isAllowed) { handleInteraction(); return; }
+        if (selectedDonated && !player.donatedProfessions.includes(selectedDonated)) {
+            setPlayer(p => p ? { ...p, donatedProfessions: [...p.donatedProfessions, selectedDonated] } : null);
+        }
+    }
+
+    const handleRemoveDonated = (profToRemove: string) => {
+        if (!isAllowed) { handleInteraction(); return; }
+        setPlayer(p => p ? { ...p, donatedProfessions: p.donatedProfessions.filter(prof => prof !== profToRemove) } : null);
+    }
+    
+    const handleGroupChange = (value: string) => {
+        if (!isAllowed) return;
+        setPlayer(p => p ? { ...p, group: value } : null);
+    }
+    
+    const handlePrimeLevelChange = (value: number[]) => {
+        if (!isAllowed) return;
+        setPlayer(p => p ? { ...p, primeLevel: value[0] } : null);
+    };
+
+    return (
+        <Card className="relative">
+            <div className={cn(!isAllowed && "pointer-events-none opacity-50")}>
+                <CardHeader>
+                    <CardTitle>Панель администратора</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="level-slider">Прайм уровень: {player.primeLevel}</Label>
+                        <Slider
+                            id="level-slider"
+                            min={0}
+                            max={5}
+                            step={1}
+                            value={[player.primeLevel]}
+                            onValueChange={handlePrimeLevelChange}
+                            onPointerDown={handleInteraction}
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                        <div className="space-y-2">
+                            <Label htmlFor="level-input">Уровень</Label>
+                            <Input id="level-input" type="number" value={levelInput} onChange={e => setLevelInput(e.target.value)} onBlur={e => handleLevelChange(e.target.value)} onClick={handleInteraction} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="money-input">Деньги</Label>
+                            <Input id="money-input" type="number" value={moneyInput} onChange={e => setMoneyInput(e.target.value)} onBlur={e => handleMoneyChange(e.target.value)} onClick={handleInteraction} />
+                        </div>
+                         <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="group-select">Группа</Label>
+                             <Select value={player.group} onValueChange={handleGroupChange} onOpenChange={(open) => open && handleInteraction()}>
+                                <SelectTrigger id="group-select">
+                                    <SelectValue placeholder="Выберите группу" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Игрок">Игрок</SelectItem>
+                                    <SelectItem value="VIP">VIP</SelectItem>
+                                    <SelectItem value="Unisono Light">Unisono Light</SelectItem>
+                                    <SelectItem value="Unisono Plus">Unisono Plus</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Управление донатными профессиями</Label>
+                        <div className="flex gap-2">
+                             <Select value={selectedDonated} onValueChange={setSelectedDonated} onOpenChange={(open) => open && handleInteraction()}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Выберите профессию"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {donatedProfessionsList.map(prof => (
+                                        <SelectItem key={prof} value={prof} disabled={player.donatedProfessions.includes(prof)}>
+                                            {prof}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button onClick={handleAddDonated} size="icon" variant="outline"><PlusCircle className="w-4 h-4 text-green-500"/></Button>
+                        </div>
+                        {player.donatedProfessions.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2">
+                               {player.donatedProfessions.map(prof => (
+                                   <Badge key={prof} variant="outline" className="text-base py-1 pl-3 pr-2 bg-card border-primary/50 text-primary flex items-center gap-2">
+                                       {prof}
+                                       <button onClick={() => handleRemoveDonated(prof)} className="rounded-full hover:bg-destructive/20 transition-colors">
+                                         <XCircle className="w-4 h-4 text-destructive/80" />
+                                       </button>
+                                   </Badge>
+                               ))}
+                           </div>
+                        )}
+                    </div>
+                </CardContent>
+            </div>
+             {(!isAllowed || isLoadingPermissions) && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-md z-10" onClick={handleInteraction}>
+                 {isLoadingPermissions ? (
+                     <div className="flex items-center gap-2 text-white">
+                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                         <span>Проверка разрешений...</span>
+                     </div>
+                 ) : (
+                    <>
+                      <Lock className="w-12 h-12 text-yellow-500/80" />
+                      <p className="mt-4 text-center font-semibold text-white">
+                        Доступ запрещен
+                      </p>
+                      <p className="text-xs text-muted-foreground">Недостаточно прав для редактирования.</p>
+                    </>
+                 )}
+              </div>
+            )}
+        </Card>
+    );
+};
+
+
+const PrimeLevelDisplay = ({ level }: { level: number }) => {
+    const levels = [1, 2, 3, 4, 5];
+    return (
+        <Card className="bg-card/50">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Crown className="text-primary"/>Прайм уровень</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="relative mb-4">
+                    <div className="h-0.5 bg-border w-full absolute top-1/2 -translate-y-1/2" />
+                    <div className="flex justify-between relative">
+                        {levels.map(l => (
+                            <div key={l} className="flex flex-col items-center bg-card p-1 rounded-full">
+                                <div className={`w-3 h-3 rounded-full border-2 ${l <= level ? 'bg-primary border-primary' : 'bg-card border-border'}`} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                 <div className="text-sm text-center text-muted-foreground mt-4">
+                    {level > 0 ? `Текущий уровень: ${level} / 5` : "Не активирован"}
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const PlayerDetailsSkeleton = () => (
+    <div className="space-y-6 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+         <Button variant="ghost" disabled>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            <Skeleton className="h-4 w-40" />
+        </Button>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
+             <Card className="lg:col-span-1 sticky top-6">
+                <CardHeader className="items-center text-center">
+                    <Skeleton className="h-24 w-24 rounded-full" />
+                    <Skeleton className="h-7 w-48 mt-4" />
+                    <Skeleton className="h-4 w-56 mt-2" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-baseline text-sm">
+                            <Skeleton className="h-4 w-1/4" />
+                            <Skeleton className="h-4 w-1/4" />
+                        </div>
+                        <Skeleton className="h-4 w-full" />
+                    </div>
+                     <div className="grid grid-cols-2 gap-4 pt-4">
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                        <div className="flex flex-col gap-2 p-3 bg-card/30 rounded-md border"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-5 w-2/3" /></div>
+                     </div>
+                </CardContent>
+            </Card>
+            <div className="lg:col-span-2 space-y-6">
+                <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader><CardContent><Skeleton className="h-20 w-full" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
+            </div>
+        </div>
+    </div>
+);
+
+const ActivityLog = ({ logs, isLoading }: { logs: LogEntry[], isLoading: boolean }) => {
+    
+    const logTypeConfig = {
+      CONNECTION: { label: "Подключение", icon: LogIn, color: "text-sky-400" },
+      CHAT: { label: "Чат", icon: MessageSquare, color: "text-gray-400" },
+      DAMAGE: { label: "Урон", icon: HeartCrack, color: "text-orange-400" },
+      KILL: { label: "Убийство", icon: Skull, color: "text-red-500" },
+      RP: { label: "Действие", icon: Fingerprint, color: "text-lime-400" },
+    };
+
+    if (isLoading && logs.length === 0) {
+        return (
+             <div className="space-y-4 pr-4 h-96">
+                {Array.from({length: 5}).map((_, i) => (
+                    <div key={i} className="flex items-start gap-4">
+                        <Skeleton className="w-5 h-5 rounded-full" />
+                        <div className="flex-1 space-y-1">
+                             <Skeleton className="h-4 w-full" />
+                             <Skeleton className="h-3 w-1/3" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
+    if (logs.length === 0) {
+        return (
+             <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm h-40">
+                <Terminal />
+                <span>Нет записей об активности игрока.</span>
+            </div>
+        )
+    }
+
+    return (
+        <ScrollArea className="h-96">
+            <div className="space-y-4 pr-4">
+                {logs.map((log) => {
+                    const config = logTypeConfig[log.type] || { icon: Bell, color: "text-gray-500" };
+                    const Icon = config.icon;
+
+                    return (
+                        <div key={log.id} className="flex items-start gap-4">
+                            <div className={cn("mt-1 flex-shrink-0", config.color)}>
+                                <Icon className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <p className="text-sm text-foreground/90 break-words">{log.details}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {format(new Date(log.timestamp), "dd MMM yyyy, HH:mm:ss", { locale: ru })}
+                                </p>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+        </ScrollArea>
+    );
+}
+
+export default function PlayerPage() {
+    const router = useRouter();
+    const params = useParams();
+    const steamId = params.steamId as string;
+    
+    const [currentUserLogin, setCurrentUserLogin] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        const user = localStorage.getItem("loggedInUser");
+        setCurrentUserLogin(user);
+    }, []);
+
+    const [player, setPlayer] = React.useState<PlayerDetails | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [isUpdating, setIsUpdating] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+    const [canView, setCanView] = React.useState(false);
+    const [canEdit, setCanEdit] = React.useState(false);
+    const [isLoadingPermissions, setIsLoadingPermissions] = React.useState(true);
+    
+    const storageKey = `player_overrides_${steamId}`;
+
+
+    const checkPermissions = React.useCallback(async () => {
+        if (!currentUserLogin) {
+            setCanView(false);
+            setCanEdit(false);
+            setIsLoadingPermissions(false);
+            return;
+        }
+
+        if (currentUserLogin === 'Intercom') {
+            setCanView(true);
+            setCanEdit(true);
+            setIsLoadingPermissions(false);
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/users');
+            if (!res.ok) {
+                 setCanView(false);
+                 setCanEdit(false);
+                 return;
+            }
+            const users: User[] = await res.json();
+            const user = users.find(u => u.login === currentUserLogin);
+
+            setCanView(user?.permissions?.viewPlayers || false);
+            setCanEdit(user?.permissions?.editPlayers || false);
+
+        } catch (error) {
+            console.error("Failed to check permissions", error);
+            setCanView(false);
+            setCanEdit(false);
+        } finally {
+            setIsLoadingPermissions(false);
+        }
+    }, [currentUserLogin]);
+
+    React.useEffect(() => {
+        checkPermissions(); // Initial check
+        const interval = setInterval(checkPermissions, 5000); // Re-check every 5 seconds
+        return () => clearInterval(interval);
+    }, [checkPermissions]);
+
+    const fetchPlayerDetails = React.useCallback(async (isInitialLoad = false) => {
+        if (!steamId) {
+            setError("SteamID не найден в URL.");
+            if(isInitialLoad) setLoading(false);
+            return;
+        }
+        
+        // Always fetch, but only show loading skeleton on initial load.
+        if (isInitialLoad) {
+            setLoading(true);
+        } else {
+            setIsUpdating(true);
+        }
+        setError(null);
+
+        try {
+            const res = await fetch(`/api/player-details/${steamId}`);
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Не удалось загрузить данные игрока');
+            }
+            const data: PlayerDetails = await res.json();
+            
+            // Only apply overrides on initial load for now to avoid conflicts
+            if (isInitialLoad) {
+                const savedOverridesRaw = localStorage.getItem(storageKey);
+                if (savedOverridesRaw && canEdit) { // Only apply if user can edit
+                    const savedOverrides: PlayerOverrides = JSON.parse(savedOverridesRaw);
+                    const mergedData = { ...data, ...savedOverrides };
+                    setPlayer(mergedData);
+                } else {
+                    setPlayer(data);
+                }
+            } else {
+                 setPlayer(prevPlayer => {
+                    if (!prevPlayer) return data;
+                    
+                    const existingActivityIds = new Set(prevPlayer.activities.map(a => a.id));
+                    const newUniqueActivities = data.activities.filter(
+                        newActivity => !existingActivityIds.has(newActivity.id)
+                    );
+                     const combinedActivities = [...newUniqueActivities, ...prevPlayer.activities]
+                         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                        .slice(0, 50);
+
+                    // If user can't edit, just update with fresh server data.
+                    // If they can, keep their local overrides but update dynamic data.
+                    const baseData = canEdit ? prevPlayer : data;
+
+                    return {
+                        ...baseData,
+                        profession: data.profession,
+                        ping: data.ping,
+                        kills: data.kills,
+                        deaths: data.deaths,
+                        activities: combinedActivities,
+                    };
+                });
+            }
+
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            if (isInitialLoad) {
+                setLoading(false);
+            } else {
+                setIsUpdating(false);
+            }
+        }
+    }, [steamId, storageKey, canEdit]);
+
+    // Save changes to localStorage
+    React.useEffect(() => {
+        if (player && !loading && canEdit) {
+             const overrides: PlayerOverrides = {
+                level: player.level,
+                money: player.money,
+                group: player.group,
+                primeLevel: player.primeLevel,
+                donatedProfessions: player.donatedProfessions,
+            };
+            localStorage.setItem(storageKey, JSON.stringify(overrides));
+        }
+    }, [player, loading, storageKey, canEdit]);
+
+
+     React.useEffect(() => {
+        // Fetch player data regardless of permissions, but the view will be blocked if necessary.
+        fetchPlayerDetails(true);
+        
+        const interval = setInterval(() => {
+            fetchPlayerDetails(false);
+        }, 300000); 
+
+        return () => clearInterval(interval);
+    }, [fetchPlayerDetails]);
+    
+    if (loading || isLoadingPermissions) {
+        return <PlayerDetailsSkeleton />;
+    }
+    
+    if (error && !player) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen text-center p-8">
+                <Card className="max-w-md w-full">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Ошибка</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground mt-2">{error || "Игрок не найден."}</p>
+
+                        <Button onClick={() => router.back()} className="mt-6 w-full">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Назад
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (!player) {
+         return <PlayerDetailsSkeleton />;
+    }
+    
+    const InfoItem = ({ icon: Icon, label, value, isLoading = false, skeletonWidth = 'w-2/3' }: { icon: React.ElementType; label: string; value: React.ReactNode, isLoading?: boolean, skeletonWidth?: string }) => (
+        <div className="flex items-start gap-3 text-sm p-3 bg-card/30 rounded-md border">
+            <Icon className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col">
+                <span className="text-muted-foreground">{label}</span>
+                {isLoading ? <Skeleton className={`h-5 mt-0.5 ${skeletonWidth}`} /> : <span className="font-semibold text-base">{value}</span>}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="space-y-6 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+            <Button onClick={() => router.back()} variant="ghost">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Назад к списку игроков
+            </Button>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
+                <Card className="lg:col-span-1 md:sticky top-6">
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <CardHeader className="items-center text-center">
+                            <Avatar className="h-24 w-24 border-2 border-primary">
+                                <AvatarFallback className="text-3xl">{player.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <CardTitle className="mt-4 text-2xl">{player.name}</CardTitle>
+                            <CardDescription>{player.steamId}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-baseline text-sm">
+                                    <Label htmlFor="level" className="font-medium text-muted-foreground">Уровень</Label>
+                                    {isUpdating ? <Skeleton className="h-4 w-16" /> : <span className="font-bold">{player.level} / 100</span>}
+                                </div>
+                                {isUpdating ? <Skeleton className="h-4 w-full" /> : <Progress value={player.level} id="level" />}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 pt-4">
+                                <InfoItem icon={Clock} label="В игре" value={player.timeFormatted} isLoading={isUpdating} skeletonWidth="w-full"/>
+                                <InfoItem icon={DollarSign} label="Деньги" value={`$${player.money.toLocaleString('ru-RU')}`} isLoading={isUpdating} />
+                                <InfoItem icon={UserIcon} label="Группа" value={<Badge variant={player.group === 'Игрок' ? 'outline' : 'secondary'}>{player.group}</Badge>} isLoading={isUpdating} />
+                                <InfoItem icon={Briefcase} label="Профессия" value={player.profession} isLoading={isUpdating} />
+                                <InfoItem icon={Signal} label="Пинг" value={`${player.ping} мс`} isLoading={isUpdating} skeletonWidth="w-1/2"/>
+                                <InfoItem icon={Skull} label="Убийства" value={player.kills.toLocaleString('ru-RU')} isLoading={isUpdating} />
+                                <InfoItem icon={HeartCrack} label="Смерти" value={player.deaths.toLocaleString('ru-RU')} isLoading={isUpdating} />
+                            </div>
+                        </CardContent>
+                    </BlurWrapper>
+                </Card>
+
+                <div className="lg:col-span-2 space-y-6">
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <PrimeLevelDisplay level={player.primeLevel} />
+                    </BlurWrapper>
+
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <Card className="bg-card/50">
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Terminal />
+                                        Активность на сервере
+                                    </div>
+                                    <div className="text-xs font-normal text-muted-foreground flex items-center gap-1.5">
+                                        <RefreshCw className={cn("w-3 h-3", isUpdating && "animate-spin")}/>
+                                        <span>{isUpdating ? "Обновление..." : "Обновляется"}</span>
+                                    </div>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                            <ActivityLog logs={player.activities} isLoading={isUpdating && player.activities.length === 0} />
+                            </CardContent>
+                        </Card>
+                    </BlurWrapper>
+                    
+                    <BlurWrapper isBlurred={!canView && !isLoadingPermissions}>
+                        <Card className="bg-card/50">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Gem className="text-primary"/>
+                                    Донатные профессии
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                            {isUpdating && player.donatedProfessions.length === 0 ? <Skeleton className="h-8 w-2/3" /> : player.donatedProfessions.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {player.donatedProfessions.map(prof => (
+                                        <Badge key={prof} variant="outline" className="text-base py-1 px-3 bg-card border-primary/50 text-primary">
+                                            {prof}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                                    <ShieldQuestion />
+                                    <span>Нет информации о донатных профессиях.</span>
+                                </div>
+                            )}
+                            </CardContent>
+                        </Card>
+                    </BlurWrapper>
+
+                    <AdminPanel player={player} setPlayer={setPlayer} isAllowed={canEdit} isLoadingPermissions={isLoadingPermissions} />
+                </div>
+            </div>
+        </div>
+    );
+}

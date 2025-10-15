@@ -1,0 +1,376 @@
+{
+  "users": [
+    {
+      "id": "1759330549199",
+      "email": "texnuk17@gmail.com",
+      "login": "Intercom",
+      "password": "123123123",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-01T14:55:49.200Z",
+      "lastLogin": "2025-10-06T18:51:39.264Z",
+      "permissions": {
+        "viewConsole": true,
+        "editPlayers": true
+      },
+      "isVerified": true,
+      "loginHistory": [
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T19:08:08.114Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T19:04:09.243Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T19:02:19.361Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:57:21.090Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-06T18:51:39.264Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:29:42.312Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-06T18:28:37.071Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:15:13.179Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-06T18:14:57.092Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:14:47.296Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-06T18:14:43.713Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-06T18:14:16.271Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:08:33.490Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:07:54.552Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T18:05:13.812Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T17:54:24.449Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T14:56:49.787Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-06T14:44:45.823Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-06T14:41:34.876Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-05T19:30:47.800Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        }
+      ],
+      "passwordExported": true
+    },
+    {
+      "id": "1759338908908",
+      "email": "texnuk7@gmail.com",
+      "login": "pakemo",
+      "password": "$2a$12$dvRyAaeHcN/afN5AnnhyXuOLG.Q9URf2pXHi6NUfEw9WfWNa1Wl46",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-01T17:15:08.909Z",
+      "lastLogin": "2025-10-01T18:24:16.027Z",
+      "permissions": {
+        "viewConsole": false,
+        "editPlayers": false
+      },
+      "isVerified": false,
+      "loginHistory": [
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T18:24:22.841Z",
+          "ip": "127.0.0.1",
+          "userAgent": "ACCESS_REVOKED_BY_ADMIN: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T18:24:16.027Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T18:19:19.649Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T18:16:58.398Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T18:16:50.224Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T18:16:44.626Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T18:16:39.166Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T18:16:23.519Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T18:07:31.513Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T17:22:47.415Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T17:19:01.661Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T17:18:15.577Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T17:17:58.625Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-01T17:16:19.801Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-01T17:15:51.339Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        }
+      ]
+    },
+    {
+      "id": "1759391375197",
+      "email": "BLACKRUSSIAVIPLATYBOT@GMAIL.COM",
+      "login": "12312",
+      "password": "$2a$12$7JnYIV6ibyst6QBPxNxlnu3aeAyqEbZbBaL/6V8Usm5AtmWKUujh6",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-02T07:49:35.197Z",
+      "lastLogin": "2025-10-02T11:25:42.331Z",
+      "permissions": {
+        "viewConsole": false,
+        "editPlayers": false,
+        "viewPlayers": false
+      },
+      "isVerified": false,
+      "loginHistory": [
+        {
+          "type": "logout",
+          "timestamp": "2025-10-05T09:36:15.965Z",
+          "ip": "127.0.0.1",
+          "userAgent": "ACCESS_REVOKED_BY_ADMIN: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:30:10.201Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:29:07.798Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:29:07.130Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:26:49.975Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:26:15.739Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-02T11:26:15.715Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-02T11:25:42.331Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        }
+      ]
+    },
+    {
+      "id": "1759411613809",
+      "email": "dcimbler@gmail.com",
+      "login": "12321",
+      "password": "$2a$12$91bZLVDtlB3zBH4lh3t8q.SFjN9gNgFvHHvP/OOkR2217bzSrjV1u",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-02T13:26:53.809Z",
+      "lastLogin": "2025-10-02T13:26:53.809Z",
+      "permissions": {
+        "viewConsole": false,
+        "editPlayers": false,
+        "viewPlayers": false
+      },
+      "isVerified": false,
+      "loginHistory": [],
+      "passwordExported": false
+    },
+    {
+      "id": "1759657060919",
+      "email": "babaidedaTOP@gmail.com",
+      "login": "123123",
+      "password": "123123123",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0",
+      "createdAt": "2025-10-05T09:37:40.919Z",
+      "lastLogin": "2025-10-05T09:39:10.687Z",
+      "permissions": {
+        "viewConsole": false,
+        "editPlayers": false,
+        "viewPlayers": false
+      },
+      "isVerified": true,
+      "loginHistory": [
+        {
+          "type": "logout",
+          "timestamp": "2025-10-05T09:43:45.664Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-05T09:43:08.768Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "logout",
+          "timestamp": "2025-10-05T09:43:08.767Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        },
+        {
+          "type": "login",
+          "timestamp": "2025-10-05T09:39:10.687Z",
+          "ip": "127.0.0.1",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"
+        }
+      ],
+      "passwordExported": true
+    }
+  ]
+}
